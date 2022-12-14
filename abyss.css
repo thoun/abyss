@@ -41,7 +41,7 @@
 #game-board {
   width: 740px;
   height: 603px;
-  background-image: url(img/gameboard.png);
+  background-image: url(img/gameboard.jpg);
   margin-bottom: 10px;
   margin-right: 10px;
 }
@@ -69,7 +69,7 @@
 #threat-track {
   width: 120px;
   height: 490px;
-  background-image: url(img/track.png);
+  background-image: url(img/track.jpg);
   margin-right: 10px;
 }
 
@@ -288,7 +288,7 @@ html body #game-holder .slot-fake {
 .lord {
   width: 88px; /* 370 / 420 */
   height: 136px;
-  background-image: url(img/lords.png);
+  background-image: url(img/lords.jpg);
   background-size: 1100% 400%;
   color: white;
   bottom: 0;
@@ -377,7 +377,7 @@ html .lord .lord-desc {
 .ally {
   width: 58px;
   height: 86px;
-  background-image: url(img/allies.png);
+  background-image: url(img/allies.jpg);
   background-size: 800% 400%;
   color: white;
   border-radius: 3px;
@@ -627,7 +627,7 @@ i.icon-monster-4 {
 }
 
 i.icon-ally {
-  background-image: url(img/allies.png);
+  background-image: url(img/allies.jpg);
   background-size: 800% 400%;
   background-position: 0 0;
   width: 12px;
