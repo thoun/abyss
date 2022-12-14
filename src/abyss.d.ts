@@ -3,7 +3,12 @@
  */
 
 interface AbyssPlayer extends Player {
-    // TODO
+    hand: any[];
+    affiliated;
+    locations;
+    lords;
+    monsters;
+    autopass;
 }
 
 interface AbyssGamedatas {
@@ -19,7 +24,16 @@ interface AbyssGamedatas {
     tablespeed: string;
 
     // Add here variables you set up in getAllDatas
+    turn_order;
     game_ending_player;
+    lord_slots;
+    ally_explore_slots;
+    ally_council_slots;
+    lord_deck;
+    ally_deck;
+    threat_level;
+    location_available;
+    location_deck;
 }
 
 interface AbyssGame extends Game {

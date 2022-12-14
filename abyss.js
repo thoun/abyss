@@ -213,7 +213,7 @@ var Lord = {
         $('lordcount_p' + playerId).innerHTML = numLords;
     }
 };
-var Location = {
+var Locations = {
     uniqueId: 0,
     makeDesc: function (location, laurel) {
         var pointsReplacement = laurel ? '<i class="icon icon-laurel"></i>' : ' <i class="fa fa-star"></i>';
@@ -233,9 +233,9 @@ var Location = {
         return desc;
     },
     render: function (location) {
-        Location.uniqueId++;
-        var desc = Location.makeDesc(location, true);
-        return "<div id=\"location-uid-".concat(Location.uniqueId, "\" class=\"location board location-").concat(location.location_id, "\" data-location-id=\"").concat(location.location_id, "\">\n      <div class=\"location-clicker\"></div>\n      <span class=\"location-name\">").concat(_(location.name), "</span>\n      <span class=\"location-desc\">").concat(desc, "</span>\n      <div class=\"trapped-lords-holder\"></div>\n    </div>");
+        Locations.uniqueId++;
+        var desc = Locations.makeDesc(location, true);
+        return "<div id=\"location-uid-".concat(Locations.uniqueId, "\" class=\"location board location-").concat(location.location_id, "\" data-location-id=\"").concat(location.location_id, "\">\n      <div class=\"location-clicker\"></div>\n      <span class=\"location-name\">").concat(_(location.name), "</span>\n      <span class=\"location-desc\">").concat(desc, "</span>\n      <div class=\"trapped-lords-holder\"></div>\n    </div>");
     },
     placeLords: function (locationNode, lords) {
         for (var i in lords) {
@@ -266,14 +266,14 @@ var Location = {
         }
     },
     renderTooltip: function (location) {
-        var desc = Location.makeDesc(location);
+        var desc = Locations.makeDesc(location);
         return "<div class=\"abs-tooltip-location\">\n      <h3 style=\"padding-right: 50px;\">".concat(_(location.name), "</h3>\n      <hr>\n      ").concat(desc, "\n    </div>");
     },
     placeWithTooltip: function (location, parent) {
-        var node = dojo.place(Location.render(location), parent);
-        Tooltip.connect(node, Location.renderTooltip(location), "location");
+        var node = dojo.place(Locations.render(location), parent);
+        Tooltip.connect(node, Locations.renderTooltip(location), "location");
         if (parent && parent.id == 'locations-holder') {
-            Location.organise();
+            Locations.organise();
         }
         return node;
     },
@@ -441,7 +441,7 @@ var Abyss = /** @class */ (function () {
                     height: height
                 });
             }
-            Location.organise();
+            Locations.organise();
         }, 200));
         // Setting up player boards
         for (var player_id in gamedatas.players) {
@@ -504,8 +504,8 @@ var Abyss = /** @class */ (function () {
                         lords.push(lord);
                     }
                 }
-                var locationNode = Location.placeWithTooltip(location, locationsHolder);
-                Location.placeLords(locationNode, lords);
+                var locationNode = Locations.placeWithTooltip(location, locationsHolder);
+                Locations.placeLords(locationNode, lords);
             }
             var freeLordHolder = dojo.query("#player-panel-".concat(p, " .free-lords"))[0];
             for (var j in player.lords) {
@@ -515,7 +515,7 @@ var Abyss = /** @class */ (function () {
                 }
             }
             Lord.updateLordKeys(p);
-            Location.organisePlayerBoard(p);
+            Locations.organisePlayerBoard(p);
             p = gamedatas.turn_order[p];
         } while (p != this.player_id);
         // Monsters
@@ -556,7 +556,7 @@ var Abyss = /** @class */ (function () {
         // Locations
         for (var i in gamedatas.location_available) {
             var location = gamedatas.location_available[i];
-            Location.placeWithTooltip(location, $('locations-holder'));
+            Locations.placeWithTooltip(location, $('locations-holder'));
         }
         this.setDeckSize(dojo.query('#locations-holder .location-back'), gamedatas.location_deck);
         // Clickers
@@ -781,25 +781,25 @@ var Abyss = /** @class */ (function () {
                 if (this.isCurrentPlayerActive()) {
                     dojo.query("#locations-holder .location:not(.location-back)").addClass("unavailable");
                     dojo.query("#locations-holder-overflow .location:not(.location-back)").addClass("unavailable");
-                    for (var i in args.args.location_ids) {
-                        var location_id = args.args.location_ids[i];
+                    for (var iLocationId in args.args.location_ids) {
+                        var location_id = args.args.location_ids[iLocationId];
                         dojo.query("#locations-holder .location.location-" + location_id).removeClass("unavailable");
                         dojo.query("#locations-holder-overflow .location.location-" + location_id).removeClass("unavailable");
                     }
                 }
             case 'control':
                 dojo.query(".free-lords .lord").removeClass("selected");
-                for (var i in args.args.default_lord_ids) {
-                    var lord_id = args.args.default_lord_ids[i];
+                for (var iLordId in args.args.default_lord_ids) {
+                    var lord_id = args.args.default_lord_ids[iLordId];
                     dojo.query("#player-panel-" + this.player_id + " .free-lords .lord.lord-" + lord_id).addClass("selected");
                 }
                 break;
             case 'locationEffectBlackSmokers':
                 // Draw all the locations in a div at the top. Register to each an onclick to select it.
                 if (this.isCurrentPlayerActive()) {
-                    for (var i in args.args._private.locations) {
-                        var location = args.args._private.locations[i];
-                        var location_element = Location.placeWithTooltip(location, $('game-extra'));
+                    for (var iLocation in args.args._private.locations) {
+                        var location = args.args._private.locations[iLocation];
+                        var location_element = Locations.placeWithTooltip(location, $('game-extra'));
                         dojo.addClass(location_element, 'card-current-move');
                         dojo.connect(location_element, 'onclick', this, 'onClickLocation');
                     }
@@ -812,8 +812,8 @@ var Abyss = /** @class */ (function () {
             case 'explore3':
                 // Disable players who have passed
                 this.enableAllPlayerPanels();
-                for (var i in args.args.passed_players) {
-                    this.disablePlayerPanel(args.args.passed_players[i]);
+                for (var iPlayer in args.args.passed_players) {
+                    this.disablePlayerPanel(args.args.passed_players[iPlayer]);
                 }
                 // Underline the first player
                 var first_player = args.args.first_player;
@@ -1358,8 +1358,8 @@ var Abyss = /** @class */ (function () {
         }
         // Add the location to the player board
         var locations_holder = dojo.query('#player-panel-' + player_id + ' .locations')[0];
-        var added_location = Location.placeWithTooltip(location, locations_holder);
-        Location.organisePlayerBoard(player_id);
+        var added_location = Locations.placeWithTooltip(location, locations_holder);
+        Locations.organisePlayerBoard(player_id);
         // Add the lords to the location
         for (var i in lords) {
             var lord = lords[i];
@@ -1383,7 +1383,7 @@ var Abyss = /** @class */ (function () {
         var deck_size = notif.args.deck_size;
         for (var i in locations) {
             var location = locations[i];
-            Location.placeWithTooltip(location, $('locations-holder'));
+            Locations.placeWithTooltip(location, $('locations-holder'));
         }
         this.setDeckSize(dojo.query('#locations-holder .location-back'), deck_size);
     };

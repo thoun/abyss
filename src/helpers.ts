@@ -1,3 +1,5 @@
+declare const gameui;
+
 let Ally = {
   uniqueId: 0,
   render: function (ally) {
@@ -225,9 +227,9 @@ let Lord = {
   }
 };
 
-let Location = {
+let Locations = {
   uniqueId: 0,
-  makeDesc: function(location, laurel) {
+  makeDesc: function(location, laurel?) {
     let pointsReplacement = laurel ? '<i class="icon icon-laurel"></i>' : ' <i class="fa fa-star"></i>';
     // TODO : Wrap points in nobr to avoid line breaks
     var desc = dojo.replace(_(location.desc).replace(/\$/g, pointsReplacement), {
@@ -245,10 +247,10 @@ let Location = {
     return desc;
   },
   render: function (location) {
-    Location.uniqueId++;
-    var desc = Location.makeDesc(location, true);
+    Locations.uniqueId++;
+    var desc = Locations.makeDesc(location, true);
 
-    return `<div id="location-uid-${Location.uniqueId}" class="location board location-${location.location_id}" data-location-id="${location.location_id}">
+    return `<div id="location-uid-${Locations.uniqueId}" class="location board location-${location.location_id}" data-location-id="${location.location_id}">
       <div class="location-clicker"></div>
       <span class="location-name">${_(location.name)}</span>
       <span class="location-desc">${desc}</span>
@@ -284,7 +286,7 @@ let Location = {
     }
   },
   renderTooltip: function(location) {
-    var desc = Location.makeDesc(location);
+    var desc = Locations.makeDesc(location);
     return `<div class="abs-tooltip-location">
       <h3 style="padding-right: 50px;">${_(location.name)}</h3>
       <hr>
@@ -292,10 +294,10 @@ let Location = {
     </div>`;
   },
   placeWithTooltip: function(location, parent) {
-    let node = dojo.place( Location.render(location), parent );
-    Tooltip.connect( node, Location.renderTooltip(location), "location" );
+    let node = dojo.place( Locations.render(location), parent );
+    Tooltip.connect( node, Locations.renderTooltip(location), "location" );
     if (parent && parent.id == 'locations-holder') {
-      Location.organise();
+      Locations.organise();
     }
     return node;
   },

@@ -11,13 +11,12 @@ class Abyss implements AbyssGame {
     private gamedatas: AbyssGamedatas;
     private useZoom: boolean;
     private zoomLevel: number;
-    private lastExploreTime;
+    private lastExploreTime: number;
 
     constructor() {
     }
 
-    setup( gamedatas )
-    {
+    setup(gamedatas: AbyssGamedatas) {
         this.gamedatas = gamedatas;
 
         // Use zoom when not on FF
@@ -64,7 +63,7 @@ class Abyss implements AbyssGame {
                     height: height
                 });
             }
-            Location.organise();
+            Locations.organise();
         }, 200));
         
         // Setting up player boards
@@ -151,8 +150,8 @@ class Abyss implements AbyssGame {
                 lords.push(lord);
                 }
             }
-            let locationNode = Location.placeWithTooltip( location, locationsHolder );
-            Location.placeLords(locationNode, lords);
+            let locationNode = Locations.placeWithTooltip( location, locationsHolder );
+            Locations.placeLords(locationNode, lords);
             }
             
             var freeLordHolder = dojo.query(`#player-panel-${p} .free-lords`)[0];
@@ -164,7 +163,7 @@ class Abyss implements AbyssGame {
             }
 
             Lord.updateLordKeys(p);
-            Location.organisePlayerBoard(p);
+            Locations.organisePlayerBoard(p);
 
             p = gamedatas.turn_order[p];
         } while (p != (this as any).player_id);
@@ -211,7 +210,7 @@ class Abyss implements AbyssGame {
         // Locations
         for ( var i in gamedatas.location_available ) {
             var location = gamedatas.location_available[i];
-            Location.placeWithTooltip(location, $('locations-holder'));
+            Locations.placeWithTooltip(location, $('locations-holder'));
         }
         this.setDeckSize(dojo.query('#locations-holder .location-back'), gamedatas.location_deck);
 
@@ -447,25 +446,25 @@ class Abyss implements AbyssGame {
             if ((this as any).isCurrentPlayerActive()) {
             dojo.query("#locations-holder .location:not(.location-back)").addClass("unavailable");
             dojo.query("#locations-holder-overflow .location:not(.location-back)").addClass("unavailable");
-            for( var i in args.args.location_ids ) {
-                var location_id = args.args.location_ids[i];
+            for( var iLocationId in args.args.location_ids ) {
+                var location_id = args.args.location_ids[iLocationId];
                 dojo.query("#locations-holder .location.location-" + location_id).removeClass("unavailable");
                 dojo.query("#locations-holder-overflow .location.location-" + location_id).removeClass("unavailable");
             }
             }
         case 'control':
             dojo.query(".free-lords .lord").removeClass("selected");
-            for( var i in args.args.default_lord_ids ) {
-            var lord_id = args.args.default_lord_ids[i];
+            for( var iLordId in args.args.default_lord_ids ) {
+            var lord_id = args.args.default_lord_ids[iLordId];
             dojo.query("#player-panel-" + (this as any).player_id + " .free-lords .lord.lord-" + lord_id).addClass("selected");
             }
             break;
         case 'locationEffectBlackSmokers':
             // Draw all the locations in a div at the top. Register to each an onclick to select it.
             if ((this as any).isCurrentPlayerActive()) {
-            for( var i in args.args._private.locations ) {
-                var location = args.args._private.locations[i];
-                var location_element = Location.placeWithTooltip(location, $('game-extra'));
+            for( var iLocation in args.args._private.locations ) {
+                var location = args.args._private.locations[iLocation];
+                var location_element = Locations.placeWithTooltip(location, $('game-extra'));
                 dojo.addClass(location_element, 'card-current-move');
                 dojo.connect(location_element, 'onclick', this, 'onClickLocation');
             }
@@ -475,8 +474,8 @@ class Abyss implements AbyssGame {
         case 'purchase': case 'explore': case 'explore2': case 'explore3':
             // Disable players who have passed
             (this as any).enableAllPlayerPanels();
-            for( var i in args.args.passed_players ) {
-                (this as any).disablePlayerPanel( args.args.passed_players[i] );
+            for( var iPlayer in args.args.passed_players ) {
+                (this as any).disablePlayerPanel( args.args.passed_players[iPlayer] );
             }
             
             // Underline the first player
@@ -553,7 +552,7 @@ class Abyss implements AbyssGame {
                 break;
                 case 'chooseMonsterReward':
                 for (var i in args.rewards) {
-                    var r = args.rewards[i];
+                    var r: string = args.rewards[i];
                     r = r.replace(/K/g, "<i class=\"icon icon-key\"></i>");
                     r = r.replace(/P/g, "<i class=\"icon icon-pearl\"></i>");
                     r = r.replace(/M/g, "<i class=\"icon icon-monster\"></i>");
@@ -567,7 +566,7 @@ class Abyss implements AbyssGame {
                 case 'affiliate':
                 for (var i in args.allies) {
                     var ally = args.allies[i];
-                    var r = ally.value + ' ' + Ally.allyNameText(ally);
+                    var r: string = ally.value + ' ' + Ally.allyNameText(ally);
                     var btnId = 'button_affiliate_' + ally.ally_id;
                     (this as any).addActionButton( btnId, r, 'onChooseAffiliate' );
                     dojo.addClass($(btnId), 'affiliate-button')
@@ -918,7 +917,7 @@ class Abyss implements AbyssGame {
             dojo.stopEvent( evt );
 
             // Discard this card...
-            var player_id = dojo.attr(dojo.query(evt.target).closest('.cp_board')[0], 'data-player-id');
+            var player_id: Number = dojo.attr(dojo.query(evt.target).closest('.cp_board')[0], 'data-player-id');
             (this as any).ajaxcall( "/abyss/abyss/chooseMonsterTokens.html", { lock: true, player_id: player_id }, this,
             function( result ) {},
             function( is_error) {}
@@ -929,7 +928,7 @@ class Abyss implements AbyssGame {
             dojo.stopEvent( evt );
 
             // Discard this card...
-            var player_id = +evt.target.id.replace("button_steal_monster_token_", "");
+            var player_id: Number = +evt.target.id.replace("button_steal_monster_token_", "");
             (this as any).ajaxcall( "/abyss/abyss/chooseMonsterTokens.html", { lock: true, player_id: player_id }, this,
                 function( result ) {},
                 function( is_error) {}
@@ -1162,8 +1161,8 @@ class Abyss implements AbyssGame {
 
         // Add the location to the player board
         var locations_holder = dojo.query('#player-panel-' + player_id + ' .locations')[0];
-        var added_location = Location.placeWithTooltip(location, locations_holder);
-        Location.organisePlayerBoard(player_id);
+        var added_location = Locations.placeWithTooltip(location, locations_holder);
+        Locations.organisePlayerBoard(player_id);
 
         // Add the lords to the location
         for (var i in lords) {
@@ -1197,8 +1196,8 @@ class Abyss implements AbyssGame {
         var deck_size = notif.args.deck_size;
 
         for (var i in locations) {
-        var location = locations[i];
-        Location.placeWithTooltip( location, $('locations-holder') );
+            var location = locations[i];
+            Locations.placeWithTooltip( location, $('locations-holder') );
         }
 
         this.setDeckSize(dojo.query('#locations-holder .location-back'), deck_size);
