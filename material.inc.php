@@ -19,19 +19,6 @@
  *
  */
 
-
-/*
-
-Example:
-
-$this->card_types = array(
-    1 => array( "card_name" => ...,
-                ...
-              )
-);
-
-*/
-
 $this->locations = array(
   "1" => array( "name" => clienttranslate('Sargasso Silos'), "desc" => clienttranslate('2$ for each of your {farmer} Lords + 5$')),
   "2" => array( "name" => clienttranslate('Hydrozoa Reserves'), "desc" => clienttranslate('2$ for each of your {mage} Lords + 6$')),

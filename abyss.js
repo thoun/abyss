@@ -687,7 +687,7 @@ var Abyss = /** @class */ (function () {
             }
         }
     };
-    Abyss.prototype.setDeckSize = function (deck, num) {
+    Abyss.prototype.setDeckSize = function (deck /*dojo query result*/, num) {
         deck.removeClass("deck-empty deck-low deck-medium deck-full");
         if (num == 0) {
             deck.addClass("deck-empty");
@@ -972,7 +972,7 @@ var Abyss = /** @class */ (function () {
         _ make a call to the game server
 
     */
-    Abyss.prototype.onDiscard = function (evt) {
+    Abyss.prototype.onDiscard = function () {
         if (!this.checkAction('discard')) {
             return;
         }
@@ -980,9 +980,9 @@ var Abyss = /** @class */ (function () {
         dojo.query("#player-hand .ally.selected").forEach(function (node) {
             ally_ids.push(+dojo.attr(node, 'data-ally-id'));
         });
-        this.ajaxcall("/abyss/abyss/discard.html", { lock: true, ally_ids: ally_ids.join(';') }, this, function (result) { }, function (is_error) { });
+        this.ajaxcall("/abyss/abyss/discard.html", { lock: true, ally_ids: ally_ids.join(';') }, this, function () { }, function () { });
     };
-    Abyss.prototype.onRecruit = function (evt) {
+    Abyss.prototype.onRecruit = function () {
         if (!this.checkAction('pay')) {
             return;
         }
@@ -990,14 +990,14 @@ var Abyss = /** @class */ (function () {
         dojo.query("#player-hand .ally.selected").forEach(function (node) {
             ally_ids.push(+dojo.attr(node, 'data-ally-id'));
         });
-        this.ajaxcall("/abyss/abyss/pay.html", { lock: true, ally_ids: ally_ids.join(';') }, this, function (result) { }, function (is_error) { });
+        this.ajaxcall("/abyss/abyss/pay.html", { lock: true, ally_ids: ally_ids.join(';') }, this, function () { }, function () { });
     };
     Abyss.prototype.onChooseAffiliate = function (evt) {
         if (!this.checkAction('affiliate')) {
             return;
         }
         var ally_id = +evt.currentTarget.id.replace('button_affiliate_', '');
-        this.ajaxcall("/abyss/abyss/affiliate.html", { lock: true, ally_id: ally_id }, this, function (result) { }, function (is_error) { });
+        this.ajaxcall("/abyss/abyss/affiliate.html", { lock: true, ally_id: ally_id }, this, function () { }, function () { });
     };
     Abyss.prototype.onClickCouncilTrack = function (evt) {
         if (dojo.hasClass(evt.target, 'ally')) {
@@ -1007,7 +1007,7 @@ var Abyss = /** @class */ (function () {
             if (!this.checkAction('requestSupport')) {
                 return;
             }
-            this.ajaxcall("/abyss/abyss/requestSupport.html", { lock: true, faction: faction }, this, function (result) { }, function (is_error) { });
+            this.ajaxcall("/abyss/abyss/requestSupport.html", { lock: true, faction: faction }, this, function () { }, function () { });
         }
     };
     Abyss.prototype.onClickLocation = function (evt) {
@@ -1030,7 +1030,7 @@ var Abyss = /** @class */ (function () {
                             dojo.query("#player-panel-" + this.player_id + " .free-lords .lord.selected").forEach(function (node) {
                                 lord_ids.push(+dojo.attr(node, 'data-lord-id'));
                             });
-                            this.ajaxcall("/abyss/abyss/chooseLocation.html", { lock: true, location_id: location_id_1, lord_ids: lord_ids.join(';') }, this, function (result) { }, function (is_error) { });
+                            this.ajaxcall("/abyss/abyss/chooseLocation.html", { lock: true, location_id: location_id_1, lord_ids: lord_ids.join(';') }, this, function () { }, function () { });
                         }));
                         return;
                     }
@@ -1039,7 +1039,7 @@ var Abyss = /** @class */ (function () {
                 dojo.query("#player-panel-" + this.player_id + " .free-lords .lord.selected").forEach(function (node) {
                     lord_ids.push(+dojo.attr(node, 'data-lord-id'));
                 });
-                this.ajaxcall("/abyss/abyss/chooseLocation.html", { lock: true, location_id: location_id_1, lord_ids: lord_ids.join(';') }, this, function (result) { }, function (is_error) { });
+                this.ajaxcall("/abyss/abyss/chooseLocation.html", { lock: true, location_id: location_id_1, lord_ids: lord_ids.join(';') }, this, function () { }, function () { });
             }
         }
     };
@@ -1051,7 +1051,7 @@ var Abyss = /** @class */ (function () {
             if (!this.checkAction('recruit')) {
                 return;
             }
-            this.ajaxcall("/abyss/abyss/recruit.html", { lock: true, lord_id: lord_id }, this, function (result) { }, function (is_error) { });
+            this.ajaxcall("/abyss/abyss/recruit.html", { lock: true, lord_id: lord_id }, this, function () { }, function () { });
         }
     };
     Abyss.prototype.onClickExploreTrack = function (evt) {
@@ -1067,7 +1067,7 @@ var Abyss = /** @class */ (function () {
         if (!this.checkAction('explore')) {
             return;
         }
-        this.ajaxcall("/abyss/abyss/explore.html", { lock: true }, this, function (result) { }, function (is_error) { });
+        this.ajaxcall("/abyss/abyss/explore.html", { lock: true }, this, function () { }, function () { });
     };
     Abyss.prototype.onClickExploreCard = function (evt) {
         dojo.stopEvent(evt);
@@ -1094,28 +1094,28 @@ var Abyss = /** @class */ (function () {
         else if (dojo.hasClass(evt.target, 'slot-5')) {
             slot = 5;
         }
-        this.ajaxcall("/abyss/abyss/exploreTake.html", { lock: true, slot: slot }, this, function (result) { }, function (is_error) { });
+        this.ajaxcall("/abyss/abyss/exploreTake.html", { lock: true, slot: slot }, this, function () { }, function () { });
     };
     Abyss.prototype.onPurchase = function (evt) {
         dojo.stopEvent(evt);
         if (!this.checkAction('purchase')) {
             return;
         }
-        this.ajaxcall("/abyss/abyss/purchase.html", { lock: true }, this, function (result) { }, function (is_error) { });
+        this.ajaxcall("/abyss/abyss/purchase.html", { lock: true }, this, function () { }, function () { });
     };
     Abyss.prototype.onPass = function (evt) {
         dojo.stopEvent(evt);
         if (!this.checkAction('pass')) {
             return;
         }
-        this.ajaxcall("/abyss/abyss/pass.html", { lock: true }, this, function (result) { }, function (is_error) { });
+        this.ajaxcall("/abyss/abyss/pass.html", { lock: true }, this, function () { }, function () { });
     };
     Abyss.prototype.onPlot = function (evt) {
         dojo.stopEvent(evt);
         if (!this.checkAction('plot')) {
             return;
         }
-        this.ajaxcall("/abyss/abyss/plot.html", { lock: true }, this, function (result) { }, function (is_error) { });
+        this.ajaxcall("/abyss/abyss/plot.html", { lock: true }, this, function () { }, function () { });
     };
     Abyss.prototype.onChooseMonsterReward = function (evt) {
         dojo.stopEvent(evt);
@@ -1123,7 +1123,7 @@ var Abyss = /** @class */ (function () {
             return;
         }
         var option = +evt.currentTarget.id.replace("button_reward_", '');
-        this.ajaxcall("/abyss/abyss/chooseReward.html", { lock: true, option: option }, this, function (result) { }, function (is_error) { });
+        this.ajaxcall("/abyss/abyss/chooseReward.html", { lock: true, option: option }, this, function () { }, function () { });
     };
     Abyss.prototype.onClickPlayerHand = function (evt) {
         if (dojo.hasClass(evt.target, 'ally')) {
@@ -1159,7 +1159,7 @@ var Abyss = /** @class */ (function () {
             else if (this.checkAction('selectAlly', true)) {
                 dojo.stopEvent(evt);
                 var ally_id = dojo.attr(evt.target, 'data-ally-id');
-                this.ajaxcall("/abyss/abyss/selectAlly.html", { lock: true, ally_id: ally_id }, this, function (result) { }, function (is_error) { });
+                this.ajaxcall("/abyss/abyss/selectAlly.html", { lock: true, ally_id: ally_id }, this, function () { }, function () { });
             }
         }
     };
@@ -1169,7 +1169,7 @@ var Abyss = /** @class */ (function () {
                 dojo.stopEvent(evt);
                 // Discard this card...
                 var player_id = dojo.attr(dojo.query(evt.target).closest('.cp_board')[0], 'data-player-id');
-                this.ajaxcall("/abyss/abyss/chooseMonsterTokens.html", { lock: true, player_id: player_id }, this, function (result) { }, function (is_error) { });
+                this.ajaxcall("/abyss/abyss/chooseMonsterTokens.html", { lock: true, player_id: player_id }, this, function () { }, function () { });
             }
         }
         else {
@@ -1177,7 +1177,7 @@ var Abyss = /** @class */ (function () {
                 dojo.stopEvent(evt);
                 // Discard this card...
                 var player_id = +evt.target.id.replace("button_steal_monster_token_", "");
-                this.ajaxcall("/abyss/abyss/chooseMonsterTokens.html", { lock: true, player_id: player_id }, this, function (result) { }, function (is_error) { });
+                this.ajaxcall("/abyss/abyss/chooseMonsterTokens.html", { lock: true, player_id: player_id }, this, function () { }, function () { });
             }
         }
     };
@@ -1186,12 +1186,12 @@ var Abyss = /** @class */ (function () {
             if (this.checkAction('selectLord', true)) {
                 dojo.stopEvent(evt);
                 var lord_id = dojo.attr(evt.target, "data-lord-id");
-                this.ajaxcall("/abyss/abyss/selectLord.html", { lock: true, lord_id: lord_id }, this, function (result) { }, function (is_error) { });
+                this.ajaxcall("/abyss/abyss/selectLord.html", { lock: true, lord_id: lord_id }, this, function () { }, function () { });
             }
             else if (this.checkAction('lordEffect', true)) {
                 dojo.stopEvent(evt);
                 var lord_id = dojo.attr(evt.target, "data-lord-id");
-                this.ajaxcall("/abyss/abyss/lordEffect.html", { lock: true, lord_id: lord_id }, this, function (result) { }, function (is_error) { });
+                this.ajaxcall("/abyss/abyss/lordEffect.html", { lock: true, lord_id: lord_id }, this, function () { }, function () { });
             }
             else if (this.checkAction('chooseLocation', true)) {
                 dojo.stopEvent(evt);
@@ -1220,7 +1220,7 @@ var Abyss = /** @class */ (function () {
             }
             autopass += "" + max;
         }
-        this.ajaxcall("/abyss/abyss/setAutopass.html", { autopass: autopass }, this, function (result) { }, function (is_error) { });
+        this.ajaxcall("/abyss/abyss/setAutopass.html", { autopass: autopass }, this, function () { }, function () { });
     };
     Abyss.prototype.onDrawLocation = function (evt) {
         dojo.stopEvent(evt);
@@ -1228,7 +1228,7 @@ var Abyss = /** @class */ (function () {
             return;
         }
         var num = +evt.currentTarget.id.replace('button_draw_', '');
-        this.ajaxcall("/abyss/abyss/drawLocations.html", { lock: true, num: num }, this, function (result) { }, function (is_error) { });
+        this.ajaxcall("/abyss/abyss/drawLocations.html", { lock: true, num: num }, this, function () { }, function () { });
     };
     ///////////////////////////////////////////////////
     //// Reaction to cometD notifications
@@ -1332,7 +1332,7 @@ var Abyss = /** @class */ (function () {
             dojo.setAttr(node, "data-used", "1");
         });
     };
-    Abyss.prototype.notif_refreshLords = function (notif) {
+    Abyss.prototype.notif_refreshLords = function () {
         dojo.query(".lord").forEach(function (node) {
             dojo.setAttr(node, "data-used", "0");
         });
@@ -1347,14 +1347,10 @@ var Abyss = /** @class */ (function () {
         var lords = notif.args.lords;
         var player_id = notif.args.player_id;
         // Delete the location/lords
-        dojo.query('.location.location-' + location.location_id).forEach(function (node) {
-            dojo.destroy(node);
-        });
+        dojo.query('.location.location-' + location.location_id).forEach(function (node) { return dojo.destroy(node); });
         for (var i in lords) {
             var lord = lords[i];
-            dojo.query('.lord.lord-' + lord.lord_id).forEach(function (node) {
-                dojo.destroy(node);
-            });
+            dojo.query('.lord.lord-' + lord.lord_id).forEach(function (node) { return dojo.destroy(node); });
         }
         // Add the location to the player board
         var locations_holder = dojo.query('#player-panel-' + player_id + ' .locations')[0];
@@ -1452,17 +1448,16 @@ var Abyss = /** @class */ (function () {
             $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) - 1;
             // If it's me, also delete the actual ally
             if (player_id == this.player_id) {
-                dojo.query('#player-panel-' + this.player_id + ' .hand .ally[data-ally-id=' + ally.ally_id + ']').forEach(function (node) {
-                    dojo.destroy(node);
-                });
+                dojo.query('#player-panel-' + this.player_id + ' .hand .ally[data-ally-id=' + ally.ally_id + ']').forEach(function (node) { return dojo.destroy(node); });
             }
         }
         this.organisePanelMessages();
     };
     Abyss.prototype.notif_explore = function (notif) {
         var ally = notif.args.ally;
-        if (ally.faction == null)
+        if (ally.faction == null) {
             ally.faction = 'monster';
+        }
         var node = Ally.placeWithTooltip(ally, $('explore-track'));
         dojo.setStyle(node, "left", "9px");
         requestAnimationFrame(function () {
@@ -1478,7 +1473,7 @@ var Abyss = /** @class */ (function () {
         if (deltaTime < 2000) {
             var self_1 = this;
             setTimeout(function () {
-                self_1.notif_exploreTake_real(notif);
+                return self_1.notif_exploreTake_real(notif);
             }, 2000 - deltaTime);
         }
         else {
@@ -1632,7 +1627,7 @@ var Abyss = /** @class */ (function () {
         }
         this.organisePanelMessages();
     };
-    Abyss.prototype.notif_moveLordsRight = function (notif) {
+    Abyss.prototype.notif_moveLordsRight = function () {
         // Shuffle everything right
         var num = dojo.query("#lords-track .lord").length - 1;
         for (var i = 6; i >= 1; i--) {
@@ -1655,30 +1650,26 @@ var Abyss = /** @class */ (function () {
         var spent_allies = notif.args.spent_allies;
         // Remove lord from the track
         if (lord) {
-            dojo.query("#lords-track .lord[data-lord-id=" + lord.lord_id + "]").forEach(function (node) {
-                dojo.destroy(node);
-            });
+            dojo.query("#lords-track .lord[data-lord-id=" + lord.lord_id + "]").forEach(function (node) { return dojo.destroy(node); });
         }
         // Spend pearls and allies
-        if (spent_allies)
+        if (spent_allies) {
             $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) - spent_allies.length;
-        if (spent_pearls)
+        }
+        if (spent_pearls) {
             $('pearlcount_p' + player_id).innerHTML = +($('pearlcount_p' + player_id).innerHTML) - spent_pearls;
+        }
         // If it's me, then actually get rid of the allies
         if (spent_allies && +player_id == +this.player_id) {
             for (var i in spent_allies) {
                 var ally = spent_allies[i];
-                dojo.query('#player-panel-' + player_id + ' .hand .ally[data-ally-id=' + ally.ally_id + ']').forEach(function (node) {
-                    dojo.destroy(node);
-                });
+                dojo.query('#player-panel-' + player_id + ' .hand .ally[data-ally-id=' + ally.ally_id + ']').forEach(function (node) { return dojo.destroy(node); });
             }
         }
         if (spent_lords) {
             for (var i in spent_lords) {
                 var lord2 = spent_lords[i];
-                dojo.query('#player-panel-' + player_id + ' .lord[data-lord-id=' + lord2.lord_id + ']').forEach(function (node) {
-                    dojo.destroy(node);
-                });
+                dojo.query('#player-panel-' + player_id + ' .lord[data-lord-id=' + lord2.lord_id + ']').forEach(function (node) { return dojo.destroy(node); });
             }
         }
         // Add the lord
@@ -1732,9 +1723,7 @@ var Abyss = /** @class */ (function () {
             if (notif.args.player_id == this.player_id) {
                 for (var i in allies) {
                     var ally = allies[i];
-                    dojo.query('#player-panel-' + this.player_id + ' .hand .ally[data-ally-id=' + ally.ally_id + ']').forEach(function (node) {
-                        dojo.destroy(node);
-                    });
+                    dojo.query('#player-panel-' + this.player_id + ' .hand .ally[data-ally-id=' + ally.ally_id + ']').forEach(function (node) { return dojo.destroy(node); });
                 }
             }
         }

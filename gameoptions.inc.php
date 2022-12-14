@@ -24,12 +24,12 @@
  *
  */
 
-$game_options = array(
+$game_options = [
 
     /*
 
     // note: game variant ID should start at 100 (ie: 100, 101, 102, ...). The maximum is 199.
-    100 => array(
+    101 => array(
                 'name' => totranslate('my game option'),
                 'values' => array(
 
@@ -51,16 +51,16 @@ $game_options = array(
 
     */
 
-);
+];
 
-$game_preferences = array(
-    100 => array(
+$game_preferences = [
+    100 => [
         'name' => totranslate('Use playmat'),
         'needReload' => true,
-        'values' => array(
-            1 => array( 'name' => totranslate( 'Yes' ), 'cssPref' => 'playmat_on' ),
-            2 => array( 'name' => totranslate( 'No' ), 'cssPref' => 'playmat_off' )
-        ),
-        'default' => 1
-    ),
-);
+        'values' => [
+            1 => [ 'name' => totranslate( 'Yes' ), 'cssPref' => 'playmat_on' ],
+            2 => [ 'name' => totranslate( 'No' ), 'cssPref' => 'playmat_off' ],
+        ],
+        'default' => 1,
+    ],
+];

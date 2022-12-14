@@ -9,6 +9,8 @@ interface AbyssPlayer extends Player {
     lords;
     monsters;
     autopass;
+    hand_size;
+    num_monsters;
 }
 
 interface AbyssGamedatas {

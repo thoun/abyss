@@ -347,7 +347,7 @@ class Abyss implements AbyssGame {
         }
     }
 
-    setDeckSize(deck, num) {
+    setDeckSize(deck /*dojo query result*/, num: number) {
         deck.removeClass("deck-empty deck-low deck-medium deck-full");
         if (num == 0) {
         deck.addClass("deck-empty");
@@ -379,8 +379,7 @@ class Abyss implements AbyssGame {
     // onEnteringState: this method is called each time we are entering into a new game state.
     //                  You can use this method to perform some user interface changes at this moment.
     //
-    onEnteringState( stateName, args )
-    {
+    onEnteringState(stateName: string, args: any) {
         // Remove all current move indicators
         dojo.query('.card-current-move').removeClass('card-current-move');
         if ((this as any).isCurrentPlayerActive()) {
@@ -490,8 +489,7 @@ class Abyss implements AbyssGame {
     // onLeavingState: this method is called each time we are leaving a game state.
     //                 You can use this method to perform some user interface changes at this moment.
     //
-    onLeavingState( stateName )
-    {
+    onLeavingState(stateName: string) {
         $('game-extra').innerHTML = '';
         dojo.style($('game-extra'), "display", "none");
 
@@ -524,8 +522,7 @@ class Abyss implements AbyssGame {
     // onUpdateActionButtons: in this method you can manage "action buttons" that are displayed in the
     //                        action status bar (ie: the HTML links in the status bar).
     //
-    onUpdateActionButtons( stateName, args )
-    {
+    onUpdateActionButtons(stateName: string, args: any) {
         if ((this as any).isCurrentPlayerActive() && ["plotAtCourt", "action", "secondStack", "explore", "explore2", "explore3", "chooseMonsterReward", "recruitPay", "affiliate", "cleanupDiscard", "controlPostDraw", "unusedLords"].includes(stateName)) {
             dojo.query("#player-panel-"+(this as any).player_id+" .free-lords .lord").forEach(function (node) {
             // unused, and unturned...
@@ -633,52 +630,52 @@ class Abyss implements AbyssGame {
         _ make a call to the game server
 
     */
-    onDiscard( evt ) {
-        if( ! (this as any).checkAction( 'discard' ) ) {
+    onDiscard() {
+        if(!(this as any).checkAction( 'discard' )) {
         return;
         }
 
         var ally_ids = [];
-        dojo.query("#player-hand .ally.selected").forEach(function (node) {
-        ally_ids.push(+dojo.attr(node, 'data-ally-id'));
+        dojo.query("#player-hand .ally.selected").forEach(node => {
+            ally_ids.push(+dojo.attr(node, 'data-ally-id'));
         });
 
         (this as any).ajaxcall( "/abyss/abyss/discard.html", { lock: true, ally_ids: ally_ids.join(';') }, this,
-        function( result ) {},
-        function( is_error) {}
+        () => {},
+        () => {}
         );
     }
 
-    onRecruit( evt ) {
-        if( ! (this as any).checkAction( 'pay' ) ) {
+    onRecruit() {
+        if(!(this as any).checkAction( 'pay' )) {
         return;
         }
 
         var ally_ids = [];
-        dojo.query("#player-hand .ally.selected").forEach(function (node) {
-        ally_ids.push(+dojo.attr(node, 'data-ally-id'));
+        dojo.query("#player-hand .ally.selected").forEach(node => {
+            ally_ids.push(+dojo.attr(node, 'data-ally-id'));
         });
 
         (this as any).ajaxcall( "/abyss/abyss/pay.html", { lock: true, ally_ids: ally_ids.join(';') }, this,
-        function( result ) {},
-        function( is_error) {}
+        () => {},
+        () => {}
         );
     }
 
-    onChooseAffiliate( evt ) {
-        if( ! (this as any).checkAction( 'affiliate' ) ) {
+    onChooseAffiliate(evt) {
+        if(!(this as any).checkAction( 'affiliate' )) {
         return;
         }
 
         var ally_id = +evt.currentTarget.id.replace('button_affiliate_', '');
 
         (this as any).ajaxcall( "/abyss/abyss/affiliate.html", { lock: true, ally_id: ally_id }, this,
-        function( result ) {},
-        function( is_error) {}
+        () => {},
+        () => {}
         );
     }
 
-    onClickCouncilTrack( evt ) {
+    onClickCouncilTrack(evt) {
         if (dojo.hasClass(evt.target, 'ally')) {
         // Draw this stack??
         dojo.stopEvent( evt );
@@ -690,8 +687,8 @@ class Abyss implements AbyssGame {
         }
 
         (this as any).ajaxcall( "/abyss/abyss/requestSupport.html", { lock: true, faction: faction }, this,
-            function( result ) {},
-            function( is_error) {}
+        () => {},
+        () => {}
         );
         }
     }
@@ -721,8 +718,8 @@ class Abyss implements AbyssGame {
                     });
     
                     (this as any).ajaxcall( "/abyss/abyss/chooseLocation.html", { lock: true, location_id: location_id, lord_ids: lord_ids.join(';') }, this,
-                    function( result ) {},
-                    function( is_error) {}
+                    () => {},
+                    () => {}
                     );
                     } ) );
                     return;
@@ -735,8 +732,8 @@ class Abyss implements AbyssGame {
             });
 
             (this as any).ajaxcall( "/abyss/abyss/chooseLocation.html", { lock: true, location_id: location_id, lord_ids: lord_ids.join(';') }, this,
-            function( result ) {},
-            function( is_error) {}
+            () => {},
+            () => {}
             );
         }
         }
@@ -754,8 +751,8 @@ class Abyss implements AbyssGame {
         }
 
         (this as any).ajaxcall( "/abyss/abyss/recruit.html", { lock: true, lord_id: lord_id }, this,
-            function( result ) {},
-            function( is_error) {}
+        () => {},
+        () => {}
         );
         }
     }
@@ -776,8 +773,8 @@ class Abyss implements AbyssGame {
         }
 
         (this as any).ajaxcall( "/abyss/abyss/explore.html", { lock: true }, this,
-        function( result ) {},
-        function( is_error) {}
+        () => {},
+        () => {}
         );
     }
 
@@ -807,8 +804,8 @@ class Abyss implements AbyssGame {
         }
 
         (this as any).ajaxcall( "/abyss/abyss/exploreTake.html", { lock: true, slot: slot }, this,
-        function( result ) {},
-        function( is_error) {}
+        () => {},
+        () => {}
         );
     }
 
@@ -820,8 +817,8 @@ class Abyss implements AbyssGame {
         }
 
         (this as any).ajaxcall( "/abyss/abyss/purchase.html", { lock: true }, this,
-        function( result ) {},
-        function( is_error) {}
+        () => {},
+        () => {}
         );
     }
 
@@ -833,8 +830,8 @@ class Abyss implements AbyssGame {
         }
 
         (this as any).ajaxcall( "/abyss/abyss/pass.html", { lock: true }, this,
-        function( result ) {},
-        function( is_error) {}
+        () => {},
+        () => {}
         );
     }
 
@@ -846,8 +843,8 @@ class Abyss implements AbyssGame {
         }
 
         (this as any).ajaxcall( "/abyss/abyss/plot.html", { lock: true }, this,
-        function( result ) {},
-        function( is_error) {}
+        () => {},
+        () => {}
         );
     }
 
@@ -861,8 +858,8 @@ class Abyss implements AbyssGame {
         var option = +evt.currentTarget.id.replace("button_reward_", '');
 
         (this as any).ajaxcall( "/abyss/abyss/chooseReward.html", { lock: true, option: option }, this,
-        function( result ) {},
-        function( is_error) {}
+        () => {},
+        () => {}
         );
     }
 
@@ -879,8 +876,8 @@ class Abyss implements AbyssGame {
 
             // Value selected
             var value = 0;
-            dojo.query("#player-hand .ally.selected").forEach(function(node) {
-            value += +dojo.attr(node, 'data-value');
+            dojo.query("#player-hand .ally.selected").forEach(node => {
+                value += +dojo.attr(node, 'data-value');
             });
             var shortfall = cost - value;
             if (shortfall < 0) { shortfall = 0; }
@@ -904,8 +901,8 @@ class Abyss implements AbyssGame {
 
             var ally_id = dojo.attr(evt.target, 'data-ally-id');
             (this as any).ajaxcall( "/abyss/abyss/selectAlly.html", { lock: true, ally_id: ally_id }, this,
-            function( result ) {},
-            function( is_error) {}
+            () => {},
+            () => {}
             );
         }
         }
@@ -919,8 +916,8 @@ class Abyss implements AbyssGame {
             // Discard this card...
             var player_id: Number = dojo.attr(dojo.query(evt.target).closest('.cp_board')[0], 'data-player-id');
             (this as any).ajaxcall( "/abyss/abyss/chooseMonsterTokens.html", { lock: true, player_id: player_id }, this,
-            function( result ) {},
-            function( is_error) {}
+            () => {},
+            () => {}
             );
         }
         } else {
@@ -930,8 +927,8 @@ class Abyss implements AbyssGame {
             // Discard this card...
             var player_id: Number = +evt.target.id.replace("button_steal_monster_token_", "");
             (this as any).ajaxcall( "/abyss/abyss/chooseMonsterTokens.html", { lock: true, player_id: player_id }, this,
-                function( result ) {},
-                function( is_error) {}
+            () => {},
+            () => {}
             );
             }
         }
@@ -945,8 +942,8 @@ class Abyss implements AbyssGame {
             var lord_id = dojo.attr(evt.target, "data-lord-id");
 
             (this as any).ajaxcall( "/abyss/abyss/selectLord.html", { lock: true, lord_id: lord_id }, this,
-            function( result ) {},
-            function( is_error) {}
+            () => {},
+            () => {}
             );
         } else if( (this as any).checkAction( 'lordEffect', true ) ) {
             dojo.stopEvent( evt );
@@ -954,8 +951,8 @@ class Abyss implements AbyssGame {
             var lord_id = dojo.attr(evt.target, "data-lord-id");
 
             (this as any).ajaxcall( "/abyss/abyss/lordEffect.html", { lock: true, lord_id: lord_id }, this,
-            function( result ) {},
-            function( is_error) {}
+            () => {},
+            () => {}
             );
         } else if( (this as any).checkAction( 'chooseLocation', true ) ) {
             dojo.stopEvent( evt );
@@ -986,8 +983,8 @@ class Abyss implements AbyssGame {
         autopass += "" + max;
         }
         (this as any).ajaxcall( "/abyss/abyss/setAutopass.html", { autopass }, this,
-        function( result ) {},
-        function( is_error) {}
+        () => {},
+        () => {}
     );
     }
 
@@ -1001,8 +998,8 @@ class Abyss implements AbyssGame {
         var num = +evt.currentTarget.id.replace('button_draw_', '');
 
         (this as any).ajaxcall( "/abyss/abyss/drawLocations.html", { lock: true, num: num }, this,
-        function( result ) {},
-        function( is_error) {}
+        () => {},
+        () => {}
         );
     }
 
@@ -1019,8 +1016,7 @@ class Abyss implements AbyssGame {
                 your abyss.game.php file.
 
     */
-    setupNotifications()
-    {
+    setupNotifications() {
         // Example 1: standard notification handling
         dojo.subscribe( 'explore', this, "notif_explore" );
         dojo.subscribe( 'purchase', this, "notif_purchase" );
@@ -1061,16 +1057,16 @@ class Abyss implements AbyssGame {
         //
     }
     
-    setScoringArrowRow(stage) {
+    setScoringArrowRow(stage: string) {
         dojo.query('#game-scoring .arrow').style('visibility', 'hidden');
         dojo.query('.arrow', $('scoring-row-'+stage)).style('visibility', 'visible');
     }
     
-    setScoringRowText(stage, player_id, value) {
+    setScoringRowText(stage: string, player_id: string, value: string) {
             $('scoring-row-' + stage + '-p' + player_id).innerHTML = value;
         }
     
-    setScoringRowWinner(winner_ids) {
+    setScoringRowWinner(winner_ids: string[]) {
         for (let i in winner_ids) {
             let player_id = winner_ids[i];
             dojo.addClass($('scoring-row-name-p' + player_id), 'wavetext');
@@ -1120,43 +1116,35 @@ class Abyss implements AbyssGame {
         setTimeout(this.setScoringRowWinner.bind(this, winnerIds), currentTime);
     }
 
-    notif_useLord( notif )
-    {
-        dojo.query(".lord.lord-" + notif.args.lord_id).forEach(function (node) {
-        dojo.setAttr(node, "data-used", "1");
+    notif_useLord( notif ) {
+        dojo.query(".lord.lord-" + notif.args.lord_id).forEach(node => {
+            dojo.setAttr(node, "data-used", "1");
         });
     }
 
-    notif_refreshLords( notif )
-    {
-        dojo.query(".lord").forEach(function (node) {
-        dojo.setAttr(node, "data-used", "0");
+    notif_refreshLords() {
+        dojo.query(".lord").forEach(node => {
+            dojo.setAttr(node, "data-used", "0");
         });
     }
 
-    notif_score( notif )
-    {
+    notif_score( notif ) {
         var score = notif.args.score;
         var player_id = notif.args.player_id;
 
         (this as any).scoreCtrl[player_id].toValue(score)
     }
 
-    notif_control( notif )
-    {
+    notif_control( notif ) {
         var location = notif.args.location;
         var lords = notif.args.lords;
         var player_id = notif.args.player_id;
 
         // Delete the location/lords
-        dojo.query('.location.location-' + location.location_id).forEach(function (node) {
-        dojo.destroy(node);
-        });
+        dojo.query('.location.location-' + location.location_id).forEach(node => dojo.destroy(node));
         for (var i in lords) {
-        var lord = lords[i];
-        dojo.query('.lord.lord-' + lord.lord_id).forEach(function (node) {
-            dojo.destroy(node);
-        });
+            var lord = lords[i];
+            dojo.query('.lord.lord-' + lord.lord_id).forEach(node => dojo.destroy(node));
         }
 
         // Add the location to the player board
@@ -1166,8 +1154,8 @@ class Abyss implements AbyssGame {
 
         // Add the lords to the location
         for (var i in lords) {
-        var lord = lords[i];
-        Lord.placeWithTooltip( lord, dojo.query('.trapped-lords-holder', added_location)[0] );
+            var lord = lords[i];
+            Lord.placeWithTooltip( lord, dojo.query('.trapped-lords-holder', added_location)[0] );
         }
         
         Lord.updateLordKeys(player_id);
@@ -1175,8 +1163,7 @@ class Abyss implements AbyssGame {
         this.organisePanelMessages();
     }
 
-    notif_loseLocation( notif )
-    {
+    notif_loseLocation( notif ) {
         var location_id = notif.args.location_id;
         var player_id = notif.args.player_id;
 
@@ -1190,8 +1177,7 @@ class Abyss implements AbyssGame {
         this.organisePanelMessages();
     }
 
-    notif_newLocations( notif )
-    {
+    notif_newLocations( notif ) {
         var locations = notif.args.locations;
         var deck_size = notif.args.deck_size;
 
@@ -1203,22 +1189,19 @@ class Abyss implements AbyssGame {
         this.setDeckSize(dojo.query('#locations-holder .location-back'), deck_size);
     }
 
-    notif_disable( notif )
-    {
+    notif_disable( notif ) {
         var lord_id = notif.args.lord_id;
         dojo.query('.lord-' + lord_id).addClass('disabled');
         for( var player_id in this.gamedatas.players ) {
-        Lord.updateLordKeys(player_id);
+            Lord.updateLordKeys(player_id);
         }
     }
 
-    notif_allyDeckShuffle ( notif )
-    {
+    notif_allyDeckShuffle ( notif ) {
         this.setDeckSize(dojo.query('#explore-track .slot-0'), notif.args.deck_size);
     }
 
-    notif_monsterReward( notif )
-    {
+    notif_monsterReward( notif ) {
         var player_id = notif.args.player_id;
         $('pearlcount_p' + player_id).innerHTML = +($('pearlcount_p' + player_id).innerHTML) + +notif.args.pearls;
         $('monstercount_p' + player_id).innerHTML = +($('monstercount_p' + player_id).innerHTML) + +notif.args.monsters;
@@ -1239,8 +1222,7 @@ class Abyss implements AbyssGame {
         }
     }
     
-    notif_monsterHand( notif )
-        {
+    notif_monsterHand( notif ) {
         var monsters = notif.args.monsters;
         var playerId = notif.args.player_id;
 
@@ -1249,13 +1231,12 @@ class Abyss implements AbyssGame {
             dojo.style(monster_hand, "display", "block");
             monster_hand.innerHTML = '';
             for (var i in monsters) {
-            dojo.place( '<i class="icon icon-monster-faceup icon-monster-'+ monsters[i].value +'">'+ monsters[i].value +'</i>', monster_hand );
+                dojo.place( '<i class="icon icon-monster-faceup icon-monster-'+ monsters[i].value +'">'+ monsters[i].value +'</i>', monster_hand );
             }
         }
-        }
+    }
 
-    notif_plot( notif )
-    {
+    notif_plot( notif ) {
         var lord = notif.args.lord;
         var player_id = notif.args.player_id;
         var deck_size = +notif.args.deck_size;
@@ -1275,8 +1256,7 @@ class Abyss implements AbyssGame {
         }
     }
 
-    notif_affiliate( notif )
-    {
+    notif_affiliate( notif ) {
         var ally = notif.args.ally;
         var player_id = notif.args.player_id;
         Ally.addAffiliated(player_id, ally);
@@ -1287,9 +1267,7 @@ class Abyss implements AbyssGame {
 
             // If it's me, also delete the actual ally
             if (player_id == (this as any).player_id) {
-            dojo.query('#player-panel-'+(this as any).player_id+' .hand .ally[data-ally-id='+ally.ally_id+']').forEach(function (node) {
-            dojo.destroy(node);
-            });
+                dojo.query('#player-panel-'+(this as any).player_id+' .hand .ally[data-ally-id='+ally.ally_id+']').forEach(node => dojo.destroy(node));
             }
             
         }
@@ -1297,14 +1275,15 @@ class Abyss implements AbyssGame {
         this.organisePanelMessages();
     }
 
-    notif_explore( notif )
-    {
+    notif_explore( notif ) {
         var ally = notif.args.ally;
-        if (ally.faction == null) ally.faction = 'monster';
+        if (ally.faction == null) {
+            ally.faction = 'monster';
+        }
         let node = Ally.placeWithTooltip(ally, $('explore-track'));
         dojo.setStyle(node, "left", "9px");
         requestAnimationFrame(() => {
-        dojo.setStyle(node, "left", "");
+            dojo.setStyle(node, "left", "");
         });
 
         // Update ally decksize
@@ -1313,16 +1292,15 @@ class Abyss implements AbyssGame {
         this.lastExploreTime = new Date().getTime();
     }
     
-    notif_exploreTake( notif )
-    {
+    notif_exploreTake( notif ) {
         // If this comes right after notif_explore, we want to delay by about 1-2 seconds
         let deltaTime = this.lastExploreTime ? (new Date().getTime() - this.lastExploreTime) : 1000;
         
         if (deltaTime < 2000) {
             let self = this;
-            setTimeout(function() {
-                self.notif_exploreTake_real( notif );
-            }, 2000 - deltaTime);
+            setTimeout(() => 
+                self.notif_exploreTake_real( notif )
+            , 2000 - deltaTime);
         } else {
             this.notif_exploreTake_real( notif );
         }
@@ -1330,8 +1308,7 @@ class Abyss implements AbyssGame {
         this.organisePanelMessages();
     }
 
-    notif_exploreTake_real( notif )
-    {
+    notif_exploreTake_real( notif ) {
         let player_id = notif.args.player_id;
         var slot = notif.args.slot;
 
@@ -1339,59 +1316,58 @@ class Abyss implements AbyssGame {
         var delay = 0;
         let self = this;
         for (var i = 1; i <= 5; i++) {
-        var ally = dojo.query('#explore-track .slot-' + i);
-        if (ally.length > 0) {
-            let theAlly = ally[0];
-            var faction = dojo.attr(theAlly, 'data-faction');
-            dojo.setStyle(theAlly, "transition", "none");
-            if (faction == 'monster') {
-            // Monster just fades out
-            (this as any).fadeOutAndDestroy( theAlly, 400, delay );
-            delay += 200;
-            } else if (i != slot) {
-            // Animate to the council!
-            let deck = dojo.query('#council-track .slot-' + faction);
-            var animation = (this as any).slideToObject( theAlly, deck[0], 600, delay );
-            animation.onEnd = function() {
-                dojo.destroy(theAlly);
-                var num = +dojo.attr(deck[0], 'data-size') + 1;
-                self.setDeckSize(deck, num);
-            };
-            animation.play();
-            delay += 200;
-            } else {
-            // This is the card that was taken - animate it to hand or player board
-            if (player_id == (this as any).player_id) {
-                dojo.setStyle(theAlly, "zIndex", "1");
+            var ally = dojo.query('#explore-track .slot-' + i);
+            if (ally.length > 0) {
+                let theAlly = ally[0];
+                var faction = dojo.attr(theAlly, 'data-faction');
                 dojo.setStyle(theAlly, "transition", "none");
-                var animation = (this as any).slideToObject( theAlly, $('player-hand'), 600, delay );
-                animation.onEnd = function() {
-                dojo.destroy(theAlly);
-                Ally.addHand(player_id, notif.args.ally);
-                $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
-                };
-                animation.play();
-                delay += 200;
-            } else {
-                dojo.setStyle(theAlly, "zIndex", "1");
-                dojo.setStyle(theAlly, "transition", "none");
-                var animation = (this as any).slideToObject( theAlly, $('player_board_' + player_id), 600, delay );
-                animation.onEnd = function() {
-                dojo.destroy(theAlly);
-                $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
-                };
-                animation.play();
-                delay += 200;
+                if (faction == 'monster') {
+                    // Monster just fades out
+                    (this as any).fadeOutAndDestroy( theAlly, 400, delay );
+                    delay += 200;
+                } else if (i != slot) {
+                    // Animate to the council!
+                    let deck = dojo.query('#council-track .slot-' + faction);
+                    var animation = (this as any).slideToObject( theAlly, deck[0], 600, delay );
+                    animation.onEnd = function() {
+                        dojo.destroy(theAlly);
+                        var num = +dojo.attr(deck[0], 'data-size') + 1;
+                        self.setDeckSize(deck, num);
+                    };
+                    animation.play();
+                    delay += 200;
+                } else {
+                    // This is the card that was taken - animate it to hand or player board
+                    if (player_id == (this as any).player_id) {
+                        dojo.setStyle(theAlly, "zIndex", "1");
+                        dojo.setStyle(theAlly, "transition", "none");
+                        var animation = (this as any).slideToObject( theAlly, $('player-hand'), 600, delay );
+                        animation.onEnd = () => {
+                            dojo.destroy(theAlly);
+                            Ally.addHand(player_id, notif.args.ally);
+                            $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
+                        };
+                        animation.play();
+                        delay += 200;
+                    } else {
+                        dojo.setStyle(theAlly, "zIndex", "1");
+                        dojo.setStyle(theAlly, "transition", "none");
+                        var animation = (this as any).slideToObject( theAlly, $('player_board_' + player_id), 600, delay );
+                        animation.onEnd = () => {
+                            dojo.destroy(theAlly);
+                            $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
+                        };
+                        animation.play();
+                        delay += 200;
+                    }
+                }
             }
-            }
-        }
         }
         
         this.organisePanelMessages();
     }
 
-    notif_purchase( notif )
-    {
+    notif_purchase( notif ) {
         let player_id = notif.args.player_id;
         let theAlly = dojo.query('#explore-track .slot-' + notif.args.slot)[0];
 
@@ -1400,39 +1376,37 @@ class Abyss implements AbyssGame {
         $('pearlcount_p' + notif.args.first_player_id).innerHTML = +($('pearlcount_p' + notif.args.first_player_id).innerHTML) + +notif.args.cost;
 
         if (player_id == (this as any).player_id) {
-        dojo.setStyle(theAlly, "zIndex", "1");
-        dojo.setStyle(theAlly, "transition", "none");
-        var animation = (this as any).slideToObject( theAlly, $('player-hand'), 600 );
-        animation.onEnd = function() {
-            dojo.destroy(theAlly);
-            Ally.addHand(player_id, notif.args.ally);
-            $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
-        };
-        animation.play();
+            dojo.setStyle(theAlly, "zIndex", "1");
+            dojo.setStyle(theAlly, "transition", "none");
+            var animation = (this as any).slideToObject( theAlly, $('player-hand'), 600 );
+            animation.onEnd = () => {
+                dojo.destroy(theAlly);
+                Ally.addHand(player_id, notif.args.ally);
+                $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
+            };
+            animation.play();
         } else {
-        dojo.setStyle(theAlly, "zIndex", "1");
-        dojo.setStyle(theAlly, "transition", "none");
-        var animation = (this as any).slideToObject( theAlly, $('player_board_' + player_id), 600 );
-        animation.onEnd = function() {
-            dojo.destroy(theAlly);
-            $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
-        };
-        animation.play();
+            dojo.setStyle(theAlly, "zIndex", "1");
+            dojo.setStyle(theAlly, "transition", "none");
+            var animation = (this as any).slideToObject( theAlly, $('player_board_' + player_id), 600 );
+            animation.onEnd = () => {
+                dojo.destroy(theAlly);
+                $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
+            };
+            animation.play();
         }
         
         this.organisePanelMessages();
     }
 
-    notif_setThreat( notif )
-    {
+    notif_setThreat( notif ) {
         // Update handsize and pearls of purchasing player
         var tt = $('threat-token');
         dojo.removeClass(tt, 'slot-0 slot-1 slot-2 slot-3 slot-4 slot-5');
         dojo.addClass(tt, 'slot-' + notif.args.threat);
     }
 
-    notif_discardCouncil( notif )
-    {
+    notif_discardCouncil( notif ) {
         var player_id = notif.args.player_id;
         var faction = notif.args.faction;
         var num = notif.args.num;
@@ -1442,8 +1416,7 @@ class Abyss implements AbyssGame {
         this.setDeckSize(deck, 0);
     }
 
-    notif_requestSupport( notif )
-    {
+    notif_requestSupport( notif ) {
         let player_id = notif.args.player_id;
         var faction = notif.args.faction;
         var num = notif.args.num;
@@ -1454,19 +1427,18 @@ class Abyss implements AbyssGame {
         if (player_id != (this as any).player_id) {
         for (var i = 0; i < num; i++) {
             var anim = (this as any).slideTemporaryObject( Ally.renderBack(), 'council-track', 'council-track-' + faction, $('player_board_' + player_id), 600, i * 200 );
-            dojo.connect(anim, 'onEnd', function() {
-            $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
+            dojo.connect(anim, 'onEnd', () => {
+                $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
             });
         }
         } else {
-        $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + num;
+            $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + num;
         }
         
         this.organisePanelMessages();
     }
 
-    notif_requestSupportCards( notif )
-    {
+    notif_requestSupportCards( notif ) {
         let player_id = notif.args.player_id;
         var faction = notif.args.faction;
         let allies = notif.args.allies;
@@ -1474,19 +1446,18 @@ class Abyss implements AbyssGame {
         // Add cards to the player's hand
         var delay = 0;
         for (var j in allies) {
-        let ally = allies[j];
-        var anim = (this as any).slideTemporaryObject( Ally.render(ally), 'council-track', 'council-track-' + faction, $('player-hand'), 600, delay );
-        dojo.connect(anim, 'onEnd', function() {
-            Ally.addHand(player_id, ally);
-        });
-        delay += 200;
+            let ally = allies[j];
+            var anim = (this as any).slideTemporaryObject( Ally.render(ally), 'council-track', 'council-track-' + faction, $('player-hand'), 600, delay );
+            dojo.connect(anim, 'onEnd', () => {
+                Ally.addHand(player_id, ally);
+            });
+            delay += 200;
         }
         
         this.organisePanelMessages();
     }
 
-    notif_moveLordsRight( notif )
-    {
+    notif_moveLordsRight() {
         // Shuffle everything right
         var num = dojo.query("#lords-track .lord").length - 1;
         for (var i = 6; i >= 1; i--) {
@@ -1494,16 +1465,15 @@ class Abyss implements AbyssGame {
         for (var j = i; j >= 1; j--) {
             var potential = dojo.query("#lords-track .lord.slot-" + j);
             if (potential.length > 0) {
-            dojo.removeClass(potential[0], 'slot-' + j);
-            dojo.addClass(potential[0], 'slot-' + i);
-            break;
+                dojo.removeClass(potential[0], 'slot-' + j);
+                dojo.addClass(potential[0], 'slot-' + i);
+                break;
+                }
             }
-        }
         }
     }
 
-    notif_recruit( notif )
-    {
+    notif_recruit( notif ) {
         var lord = notif.args.lord;
         var player_id = +notif.args.player_id;
         var spent_pearls = +notif.args.spent_pearls;
@@ -1512,34 +1482,30 @@ class Abyss implements AbyssGame {
 
         // Remove lord from the track
         if (lord) {
-        dojo.query("#lords-track .lord[data-lord-id=" + lord.lord_id + "]").forEach(function (node) {
-            dojo.destroy(node);
-        });
+        dojo.query("#lords-track .lord[data-lord-id=" + lord.lord_id + "]").forEach(node => dojo.destroy(node));
         }
 
         // Spend pearls and allies
-        if (spent_allies)
-        $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) - spent_allies.length;
-        if (spent_pearls)
-        $('pearlcount_p' + player_id).innerHTML = +($('pearlcount_p' + player_id).innerHTML) - spent_pearls;
+        if (spent_allies) {
+            $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) - spent_allies.length;
+        }
+        if (spent_pearls) {
+            $('pearlcount_p' + player_id).innerHTML = +($('pearlcount_p' + player_id).innerHTML) - spent_pearls;
+        }
 
         // If it's me, then actually get rid of the allies
         if (spent_allies && +player_id == +(this as any).player_id) {
-        for (var i in spent_allies) {
-            var ally = spent_allies[i];
-            dojo.query('#player-panel-'+player_id+' .hand .ally[data-ally-id='+ally.ally_id+']').forEach(function (node) {
-            dojo.destroy(node);
-            });
-        }
+            for (var i in spent_allies) {
+                var ally = spent_allies[i];
+                dojo.query('#player-panel-'+player_id+' .hand .ally[data-ally-id='+ally.ally_id+']').forEach(node => dojo.destroy(node));
+            }
         }
 
         if (spent_lords) {
-        for (var i in spent_lords) {
-            var lord2 = spent_lords[i];
-            dojo.query('#player-panel-'+player_id+' .lord[data-lord-id='+lord2.lord_id+']').forEach(function (node) {
-            dojo.destroy(node);
-            });
-        }
+            for (var i in spent_lords) {
+                var lord2 = spent_lords[i];
+                dojo.query('#player-panel-'+player_id+' .lord[data-lord-id='+lord2.lord_id+']').forEach(node => dojo.destroy(node));
+            }
         }
 
         // Add the lord
@@ -1551,20 +1517,19 @@ class Abyss implements AbyssGame {
         this.organisePanelMessages();
     }
 
-    notif_refillLords( notif )
-    {
+    notif_refillLords( notif ) {
         var lords = notif.args.lords;
         var player_id = +notif.args.player_id;
         var deck_size = notif.args.deck_size;
         for (var i in lords) {
-        var lord = lords[i];
-        if (dojo.query("#lords-track .lord[data-lord-id=" + lord.lord_id + "]").length == 0) {
-            let node = Lord.placeWithTooltip( lord, $('lords-track') );
-            dojo.setStyle(node, "left", "13px");
-            requestAnimationFrame(() => {
-            dojo.setStyle(node, "left", "");
-            });
-        }
+            var lord = lords[i];
+            if (dojo.query("#lords-track .lord[data-lord-id=" + lord.lord_id + "]").length == 0) {
+                let node = Lord.placeWithTooltip( lord, $('lords-track') );
+                dojo.setStyle(node, "left", "13px");
+                requestAnimationFrame(() => {
+                    dojo.setStyle(node, "left", "");
+                });
+            }
         }
         this.setDeckSize(dojo.query('#lords-track .slot-0'), deck_size);
     }
@@ -1596,41 +1561,39 @@ class Abyss implements AbyssGame {
         // If it's me, also delete the actual ally
         if (notif.args.player_id == (this as any).player_id) {
             for (var i in allies) {
-            var ally = allies[i];
-            dojo.query('#player-panel-'+(this as any).player_id+' .hand .ally[data-ally-id='+ally.ally_id+']').forEach(function (node) {
-                dojo.destroy(node);
-            });
+                var ally = allies[i];
+                dojo.query('#player-panel-'+(this as any).player_id+' .hand .ally[data-ally-id='+ally.ally_id+']').forEach(node => dojo.destroy(node));
             }
         }
         }
 
         if (notif.args.monster) {
-        $('monstercount_p' + player_id).innerHTML = +($('monstercount_p' + player_id).innerHTML) + notif.args.monster.length;
-        if (source_player_id) {
-            $('monstercount_p' + source_player_id).innerHTML = +($('monstercount_p' + source_player_id).innerHTML) - notif.args.monster.length;
-            if (source_player_id == (this as any).player_id) {
-                // Remove it from me
-                var monster_hand = $('monster-hand_p' + (this as any).player_id);
-                if (monster_hand) {
-                for (var i in notif.args.monster) {
-                    var tokens = dojo.query(".icon-monster-" + notif.args.monster[i].value, monster_hand);
-                    if (tokens.length > 0) {
-                        dojo.destroy(tokens[0]);
+            $('monstercount_p' + player_id).innerHTML = +($('monstercount_p' + player_id).innerHTML) + notif.args.monster.length;
+            if (source_player_id) {
+                $('monstercount_p' + source_player_id).innerHTML = +($('monstercount_p' + source_player_id).innerHTML) - notif.args.monster.length;
+                if (source_player_id == (this as any).player_id) {
+                    // Remove it from me
+                    var monster_hand = $('monster-hand_p' + (this as any).player_id);
+                    if (monster_hand) {
+                    for (var i in notif.args.monster) {
+                        var tokens = dojo.query(".icon-monster-" + notif.args.monster[i].value, monster_hand);
+                        if (tokens.length > 0) {
+                            dojo.destroy(tokens[0]);
+                        }
+                    }
                     }
                 }
+            }
+            if (player_id == (this as any).player_id) {
+                // Add it to me
+                var monster_hand = $('monster-hand_p' + (this as any).player_id);
+                if (monster_hand) {
+                    dojo.style(monster_hand, "display", "block");
+                    for (var i in notif.args.monster) {
+                        dojo.place( '<i class="icon icon-monster-faceup icon-monster-'+ notif.args.monster[i].value +'">'+ notif.args.monster[i].value +'</i>', monster_hand );
+                    }
                 }
             }
-        }
-        if (player_id == (this as any).player_id) {
-            // Add it to me
-            var monster_hand = $('monster-hand_p' + (this as any).player_id);
-            if (monster_hand) {
-                dojo.style(monster_hand, "display", "block");
-                for (var i in notif.args.monster) {
-                dojo.place( '<i class="icon icon-monster-faceup icon-monster-'+ notif.args.monster[i].value +'">'+ notif.args.monster[i].value +'</i>', monster_hand );
-                }
-            }
-        }
         }
 
         if (notif.args.monster_count) {
