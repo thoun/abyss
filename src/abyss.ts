@@ -5,10 +5,6 @@ declare const dojo: Dojo;
 declare const _;
 declare const g_gamethemeurl;
 
-declare const Location;
-declare const Lord;
-declare const Ally;
-
 let debounce;
 
 class Abyss implements AbyssGame {

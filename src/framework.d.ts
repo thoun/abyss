@@ -58,6 +58,7 @@ interface Dojo {
     setStyle: Function;
     setAttr: Function;
     attr: Function;
+    replace: Function;
 }
 
 type Gamestate = any; // TODO

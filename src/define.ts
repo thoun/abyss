@@ -4,7 +4,6 @@ define([
     "dojo/NodeList-traverse",
     "ebg/core/gamegui",
     "ebg/counter",
-    g_gamethemeurl + "modules/abs_helpers.js",
 ],
 function (dojo, declare, pDebounce) {
     debounce = pDebounce;

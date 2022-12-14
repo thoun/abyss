@@ -11,6 +11,7 @@
         "src/framework.d.ts",
         "src/counter.d.ts",
         "src/abyss.d.ts",
+        "src/helpers.ts",
         "src/abyss.ts",
         "src/define.ts"
     ]
