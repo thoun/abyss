@@ -3,10 +3,11 @@ var Abyss = /** @class */ (function () {
     function Abyss() {
     }
     Abyss.prototype.setup = function (gamedatas) {
+        this.gamedatas = gamedatas;
         // Use zoom when not on FF
         this.useZoom = false; //navigator.userAgent.toLowerCase().indexOf('firefox') <= -1;
         var self = this;
-        dojo.connect($('modified-layout-checkbox'), 'onchange', function (e) {
+        dojo.connect($('modified-layout-checkbox'), 'onchange', function () {
             if ($('modified-layout-checkbox').checked) {
                 dojo.addClass($('game-board-holder'), "playmat");
             }
@@ -179,7 +180,7 @@ var Abyss = /** @class */ (function () {
         this.addEventToClass('locations', 'onclick', 'onClickLocation');
         // Tooltips
         // Hide this one, because it doesn't line up due to Zoom
-        //this.addTooltip( 'explore-track-deck', '', _('Explore'), 1 );
+        //(this as any).addTooltip( 'explore-track-deck', '', _('Explore'), 1 );
         this.addTooltipToClass('pearl-holder', _('Pearls'), '');
         this.addTooltipToClass('key-holder', _('Key tokens (+ Keys from free Lords)'), '');
         this.addTooltipToClass('ally-holder', _('Ally cards in hand'), '');
@@ -633,7 +634,6 @@ var Abyss = /** @class */ (function () {
                     var location_deck = dojo.query('.location.location-back')[0];
                     var location_deck_size = +dojo.attr(location_deck, 'data-size');
                     if (location_deck_size == 0) {
-                        do_now = false;
                         this.confirmationDialog(_('Are you sure you want to select this Location? There are no Locations left in the deck.'), dojo.hitch(this, function () {
                             var lord_ids = [];
                             dojo.query("#player-panel-" + this.player_id + " .free-lords .lord.selected").forEach(function (node) {
@@ -760,7 +760,7 @@ var Abyss = /** @class */ (function () {
                 dojo.toggleClass(evt.target, 'selected');
                 // Discard this card directly?
                 // var ally_id = dojo.attr(evt.target, 'data-ally-id');
-                // this.ajaxcall( "/abyss/abyss/discard.html", { lock: true, ally_ids: ally_id }, this,
+                // (this as any).ajaxcall( "/abyss/abyss/discard.html", { lock: true, ally_ids: ally_id }, this,
                 //   function( result ) {},
                 //   function( is_error) {}
                 // );
@@ -879,7 +879,7 @@ var Abyss = /** @class */ (function () {
         dojo.subscribe('finalRound', this, "notif_finalRound");
         dojo.subscribe('endGame_scoring', this, "notif_endGame_scoring");
         // Depends on nbr. players
-        var num_players = Object.keys(gameui.gamedatas.players).length;
+        var num_players = Object.keys(this.gamedatas.players).length;
         this.notifqueue.setSynchronous('endGame_scoring', 5000 * num_players + 3000);
         // Example 2: standard notification handling + tell the user interface to wait
         //            during 3 seconds after calling the method in order to let the players

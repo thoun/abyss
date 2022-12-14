@@ -31,7 +31,7 @@ interface Dojo {
     removeClass: (node: string | HTMLElement, className?: string) => void;
     toggleClass: (node: string | HTMLElement, className: string, forceValue?: boolean) => void;
     connect: Function;
-    query: (query: string) => any; //HTMLElement[]; with some more functions
+    query: (query: string, other?: any) => any; //HTMLElement[]; with some more functions
     forEach: Function;
     subscribe: Function;
     string: any;
@@ -55,6 +55,9 @@ interface Dojo {
     stopEvent: (evt) => void;
     destroy: (node: string | HTMLElement) => void;
     position: (obj: HTMLElement, includeScroll?: boolean) => { w: number; h: number; x: number; y: number; };
+    setStyle: Function;
+    setAttr: Function;
+    attr: Function;
 }
 
 type Gamestate = any; // TODO

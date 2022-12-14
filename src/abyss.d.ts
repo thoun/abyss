@@ -19,7 +19,7 @@ interface AbyssGamedatas {
     tablespeed: string;
 
     // Add here variables you set up in getAllDatas
-    // TODO
+    game_ending_player;
 }
 
 interface AbyssGame extends Game {
