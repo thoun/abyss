@@ -1,0 +1,19 @@
+{
+  "name": "abyss",
+  "version": "1.0.0",
+  "description": "",
+  "main": "abyss.js",
+  "scripts": {
+    "build:ts": "tsc",
+    "build:scss": "sass --no-source-map src/abyss.scss abyss.css"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bga-cards": "thoun/bga-cards"
+  },
+  "devDependencies": {
+    "sass": "^1.32.6",
+    "typescript": "^4.1.3"
+  }
+}
