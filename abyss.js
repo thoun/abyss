@@ -1,15 +1,17 @@
-var Ally = {
-    uniqueId: 0,
-    render: function (ally) {
-        Ally.uniqueId++;
-        return "<div id=\"ally-uid-".concat(Ally.uniqueId, "\" data-ally-id=\"").concat(ally.ally_id, "\" data-faction=\"").concat(ally.faction, "\" data-value=\"").concat(ally.value, "\" class=\"ally ally-").concat(ally.faction, "-").concat(ally.value, " ").concat(ally.place >= 0 ? ('slot-' + ally.place) : '', "\"></div>");
-    },
-    placeWithTooltip: function (ally, parent) {
-        var node = dojo.place(Ally.render(ally), parent);
-        Tooltip.connect(node, Ally.renderTooltip(ally), "ally");
+var AllyManager = /** @class */ (function () {
+    function AllyManager(game) {
+        this.game = game;
+    }
+    AllyManager.prototype.render = function (ally) {
+        AllyManager.uniqueId++;
+        return "<div id=\"ally-uid-".concat(AllyManager.uniqueId, "\" data-ally-id=\"").concat(ally.ally_id, "\" data-faction=\"").concat(ally.faction, "\" data-value=\"").concat(ally.value, "\" class=\"ally ally-").concat(ally.faction, "-").concat(ally.value, " ").concat(ally.place >= 0 ? ('slot-' + ally.place) : '', "\"></div>");
+    };
+    AllyManager.prototype.placeWithTooltip = function (ally, parent) {
+        var node = dojo.place(this.render(ally), parent);
+        this.game.connectTooltip(node, this.renderTooltip(ally), "ally");
         return node;
-    },
-    allyNameText: function (ally) {
+    };
+    AllyManager.prototype.allyNameText = function (ally) {
         // 1 Crab, coloured
         var allies = [
             '<span style="color: purple">' + _('Jellyfish') + '</span>',
@@ -19,8 +21,8 @@ var Ally = {
             '<span style="color: blue">' + _('Squid') + '</span>'
         ];
         return allies[+ally.faction];
-    },
-    renderTooltip: function (ally) {
+    };
+    AllyManager.prototype.renderTooltip = function (ally) {
         if (ally.faction >= 0) {
             var allies = [
                 '<span style="color: purple">' + _('Jellyfish') + '</span>',
@@ -29,16 +31,16 @@ var Ally = {
                 '<span style="color: green">' + _('Shellfish') + '</span>',
                 '<span style="color: blue">' + _('Squid') + '</span>'
             ];
-            return "<div class=\"abs-tooltip-ally\">\n        ".concat(Ally.allyNameText(ally), "\n        <br>\n        <span style=\"font-size: smaller\"><b>").concat(_("Value"), ": </b> ").concat(_(ally.value), "</span>\n      </div>");
+            return "<div class=\"abs-tooltip-ally\">\n        ".concat(this.allyNameText(ally), "\n        <br>\n        <span style=\"font-size: smaller\"><b>").concat(_("Value"), ": </b> ").concat(_(ally.value), "</span>\n      </div>");
         }
         else {
             return "<div class=\"abs-tooltip-ally\">\n        ".concat(_("Monster"), "\n      </div>");
         }
-    },
-    renderBack: function () {
+    };
+    AllyManager.prototype.renderBack = function () {
         return "<div class=\"ally ally-black\" style=\"z-index: 1\"></div>";
-    },
-    factionIcon: function (f) {
+    };
+    AllyManager.prototype.factionIcon = function (f) {
         // TODO : Actual icon?
         if (f == 0) {
             return 'Purple';
@@ -55,10 +57,9 @@ var Ally = {
         else if (f == 4) {
             return 'Blue';
         }
-    },
-    placeAffiliated: function (allies, panel) {
-        var parent = dojo.query('div.affiliated', panel)[0];
-        var result = "";
+    };
+    AllyManager.prototype.placeAffiliated = function (allies, playerId) {
+        var parent = document.getElementById("player-panel-".concat(playerId, "-affiliated"));
         for (var faction = 0; faction < 5; faction++) {
             var alliesFragment = "";
             var factionHolder = dojo.create("div");
@@ -67,16 +68,16 @@ var Ally = {
             for (var j in allies) {
                 var ally = allies[j];
                 if (ally.faction == faction) {
-                    alliesFragment = Ally.render(ally) + alliesFragment;
-                    var newNode = dojo.place(Ally.render(ally), factionHolder, "first");
-                    Tooltip.connect(newNode, Ally.renderTooltip(ally), "ally");
+                    alliesFragment = this.render(ally) + alliesFragment;
+                    var newNode = dojo.place(this.render(ally), factionHolder, "first");
+                    this.game.connectTooltip(newNode, this.renderTooltip(ally), "ally");
                 }
             }
             dojo.place(factionHolder, parent);
         }
         return parent;
-    },
-    addHand: function (player_id, ally) {
+    };
+    AllyManager.prototype.addHand = function (player_id, ally) {
         var node = $('player-hand');
         var refNode = node;
         var pos = 'last';
@@ -90,12 +91,12 @@ var Ally = {
                 break;
             }
         }
-        var newNode = dojo.place(Ally.render(ally), refNode, pos);
-        Tooltip.connect(newNode, Ally.renderTooltip(ally), "ally");
-        gameui.organisePanelMessages();
+        var newNode = dojo.place(this.render(ally), refNode, pos);
+        this.game.connectTooltip(newNode, this.renderTooltip(ally), "ally");
+        this.game.organisePanelMessages();
         return newNode;
-    },
-    addAffiliated: function (player_id, ally) {
+    };
+    AllyManager.prototype.addAffiliated = function (player_id, ally) {
         var node = dojo.query('#player-panel-' + player_id + ' .affiliated-faction[data-faction=' + ally.faction + ']')[0];
         var refNode = node;
         var pos = 'last';
@@ -109,19 +110,22 @@ var Ally = {
                 break;
             }
         }
-        var newNode = dojo.place(Ally.render(ally), refNode, pos);
-        Tooltip.connect(newNode, Ally.renderTooltip(ally), "ally");
+        var newNode = dojo.place(this.render(ally), refNode, pos);
+        this.game.connectTooltip(newNode, this.renderTooltip(ally), "ally");
         return newNode;
+    };
+    return AllyManager;
+}());
+var LordManager = /** @class */ (function () {
+    function LordManager(game) {
+        this.game = game;
     }
-};
-var Lord = {
-    uniqueId: 0,
     // TODO : Names need to move outside of PHP and into js for i18n
-    render: function (lord) {
-        Lord.uniqueId++;
-        return "<div id=\"lord-uid-".concat(Lord.uniqueId, "\" class=\"lord lord-").concat(lord.lord_id, " slot-").concat(lord.place, " transition-position ").concat((lord.turned == 1) ? 'disabled' : '', "\" data-lord-id=\"").concat(lord.lord_id, "\" data-cost=\"").concat(lord.cost, "\" data-diversity=\"").concat(lord.diversity, "\" data-used=\"").concat(lord.used, "\" data-turned=\"").concat(lord.turned, "\" data-effect=\"").concat(lord.effect, "\" data-keys=\"").concat(lord.keys, "\">\n      <span class=\"lord-desc\"><span class=\"lord-name\">").concat(_(lord.name), "</span>").concat(_(lord.desc), "</span>\n    </div>");
-    },
-    renderTooltip: function (lord) {
+    LordManager.prototype.render = function (lord) {
+        LordManager.uniqueId++;
+        return "<div id=\"lord-uid-".concat(LordManager.uniqueId, "\" class=\"lord lord-").concat(lord.lord_id, " slot-").concat(lord.place, " transition-position ").concat((lord.turned == 1) ? 'disabled' : '', "\" data-lord-id=\"").concat(lord.lord_id, "\" data-cost=\"").concat(lord.cost, "\" data-diversity=\"").concat(lord.diversity, "\" data-used=\"").concat(lord.used, "\" data-turned=\"").concat(lord.turned, "\" data-effect=\"").concat(lord.effect, "\" data-keys=\"").concat(lord.keys, "\">\n      <span class=\"lord-desc\"><span class=\"lord-name\">").concat(_(lord.name), "</span>").concat(_(lord.desc), "</span>\n    </div>");
+    };
+    LordManager.prototype.renderTooltip = function (lord) {
         var descSection = "";
         if (lord.desc != "") {
             descSection = '<hr>';
@@ -176,13 +180,13 @@ var Lord = {
         var trueCost = costNumber;
         // Only show true costs for lords in the row
         // I have the Treasurer (25) : cost - 2
-        if (dojo.query('#player-panel-' + gameui.player_id + ' .free-lords .lord-25:not(.disabled)').length > 0) {
+        if (dojo.query('#player-panel-' + this.game.player_id + ' .free-lords .lord-25:not(.disabled)').length > 0) {
             trueCost -= 2;
         }
         // I don't have the protector (14) ...
-        if (dojo.query('#player-panel-' + gameui.player_id + ' .free-lords .lord-14:not(.disabled)').length == 0) {
+        if (dojo.query('#player-panel-' + this.game.player_id + ' .free-lords .lord-14:not(.disabled)').length == 0) {
             // Another player has the Recruiter (1) : cost + 2
-            if (dojo.query('.player-panel:not(#player-panel-' + gameui.player_id + ') .free-lords .lord-1:not(.disabled)').length > 0) {
+            if (dojo.query('.player-panel:not(#player-panel-' + this.game.player_id + ') .free-lords .lord-1:not(.disabled)').length > 0) {
                 trueCost = +trueCost + 2;
             }
         }
@@ -192,13 +196,13 @@ var Lord = {
             costNumber = "<del>".concat(costNumber, "</del> ").concat(trueCost);
         }
         return "<div class=\"abs-tooltip-lord\">\n      <span style=\"float: right\">".concat(_(lord.points), " <i class=\"fa fa-star\"></i>").concat(keysString, "</span>\n      <h3 style=\"padding-right: 60px;\">").concat(_(lord.name), "</h3>\n      ").concat(factionSection, "\n      <span style=\"font-size: smaller\"><b>").concat(costString, ": </b> ").concat(costNumber, " ").concat(diversitySection, "</span>\n      ").concat(descSection, "\n    </div>");
-    },
-    placeWithTooltip: function (lord, parent) {
-        var node = dojo.place(Lord.render(lord), parent);
-        Tooltip.connect(node, Lord.renderTooltip.bind(this, lord), "lord");
+    };
+    LordManager.prototype.placeWithTooltip = function (lord, parent) {
+        var node = dojo.place(this.render(lord), parent);
+        this.game.connectTooltip(node, this.renderTooltip.bind(this, lord), "lord");
         return node;
-    },
-    updateLordKeys: function (playerId) {
+    };
+    LordManager.prototype.updateLordKeys = function (playerId) {
         var playerPanel = $('player-panel-' + playerId);
         var lords = dojo.query('.free-lords .lord', playerPanel);
         var keys = 0;
@@ -211,11 +215,14 @@ var Lord = {
         }
         $('lordkeycount_p' + playerId).innerHTML = keys;
         $('lordcount_p' + playerId).innerHTML = numLords;
+    };
+    return LordManager;
+}());
+var LocationManager = /** @class */ (function () {
+    function LocationManager(game) {
+        this.game = game;
     }
-};
-var Locations = {
-    uniqueId: 0,
-    makeDesc: function (location, laurel) {
+    LocationManager.prototype.makeDesc = function (location, laurel) {
         var pointsReplacement = laurel ? '<i class="icon icon-laurel"></i>' : ' <i class="fa fa-star"></i>';
         // TODO : Wrap points in nobr to avoid line breaks
         var desc = dojo.replace(_(location.desc).replace(/\$/g, pointsReplacement), {
@@ -231,20 +238,20 @@ var Locations = {
             jellyfish: '<span style="background-color: rgba(255,255,255,0.7); color: purple">' + _('Jellyfish') + '</span>',
         });
         return desc;
-    },
-    render: function (location) {
-        Locations.uniqueId++;
-        var desc = Locations.makeDesc(location, true);
-        return "<div id=\"location-uid-".concat(Locations.uniqueId, "\" class=\"location board location-").concat(location.location_id, "\" data-location-id=\"").concat(location.location_id, "\">\n      <div class=\"location-clicker\"></div>\n      <span class=\"location-name\">").concat(_(location.name), "</span>\n      <span class=\"location-desc\">").concat(desc, "</span>\n      <div class=\"trapped-lords-holder\"></div>\n    </div>");
-    },
-    placeLords: function (locationNode, lords) {
+    };
+    LocationManager.prototype.render = function (location) {
+        LocationManager.uniqueId++;
+        var desc = this.makeDesc(location, true);
+        return "<div id=\"location-uid-".concat(LocationManager.uniqueId, "\" class=\"location board location-").concat(location.location_id, "\" data-location-id=\"").concat(location.location_id, "\">\n      <div class=\"location-clicker\"></div>\n      <span class=\"location-name\">").concat(_(location.name), "</span>\n      <span class=\"location-desc\">").concat(desc, "</span>\n      <div class=\"trapped-lords-holder\"></div>\n    </div>");
+    };
+    LocationManager.prototype.placeLords = function (locationNode, lords) {
         for (var i in lords) {
             var lord = lords[i];
             var parent_1 = dojo.query('.trapped-lords-holder', locationNode)[0];
-            Lord.placeWithTooltip(lord, parent_1);
+            this.placeWithTooltip(lord, parent_1);
         }
-    },
-    organisePlayerBoard: function (player_id) {
+    };
+    LocationManager.prototype.organisePlayerBoard = function (player_id) {
         // playerboard .locations:
         //     pairs go into .locations-row (padding-top: 50px)
         //     two locations (note, locations no longer have the padding top!)
@@ -253,9 +260,7 @@ var Locations = {
             locations.push(node);
             node.parentNode.removeChild(node);
         });
-        dojo.query('#player-panel-' + player_id + ' .locations .locations-row').forEach(function (node) {
-            dojo.destroy(node);
-        });
+        dojo.query('#player-panel-' + player_id + ' .locations .locations-row').forEach(function (node) { return dojo.destroy(node); });
         var locations_holder = dojo.query('#player-panel-' + player_id + ' .locations')[0];
         var num_rows = Math.ceil(locations.length / 2);
         for (var i = 0; i < num_rows; i++) {
@@ -264,20 +269,20 @@ var Locations = {
             if (locations.length > 0)
                 dojo.place(locations.shift(), row);
         }
-    },
-    renderTooltip: function (location) {
-        var desc = Locations.makeDesc(location);
+    };
+    LocationManager.prototype.renderTooltip = function (location) {
+        var desc = this.makeDesc(location);
         return "<div class=\"abs-tooltip-location\">\n      <h3 style=\"padding-right: 50px;\">".concat(_(location.name), "</h3>\n      <hr>\n      ").concat(desc, "\n    </div>");
-    },
-    placeWithTooltip: function (location, parent) {
-        var node = dojo.place(Locations.render(location), parent);
-        Tooltip.connect(node, Locations.renderTooltip(location), "location");
-        if (parent && parent.id == 'locations-holder') {
-            Locations.organise();
+    };
+    LocationManager.prototype.placeWithTooltip = function (location, parent) {
+        var node = dojo.place(this.render(location), parent);
+        this.game.connectTooltip(node, this.renderTooltip(location), "location");
+        if ((parent === null || parent === void 0 ? void 0 : parent.id) == 'locations-holder') {
+            this.organise();
         }
         return node;
-    },
-    organise: function () {
+    };
+    LocationManager.prototype.organise = function () {
         // First, move all in overflow back to holder
         var overflowLocations = dojo.query('.location:not(.location-back)', $('locations-holder-overflow'));
         for (var i = 0; i < overflowLocations.length; i++) {
@@ -294,107 +299,19 @@ var Locations = {
                 }
             }
         }
-    },
-};
-var Tooltip = {
-    connect: function (node, html, offsetType) {
-        var tt = $('abs-tooltip-0');
-        dojo.connect(node, "onmouseenter", function () {
-            if (gameui.prefs[200].value == 1) {
-                return;
-            }
-            var r = node.getBoundingClientRect();
-            var outer = $('game-holder').getBoundingClientRect();
-            var left = r.left - outer.left;
-            var top = r.top - outer.top;
-            var zoomSupported = gameui.useZoom;
-            // Always include content zoom
-            var contentZoom = zoomSupported ? (+dojo.style($('page-content'), 'zoom') || 1) : 1;
-            var totalZoom = contentZoom;
-            // Only include game zoom if the node is in the zoomed element
-            var gameZoom = 1;
-            if (zoomSupported && dojo.hasClass($('game-board-holder'), "playmat") && $('game-board-holder').contains(node)) {
-                gameZoom = gameui.zoomLevel;
-            }
-            if (dojo.hasClass($('game-board-holder'), "playmat") && $('locations-holder-holder').contains(node)) {
-                gameZoom *= zoomSupported ? (dojo.style($('locations-holder-holder'), 'zoom') || 1) : 1;
-            }
-            totalZoom *= gameZoom;
-            top *= totalZoom;
-            left *= totalZoom;
-            if (typeof html === 'function') {
-                tt.innerHTML = html.call(this);
-            }
-            else {
-                tt.innerHTML = html;
-            }
-            // If there is room above, put it there...
-            var offsetX = 0;
-            var offsetY = 0;
-            if (offsetType === "lord") {
-                offsetX = 44 * gameZoom;
-                offsetY = 68 * gameZoom;
-            }
-            else if (offsetType === "ally") {
-                offsetX = 29 * gameZoom;
-                offsetY = 43 * gameZoom;
-            }
-            var padding = 20;
-            var positions = ["right", "top", "bottom", "left"];
-            var originalTop = top;
-            var originalLeft = left;
-            for (var i in positions) {
-                top = originalTop;
-                left = originalLeft;
-                var position = positions[i];
-                if (position == "right") {
-                    left += node.offsetWidth * totalZoom + padding;
-                    left += offsetX;
-                    top -= offsetY;
-                }
-                else if (position == "top") {
-                    top -= tt.offsetHeight * contentZoom + padding;
-                    left -= offsetX;
-                    top -= offsetY;
-                }
-                else if (position == "bottom") {
-                    top += node.offsetHeight * totalZoom + padding;
-                    left -= offsetX;
-                    top += offsetY;
-                }
-                else if (position == "left") {
-                    left -= tt.offsetWidth * contentZoom + padding;
-                    left -= offsetX;
-                    top -= offsetY;
-                }
-                // If it fits, stop here
-                var right = left + tt.offsetWidth * contentZoom;
-                var bottom = top + tt.offsetHeight * contentZoom;
-                if (right > $('page-content').offsetWidth) {
-                    continue;
-                }
-                if (left < 0) {
-                    continue;
-                }
-                var scrollLimit = window.scrollY - $('page-content').offsetTop;
-                if (top < scrollLimit) {
-                    continue;
-                }
-                break;
-            }
-            dojo.style(tt, { 'opacity': '1', 'top': top + 'px', 'left': left + 'px' });
-        });
-        dojo.connect(node, "onmouseleave", function () {
-            dojo.style(tt, { 'opacity': '0' });
-        });
-    }
-};
+    };
+    return LocationManager;
+}());
 var debounce;
 var Abyss = /** @class */ (function () {
     function Abyss() {
     }
     Abyss.prototype.setup = function (gamedatas) {
+        var _this = this;
         this.gamedatas = gamedatas;
+        this.allyManager = new AllyManager(this);
+        this.lordManager = new LordManager(this);
+        this.locationManager = new LocationManager(this);
         // Use zoom when not on FF
         this.useZoom = false; //navigator.userAgent.toLowerCase().indexOf('firefox') <= -1;
         var self = this;
@@ -441,26 +358,27 @@ var Abyss = /** @class */ (function () {
                     height: height
                 });
             }
-            Locations.organise();
+            _this.locationManager.organise();
         }, 200));
         // Setting up player boards
-        for (var player_id in gamedatas.players) {
-            var player = gamedatas.players[player_id];
+        for (var playerId in gamedatas.players) {
+            var player = gamedatas.players[playerId];
             // Setting up players boards if needed
-            var player_board_div = $('player_board_' + player_id);
-            dojo.place(this.format_block('jstpl_player_board', player), player_board_div);
+            var player_board_div = $('player_board_' + playerId);
+            var html = "\n            <div id=\"cp_board_p".concat(player.id, "\" class=\"cp_board\" data-player-id=\"").concat(player.id, "\">\n                <span class=\"pearl-holder spacer\" id=\"pearl-holder_p").concat(player.id, "\"><i class=\"icon icon-pearl\"></i><span class=\"spacer\" id=\"pearlcount_p").concat(player.id, "\">").concat(player.pearls, "</span></span>\n                <span class=\"key-holder spacer\" id=\"key-holder_p").concat(player.id, "\"><i class=\"icon icon-key\"></i><span class=\"spacer\" id=\"keycount_p").concat(player.id, "\">").concat(player.keys, "</span><span class=\"key-addendum\">(+<span id=\"lordkeycount_p").concat(player.id, "\"></span>)</span></span>\n                <span class=\"ally-holder spacer\" id=\"ally-holder_p").concat(player.id, "\"><i class=\"icon icon-ally\"></i><span class=\"spacer\" id=\"allycount_p").concat(player.id, "\">").concat(player.hand_size, "</span></span>\n                <span class=\"monster-holder spacer\" id=\"monster-holder_p").concat(player.id, "\"><i class=\"icon icon-monster\"></i><span class=\"spacer\" id=\"monstercount_p").concat(player.id, "\">").concat(player.num_monsters, "</span></span>\n                <span class=\"lordcount-holder spacer\"><i class=\"icon icon-lord\"></i><span id=\"lordcount_p").concat(player.id, "\">0</span></span>\n                <div class=\"monster-hand\" id=\"monster-hand_p").concat(player.id, "\"></div>\n            </div>");
+            dojo.place(html, player_board_div);
             // Set up scoring table in advance (helpful for testing!)
             var splitPlayerName = '';
             var chars = player.name.split("");
             for (var i_1 in chars) {
                 splitPlayerName += "<span>".concat(chars[i_1], "</span>");
             }
-            $('scoring-row-players').innerHTML += "<td><span id=\"scoring-row-name-p".concat(player_id, "\" style=\"color:#").concat(player.color, ";\"><span>").concat(splitPlayerName, "</span></span></td>");
-            $('scoring-row-location').innerHTML += "<td id=\"scoring-row-location-p".concat(player_id, "\"></td>");
-            $('scoring-row-lord').innerHTML += "<td id=\"scoring-row-lord-p".concat(player_id, "\"></td>");
-            $('scoring-row-affiliated').innerHTML += "<td id=\"scoring-row-affiliated-p".concat(player_id, "\"></td>");
-            $('scoring-row-monster').innerHTML += "<td id=\"scoring-row-monster-p".concat(player_id, "\"></td>");
-            $('scoring-row-total').innerHTML += "<td id=\"scoring-row-total-p".concat(player_id, "\"></td>");
+            $('scoring-row-players').innerHTML += "<td><span id=\"scoring-row-name-p".concat(playerId, "\" style=\"color:#").concat(player.color, ";\"><span>").concat(splitPlayerName, "</span></span></td>");
+            $('scoring-row-location').innerHTML += "<td id=\"scoring-row-location-p".concat(playerId, "\"></td>");
+            $('scoring-row-lord').innerHTML += "<td id=\"scoring-row-lord-p".concat(playerId, "\"></td>");
+            $('scoring-row-affiliated').innerHTML += "<td id=\"scoring-row-affiliated-p".concat(playerId, "\"></td>");
+            $('scoring-row-monster').innerHTML += "<td id=\"scoring-row-monster-p".concat(playerId, "\"></td>");
+            $('scoring-row-total').innerHTML += "<td id=\"scoring-row-total-p".concat(playerId, "\"></td>");
         }
         // Add an extra column at the end, just for padding reasons
         $('scoring-row-players').innerHTML += "<td></td>";
@@ -479,24 +397,23 @@ var Abyss = /** @class */ (function () {
                 break;
             players_done[p] = 1;
             var player = gamedatas.players[p];
-            var template = "<div id=\"player-panel-".concat(p, "\" class=\"player-panel whiteblock\">\n            <h3>").concat(player.name, "</h3>\n            ").concat(p == this.player_id ? "<div id=\"player-hand\" class=\"hand\"><i id=\"no-hand-msg\">".concat(_("No Allies in hand"), "</i></div>") : '', "\n            <h4>").concat(_("Affiliated Allies"), "</h4>\n            <i id=\"no-affiliated-msg-p").concat(p, "\">").concat(_("No Affiliated Allies"), "</i>\n            <div class=\"affiliated\"></div>\n            <h4>").concat(_("Lords"), "</h4>\n            <i id=\"no-lords-msg-p").concat(p, "\">").concat(_("No Lords"), "</i>\n            <div class=\"free-lords\"></div>\n            <div class=\"locations\"></div>\n            </div>");
+            var template = "\n            <div id=\"player-panel-".concat(p, "\" class=\"player-panel whiteblock\">\n                <h3 class=\"player-name\" style=\"color: #").concat(player.color, ";\" data-color=\"").concat(player.color, "\">").concat(player.name, "</h3>\n                ").concat(p == this.player_id ? "<div id=\"player-hand\" class=\"hand\"><i id=\"no-hand-msg\">".concat(_("No Allies in hand"), "</i></div>") : '', "\n                <h4>").concat(_("Affiliated Allies"), "</h4>\n                <i id=\"no-affiliated-msg-p").concat(p, "\">").concat(_("No Affiliated Allies"), "</i>\n                <div id=\"player-panel-").concat(p, "-affiliated\" class=\"affiliated\"></div>\n                <h4>").concat(_("Lords"), "</h4>\n                <i id=\"no-lords-msg-p").concat(p, "\">").concat(_("No Lords"), "</i>\n                <div class=\"free-lords\"></div>\n                <div class=\"locations\"></div>\n            </div>\n            ");
             var playerPanel = dojo.place(template, $('player-panel-holder'));
             // Add a whiteblock for the player
             if (p == this.player_id) {
                 // Add player hand
                 for (var j in player.hand) {
-                    var node = Ally.placeWithTooltip(player.hand[j], $('player-hand'));
+                    this.allyManager.placeWithTooltip(player.hand[j], $('player-hand'));
                 }
-                var handTitle = _("Hand");
-                // <h4>${handTitle}</h4>
+                // <h4>${_("Hand")}</h4>
             }
             // Add player affiliated
-            Ally.placeAffiliated(player.affiliated, playerPanel);
+            this.allyManager.placeAffiliated(player.affiliated, Number(p));
             // Add locations
             var locationsHolder = dojo.query("#player-panel-".concat(p, " .locations"))[0];
             for (var j in player.locations) {
                 var location = player.locations[j];
-                var locations_holder = dojo.query('#player-panel-' + player_id + ' .locations')[0];
+                var locations_holder = dojo.query('#player-panel-' + playerId + ' .locations')[0];
                 var lords = [];
                 for (var k in player.lords) {
                     var lord = player.lords[k];
@@ -504,25 +421,25 @@ var Abyss = /** @class */ (function () {
                         lords.push(lord);
                     }
                 }
-                var locationNode = Locations.placeWithTooltip(location, locationsHolder);
-                Locations.placeLords(locationNode, lords);
+                var locationNode = this.locationManager.placeWithTooltip(location, locationsHolder);
+                this.locationManager.placeLords(locationNode, lords);
             }
             var freeLordHolder = dojo.query("#player-panel-".concat(p, " .free-lords"))[0];
             for (var j in player.lords) {
                 var lord = player.lords[j];
                 if (lord.location == null) {
-                    Lord.placeWithTooltip(lord, freeLordHolder);
+                    this.lordManager.placeWithTooltip(lord, freeLordHolder);
                 }
             }
-            Lord.updateLordKeys(p);
-            Locations.organisePlayerBoard(p);
+            this.lordManager.updateLordKeys(p);
+            this.locationManager.organisePlayerBoard(p);
             p = gamedatas.turn_order[p];
         } while (p != this.player_id);
         // Monsters
-        for (var player_id in gamedatas.players) {
-            var monster_hand = $('monster-hand_p' + player_id);
+        for (var playerId in gamedatas.players) {
+            var monster_hand = $('monster-hand_p' + playerId);
             if (monster_hand) {
-                var player = gamedatas.players[player_id];
+                var player = gamedatas.players[playerId];
                 if (player.monsters && Object.keys(player.monsters).length > 0) {
                     dojo.style(monster_hand, "display", "block");
                     for (var i in player.monsters) {
@@ -533,14 +450,14 @@ var Abyss = /** @class */ (function () {
         }
         // Lords
         for (var i in gamedatas.lord_slots) {
-            var node = Lord.placeWithTooltip(gamedatas.lord_slots[i], $('lords-track'));
+            var node = this.lordManager.placeWithTooltip(gamedatas.lord_slots[i], $('lords-track'));
         }
         // Allies
         for (var i in gamedatas.ally_explore_slots) {
             var ally = gamedatas.ally_explore_slots[i];
             if (ally.faction == null)
                 ally.faction = 'monster';
-            Ally.placeWithTooltip(ally, $('explore-track'));
+            this.allyManager.placeWithTooltip(ally, $('explore-track'));
         }
         for (var i in gamedatas.ally_council_slots) {
             var num = gamedatas.ally_council_slots[i];
@@ -556,7 +473,7 @@ var Abyss = /** @class */ (function () {
         // Locations
         for (var i in gamedatas.location_available) {
             var location = gamedatas.location_available[i];
-            Locations.placeWithTooltip(location, $('locations-holder'));
+            this.locationManager.placeWithTooltip(location, $('locations-holder'));
         }
         this.setDeckSize(dojo.query('#locations-holder .location-back'), gamedatas.location_deck);
         // Clickers
@@ -757,71 +674,88 @@ var Abyss = /** @class */ (function () {
         }
         switch (stateName) {
             case 'recruitPay':
-                // highlight the given lord
-                dojo.query("#lords-track .lord[data-lord-id=" + args.args.lord_id + "]").addClass("selected");
-                if (this.isCurrentPlayerActive()) {
-                    var lord = dojo.query("#lords-track .lord.selected")[0];
-                    var cost = +args.args.cost;
-                    $('button_recruit').innerHTML = _('Recruit') + ' (' + cost + ' <i class="icon icon-pearl"></i>)';
-                    dojo.setAttr($('button_recruit'), "data-base-cost", cost);
-                }
+                this.onEnteringRecruitPay(args.args);
                 break;
             case 'lord7':
-                // Put a red border around the player monster tokens (who aren't me)
-                if (this.isCurrentPlayerActive()) {
-                    for (var player_id in this.gamedatas.players) {
-                        if (player_id != this.player_id) {
-                            dojo.query("#cp_board_p" + player_id + " .icon.icon-monster").addClass("clickable");
-                        }
-                    }
-                }
+                this.onEnterinLord7();
                 break;
             case 'controlPostDraw':
-                // Fade out the locations you can't buy
-                if (this.isCurrentPlayerActive()) {
-                    dojo.query("#locations-holder .location:not(.location-back)").addClass("unavailable");
-                    dojo.query("#locations-holder-overflow .location:not(.location-back)").addClass("unavailable");
-                    for (var iLocationId in args.args.location_ids) {
-                        var location_id = args.args.location_ids[iLocationId];
-                        dojo.query("#locations-holder .location.location-" + location_id).removeClass("unavailable");
-                        dojo.query("#locations-holder-overflow .location.location-" + location_id).removeClass("unavailable");
-                    }
-                }
+                this.onEnteringControlPostDraw(args.args);
+            // then do entering control code
             case 'control':
-                dojo.query(".free-lords .lord").removeClass("selected");
-                for (var iLordId in args.args.default_lord_ids) {
-                    var lord_id = args.args.default_lord_ids[iLordId];
-                    dojo.query("#player-panel-" + this.player_id + " .free-lords .lord.lord-" + lord_id).addClass("selected");
-                }
+                this.onEnteringControl(args.args);
                 break;
             case 'locationEffectBlackSmokers':
-                // Draw all the locations in a div at the top. Register to each an onclick to select it.
-                if (this.isCurrentPlayerActive()) {
-                    for (var iLocation in args.args._private.locations) {
-                        var location = args.args._private.locations[iLocation];
-                        var location_element = Locations.placeWithTooltip(location, $('game-extra'));
-                        dojo.addClass(location_element, 'card-current-move');
-                        dojo.connect(location_element, 'onclick', this, 'onClickLocation');
-                    }
-                    dojo.style($('game-extra'), "display", "block");
-                }
+                this.onEnteringLocationEffectBlackSmokers(args.args);
                 break;
             case 'purchase':
             case 'explore':
             case 'explore2':
             case 'explore3':
-                // Disable players who have passed
-                this.enableAllPlayerPanels();
-                for (var iPlayer in args.args.passed_players) {
-                    this.disablePlayerPanel(args.args.passed_players[iPlayer]);
-                }
-                // Underline the first player
-                var first_player = args.args.first_player;
-                dojo.query('a', $('player_name_' + first_player)).style('text-decoration', 'underline');
-                break;
-            case 'dummmy':
+                this.onEnteringPurchaseExplore(args.args);
                 break;
         }
+    };
+    Abyss.prototype.onEnteringRecruitPay = function (args) {
+        // highlight the given lord
+        dojo.query("#lords-track .lord[data-lord-id=" + args.lord_id + "]").addClass("selected");
+        if (this.isCurrentPlayerActive()) {
+            var lord = dojo.query("#lords-track .lord.selected")[0];
+            var cost = +args.cost;
+            $('button_recruit').innerHTML = _('Recruit') + ' (' + cost + ' <i class="icon icon-pearl"></i>)';
+            dojo.setAttr($('button_recruit'), "data-base-cost", cost);
+        }
+    };
+    Abyss.prototype.onEnterinLord7 = function () {
+        // Put a red border around the player monster tokens (who aren't me)
+        if (this.isCurrentPlayerActive()) {
+            for (var player_id in this.gamedatas.players) {
+                if (player_id != this.player_id) {
+                    dojo.query("#cp_board_p" + player_id + " .icon.icon-monster").addClass("clickable");
+                }
+            }
+        }
+    };
+    Abyss.prototype.onEnteringControlPostDraw = function (args) {
+        // Fade out the locations you can't buy
+        if (this.isCurrentPlayerActive()) {
+            dojo.query("#locations-holder .location:not(.location-back)").addClass("unavailable");
+            dojo.query("#locations-holder-overflow .location:not(.location-back)").addClass("unavailable");
+            for (var iLocationId in args.location_ids) {
+                var location_id = args.location_ids[iLocationId];
+                dojo.query("#locations-holder .location.location-" + location_id).removeClass("unavailable");
+                dojo.query("#locations-holder-overflow .location.location-" + location_id).removeClass("unavailable");
+            }
+        }
+    };
+    Abyss.prototype.onEnteringControl = function (args) {
+        dojo.query(".free-lords .lord").removeClass("selected");
+        for (var iLordId in args.default_lord_ids) {
+            var lord_id = args.default_lord_ids[iLordId];
+            dojo.query("#player-panel-" + this.player_id + " .free-lords .lord.lord-" + lord_id).addClass("selected");
+        }
+    };
+    Abyss.prototype.onEnteringLocationEffectBlackSmokers = function (args) {
+        // Draw all the locations in a div at the top. Register to each an onclick to select it.
+        if (this.isCurrentPlayerActive()) {
+            for (var iLocation in args._private.locations) {
+                var location = args._private.locations[iLocation];
+                var location_element = this.locationManager.placeWithTooltip(location, $('game-extra'));
+                dojo.addClass(location_element, 'card-current-move');
+                dojo.connect(location_element, 'onclick', this, 'onClickLocation');
+            }
+            dojo.style($('game-extra'), "display", "block");
+        }
+    };
+    Abyss.prototype.onEnteringPurchaseExplore = function (args) {
+        // Disable players who have passed
+        this.enableAllPlayerPanels();
+        for (var iPlayer in args.passed_players) {
+            this.disablePlayerPanel(args.passed_players[iPlayer]);
+        }
+        // Underline the first player
+        var first_player = args.first_player;
+        dojo.query('a', $('player_name_' + first_player)).style('text-decoration', 'underline');
     };
     // onLeavingState: this method is called each time we are leaving a game state.
     //                 You can use this method to perform some user interface changes at this moment.
@@ -852,8 +786,6 @@ var Abyss = /** @class */ (function () {
             case 'explore3':
                 this.enableAllPlayerPanels();
                 dojo.query('.player-name a').style('text-decoration', '');
-                break;
-            case 'dummmy':
                 break;
         }
     };
@@ -898,7 +830,7 @@ var Abyss = /** @class */ (function () {
                 case 'affiliate':
                     for (var i in args.allies) {
                         var ally = args.allies[i];
-                        var r = ally.value + ' ' + Ally.allyNameText(ally);
+                        var r = ally.value + ' ' + this.allyManager.allyNameText(ally);
                         var btnId = 'button_affiliate_' + ally.ally_id;
                         this.addActionButton(btnId, r, 'onChooseAffiliate');
                         dojo.addClass($(btnId), 'affiliate-button');
@@ -954,12 +886,96 @@ var Abyss = /** @class */ (function () {
     };
     ///////////////////////////////////////////////////
     //// Utility methods
-    /*
-
-        Here, you can defines some utility methods that you can use everywhere in your javascript
-        script.
-
-    */
+    Abyss.prototype.connectTooltip = function (node, html, offsetType) {
+        var _this = this;
+        var tt = $('abs-tooltip-0');
+        dojo.connect(node, "onmouseenter", function () {
+            if (_this.prefs[200].value == 1) {
+                return;
+            }
+            var r = node.getBoundingClientRect();
+            var outer = $('game-holder').getBoundingClientRect();
+            var left = r.left - outer.left;
+            var top = r.top - outer.top;
+            var zoomSupported = _this.useZoom;
+            // Always include content zoom
+            var contentZoom = zoomSupported ? (+dojo.style($('page-content'), 'zoom') || 1) : 1;
+            var totalZoom = contentZoom;
+            // Only include game zoom if the node is in the zoomed element
+            var gameZoom = 1;
+            if (zoomSupported && dojo.hasClass($('game-board-holder'), "playmat") && $('game-board-holder').contains(node)) {
+                gameZoom = _this.zoomLevel;
+            }
+            if (dojo.hasClass($('game-board-holder'), "playmat") && $('locations-holder-holder').contains(node)) {
+                gameZoom *= zoomSupported ? (dojo.style($('locations-holder-holder'), 'zoom') || 1) : 1;
+            }
+            totalZoom *= gameZoom;
+            top *= totalZoom;
+            left *= totalZoom;
+            if (typeof html === 'function') {
+                tt.innerHTML = html.call(_this);
+            }
+            else {
+                tt.innerHTML = html;
+            }
+            // If there is room above, put it there...
+            var offsetX = 0;
+            var offsetY = 0;
+            if (offsetType === "lord") {
+                offsetX = 44 * gameZoom;
+                offsetY = 68 * gameZoom;
+            }
+            else if (offsetType === "ally") {
+                offsetX = 29 * gameZoom;
+                offsetY = 43 * gameZoom;
+            }
+            var padding = 20;
+            var positions = ["right", "top", "bottom", "left"];
+            var originalTop = top;
+            var originalLeft = left;
+            for (var i in positions) {
+                top = originalTop;
+                left = originalLeft;
+                var position = positions[i];
+                if (position == "right") {
+                    left += node.offsetWidth * totalZoom + padding;
+                    left += offsetX;
+                    top -= offsetY;
+                }
+                else if (position == "top") {
+                    top -= tt.offsetHeight * contentZoom + padding;
+                    left -= offsetX;
+                    top -= offsetY;
+                }
+                else if (position == "bottom") {
+                    top += node.offsetHeight * totalZoom + padding;
+                    left -= offsetX;
+                    top += offsetY;
+                }
+                else if (position == "left") {
+                    left -= tt.offsetWidth * contentZoom + padding;
+                    left -= offsetX;
+                    top -= offsetY;
+                }
+                // If it fits, stop here
+                var right = left + tt.offsetWidth * contentZoom;
+                var bottom = top + tt.offsetHeight * contentZoom;
+                if (right > $('page-content').offsetWidth) {
+                    continue;
+                }
+                if (left < 0) {
+                    continue;
+                }
+                var scrollLimit = window.scrollY - $('page-content').offsetTop;
+                if (top < scrollLimit) {
+                    continue;
+                }
+                break;
+            }
+            dojo.style(tt, { 'opacity': '1', 'top': top + 'px', 'left': left + 'px' });
+        });
+        dojo.connect(node, "onmouseleave", function () { return dojo.style(tt, { 'opacity': '0' }); });
+    };
     ///////////////////////////////////////////////////
     //// Player's action
     /*
@@ -1354,14 +1370,14 @@ var Abyss = /** @class */ (function () {
         }
         // Add the location to the player board
         var locations_holder = dojo.query('#player-panel-' + player_id + ' .locations')[0];
-        var added_location = Locations.placeWithTooltip(location, locations_holder);
-        Locations.organisePlayerBoard(player_id);
+        var added_location = this.locationManager.placeWithTooltip(location, locations_holder);
+        this.locationManager.organisePlayerBoard(player_id);
         // Add the lords to the location
         for (var i in lords) {
             var lord = lords[i];
-            Lord.placeWithTooltip(lord, dojo.query('.trapped-lords-holder', added_location)[0]);
+            this.lordManager.placeWithTooltip(lord, dojo.query('.trapped-lords-holder', added_location)[0]);
         }
-        Lord.updateLordKeys(player_id);
+        this.lordManager.updateLordKeys(player_id);
         this.organisePanelMessages();
     };
     Abyss.prototype.notif_loseLocation = function (notif) {
@@ -1371,7 +1387,7 @@ var Abyss = /** @class */ (function () {
         dojo.query('.location.location-' + location_id).forEach(function (node) {
             dojo.destroy(node);
         });
-        Lord.updateLordKeys(player_id);
+        this.lordManager.updateLordKeys(player_id);
         this.organisePanelMessages();
     };
     Abyss.prototype.notif_newLocations = function (notif) {
@@ -1379,7 +1395,7 @@ var Abyss = /** @class */ (function () {
         var deck_size = notif.args.deck_size;
         for (var i in locations) {
             var location = locations[i];
-            Locations.placeWithTooltip(location, $('locations-holder'));
+            this.locationManager.placeWithTooltip(location, $('locations-holder'));
         }
         this.setDeckSize(dojo.query('#locations-holder .location-back'), deck_size);
     };
@@ -1387,7 +1403,7 @@ var Abyss = /** @class */ (function () {
         var lord_id = notif.args.lord_id;
         dojo.query('.lord-' + lord_id).addClass('disabled');
         for (var player_id in this.gamedatas.players) {
-            Lord.updateLordKeys(player_id);
+            this.lordManager.updateLordKeys(player_id);
         }
     };
     Abyss.prototype.notif_allyDeckShuffle = function (notif) {
@@ -1429,20 +1445,20 @@ var Abyss = /** @class */ (function () {
         var pearls = +notif.args.pearls;
         var old_lord = notif.args.old_lord;
         $('pearlcount_p' + player_id).innerHTML = +($('pearlcount_p' + player_id).innerHTML) - pearls;
-        var node = Lord.placeWithTooltip(lord, $('lords-track'));
+        var node = this.lordManager.placeWithTooltip(lord, $('lords-track'));
         dojo.setStyle(node, "left", "13px");
         requestAnimationFrame(function () {
             dojo.setStyle(node, "left", "");
         });
         this.setDeckSize(dojo.query('#lords-track .slot-0'), deck_size);
         if (old_lord) {
-            dojo.query('.lord-' + old_lord.lord_id).forEach(function (node) { dojo.destroy(node); });
+            dojo.query('.lord-' + old_lord.lord_id).forEach(function (node) { return dojo.destroy(node); });
         }
     };
     Abyss.prototype.notif_affiliate = function (notif) {
         var ally = notif.args.ally;
         var player_id = notif.args.player_id;
-        Ally.addAffiliated(player_id, ally);
+        this.allyManager.addAffiliated(player_id, ally);
         if (notif.args.also_discard) {
             // Also discard this ally from my hand!
             $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) - 1;
@@ -1458,7 +1474,7 @@ var Abyss = /** @class */ (function () {
         if (ally.faction == null) {
             ally.faction = 'monster';
         }
-        var node = Ally.placeWithTooltip(ally, $('explore-track'));
+        var node = this.allyManager.placeWithTooltip(ally, $('explore-track'));
         dojo.setStyle(node, "left", "9px");
         requestAnimationFrame(function () {
             dojo.setStyle(node, "left", "");
@@ -1482,6 +1498,7 @@ var Abyss = /** @class */ (function () {
         this.organisePanelMessages();
     };
     Abyss.prototype.notif_exploreTake_real = function (notif) {
+        var _this = this;
         var player_id = notif.args.player_id;
         var slot = notif.args.slot;
         // For each slot, animate to the council pile, fade out and destroy, then increase the council pile by 1
@@ -1518,7 +1535,7 @@ var Abyss = /** @class */ (function () {
                         animation = this_1.slideToObject(theAlly_1, $('player-hand'), 600, delay);
                         animation.onEnd = function () {
                             dojo.destroy(theAlly_1);
-                            Ally.addHand(player_id, notif.args.ally);
+                            _this.allyManager.addHand(player_id, notif.args.ally);
                             $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
                         };
                         animation.play();
@@ -1545,6 +1562,7 @@ var Abyss = /** @class */ (function () {
         this.organisePanelMessages();
     };
     Abyss.prototype.notif_purchase = function (notif) {
+        var _this = this;
         var player_id = notif.args.player_id;
         var theAlly = dojo.query('#explore-track .slot-' + notif.args.slot)[0];
         // Update handsize and pearls of purchasing player
@@ -1556,7 +1574,7 @@ var Abyss = /** @class */ (function () {
             var animation = this.slideToObject(theAlly, $('player-hand'), 600);
             animation.onEnd = function () {
                 dojo.destroy(theAlly);
-                Ally.addHand(player_id, notif.args.ally);
+                _this.allyManager.addHand(player_id, notif.args.ally);
                 $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
             };
             animation.play();
@@ -1596,7 +1614,7 @@ var Abyss = /** @class */ (function () {
         // Add cards to the player's hand
         if (player_id != this.player_id) {
             for (var i = 0; i < num; i++) {
-                var anim = this.slideTemporaryObject(Ally.renderBack(), 'council-track', 'council-track-' + faction, $('player_board_' + player_id), 600, i * 200);
+                var anim = this.slideTemporaryObject(this.allyManager.renderBack(), 'council-track', 'council-track-' + faction, $('player_board_' + player_id), 600, i * 200);
                 dojo.connect(anim, 'onEnd', function () {
                     $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
                 });
@@ -1608,6 +1626,7 @@ var Abyss = /** @class */ (function () {
         this.organisePanelMessages();
     };
     Abyss.prototype.notif_requestSupportCards = function (notif) {
+        var _this = this;
         var player_id = notif.args.player_id;
         var faction = notif.args.faction;
         var allies = notif.args.allies;
@@ -1615,9 +1634,9 @@ var Abyss = /** @class */ (function () {
         var delay = 0;
         var _loop_5 = function () {
             var ally = allies[j];
-            anim = this_2.slideTemporaryObject(Ally.render(ally), 'council-track', 'council-track-' + faction, $('player-hand'), 600, delay);
+            anim = this_2.slideTemporaryObject(this_2.allyManager.render(ally), 'council-track', 'council-track-' + faction, $('player-hand'), 600, delay);
             dojo.connect(anim, 'onEnd', function () {
-                Ally.addHand(player_id, ally);
+                return _this.allyManager.addHand(player_id, ally);
             });
             delay += 200;
         };
@@ -1674,9 +1693,9 @@ var Abyss = /** @class */ (function () {
         }
         // Add the lord
         if (lord) {
-            Lord.placeWithTooltip(lord, dojo.query('#player-panel-' + player_id + ' .free-lords')[0]);
+            this.lordManager.placeWithTooltip(lord, dojo.query('#player-panel-' + player_id + ' .free-lords')[0]);
         }
-        Lord.updateLordKeys(player_id);
+        this.lordManager.updateLordKeys(player_id);
         this.organisePanelMessages();
     };
     Abyss.prototype.notif_refillLords = function (notif) {
@@ -1686,14 +1705,14 @@ var Abyss = /** @class */ (function () {
         var _loop_6 = function () {
             lord = lords[i];
             if (dojo.query("#lords-track .lord[data-lord-id=" + lord.lord_id + "]").length == 0) {
-                var node_1 = Lord.placeWithTooltip(lord, $('lords-track'));
+                var node_1 = this_3.lordManager.placeWithTooltip(lord, $('lords-track'));
                 dojo.setStyle(node_1, "left", "13px");
                 requestAnimationFrame(function () {
                     dojo.setStyle(node_1, "left", "");
                 });
             }
         };
-        var lord;
+        var this_3 = this, lord;
         for (var i in lords) {
             _loop_6();
         }

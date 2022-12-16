@@ -11,6 +11,9 @@
         "src/framework.d.ts",
         "src/counter.d.ts",
         "src/abyss.d.ts",
+        "src/ally-manager.ts",
+        "src/lord-manager.ts",
+        "src/location-manager.ts",
         "src/helpers.ts",
         "src/abyss.ts",
         "src/define.ts"

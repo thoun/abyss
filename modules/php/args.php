@@ -38,21 +38,22 @@ trait ArgsTrait {
 	
 	function argPurchase() {
 		$passed_players = self::getObjectListFromDB( "SELECT player_id id FROM player WHERE player_has_purchased", true );
-		return array(
-			'passed_players' => $passed_players, 
-			'first_player' => self::getGameStateValue( "first_player_id"),
-			'cost' => self::getGameStateValue( 'purchase_cost' ));
-	}
+			return [
+				'passed_players' => array_map(fn($pId) => intval($pId), $passed_players), 
+				'first_player' => intval(self::getGameStateValue( "first_player_id")),
+				'cost' => intval(self::getGameStateValue( 'purchase_cost' )),
+			];
+		}
 
 		function argDeckLocations() {
 			$locations = Location::getDeck();
-			return array(
-          '_private' => array(
-              'active' => array(
-                  'locations' => $locations
-              )
-          )
-      );
+			return [
+				'_private' => [
+					'active' => [
+						'locations' => $locations,
+					]
+				],
+			];
 		}
 
 		function argControlPostDraw() {
@@ -61,7 +62,7 @@ trait ArgsTrait {
 			// List the Locations which are available for drawing
 			$location_ids = array();
 			for ($i=1; $i<=4; $i++) {
-				$value = self::getGameStateValue( "location_drawn_$i");
+				$value = intval(self::getGameStateValue( "location_drawn_$i"));
 				if ($value >= 0) {
 					$location_ids[] = $value;
 				}
@@ -75,7 +76,7 @@ trait ArgsTrait {
 			foreach ($lords as $lord) {
 				if ($lord["turned"] || isset($lord["location"])) continue;
 				if ($lord["lord_id"] == 33 || $lord["lord_id"] == 34 || $lord["lord_id"] == 35) {
-					$default_lord_ids[] = $lord["lord_id"];
+					$default_lord_ids[] = intval($lord["lord_id"]);
 					break;
 				}
 			}
@@ -88,7 +89,7 @@ trait ArgsTrait {
 						foreach ($lords as $lord) {
 							if (!isset($lord["location"]) && $lord["keys"] > 0 && ! $lord["turned"]) {
 								$lord_keys_needed -= $lord["keys"];
-								$default_lord_ids[] = $lord["lord_id"];
+								$default_lord_ids[] = intval($lord["lord_id"]);
 								if ($lord_keys_needed <= 0) {
 									break;
 								}
@@ -98,7 +99,10 @@ trait ArgsTrait {
 				}
 			}
 
-			return array('location_ids' => $location_ids, 'default_lord_ids' => $default_lord_ids);
+			return [
+				'location_ids' => $location_ids, 
+				'default_lord_ids' => $default_lord_ids,
+			];
 		}
 
 		function argChooseMonsterReward() {
@@ -144,17 +148,24 @@ trait ArgsTrait {
 				$rewards[] = "KK";
 			}
 
-			return array('rewards' => $rewards);
+			return [
+				'rewards' => $rewards,
+			];
 		}
 
 		function argRecruitPay() {
-			$lord_id = self::getGameStateValue( 'selected_lord' );
-			return array('lord_id' => $lord_id, 'cost' => self::getLordCost( Lord::get($lord_id), self::getCurrentPlayerId() ));
+			$lord_id = intval(self::getGameStateValue( 'selected_lord' ));
+			return [
+				'lord_id' => $lord_id, 
+				'cost' => self::getLordCost(Lord::get($lord_id), self::getCurrentPlayerId()),
+			];
 		}
 
 		function argLordEffect() {
 			$lord_id = self::getGameStateValue( 'selected_lord' );
-			return array('lord' => Lord::get($lord_id));
+			return [
+				'lord' => Lord::get($lord_id),
+			];
 		}
 
 		function argAffiliate() {

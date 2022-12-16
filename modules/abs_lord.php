@@ -83,27 +83,27 @@ class Lord
     return Abyss::getValue( "SELECT COUNT(*) FROM lord WHERE place = 0" );
   }
 
-  public static function getInTrack( $lord_id ) {
+  public static function getInTrack(int $lord_id ) {
     return self::injectTextSingle(Abyss::getObject( "SELECT * FROM lord WHERE lord_id = $lord_id AND place >= 1 AND place <= 6" ));
   }
 
-  public static function get( $lord_id ) {
+  public static function get(int $lord_id ) {
     return self::injectTextSingle(Abyss::getObject( "SELECT * FROM lord WHERE lord_id = $lord_id" ));
   }
 
-  public static function giveToPlayer( $lord_id, $player_id ) {
+  public static function giveToPlayer(int $lord_id, int $player_id ) {
     Abyss::DbQuery( "UPDATE lord SET place = ".(-1 * $player_id)." WHERE lord_id = $lord_id" );
   }
 
-  public static function playerProtected( $player_id ) {
+  public static function playerProtected(int $player_id ) {
     return self::playerHas( 14, $player_id );
   }
 
-  public static function playerHas( $lord_id, $player_id ) {
+  public static function playerHas(int $lord_id, int $player_id ) {
     return Abyss::getValue( "SELECT COUNT(*) FROM lord WHERE place = -$player_id AND location IS NULL AND NOT turned AND lord_id = $lord_id" );
   }
 
-  public static function opponentHas( $lord_id, $player_id ) {
+  public static function opponentHas(int $lord_id, int $player_id ) {
     return Abyss::getValue( "SELECT COUNT(*) FROM lord WHERE place != -$player_id AND place < 0 AND location IS NULL AND NOT turned AND lord_id = $lord_id" );
   }
 
@@ -148,30 +148,30 @@ class Lord
     return self::putRandom( $slot );
   }
 
-  public static function putRandom( $slot ) {
+  public static function putRandom(int $slot ) {
     $lord = Abyss::getObject( "SELECT * FROM lord WHERE place = 0 ORDER BY RAND() LIMIT 1" );
     Abyss::DbQuery( "UPDATE lord SET place = $slot WHERE lord_id = $lord[lord_id]" );
     $lord["place"] = $slot;
     return self::injectTextSingle($lord);
   }
 
-  public static function getPlayerHand( $player_id ) {
+  public static function getPlayerHand(int $player_id ) {
     return self::injectText(Abyss::getCollection( "SELECT * FROM lord WHERE place = -" . $player_id . "" ));
   }
 
-  public static function getKeys( $player_id ) {
+  public static function getKeys(int $player_id ) {
     return Abyss::getValue( "SELECT SUM(`keys`) FROM lord WHERE place = -" . $player_id . " AND NOT turned AND location IS NULL" );
   }
 
-  public static function disable( $lord_id ) {
+  public static function disable(int $lord_id ) {
     Abyss::DbQuery( "UPDATE lord SET turned = 1 WHERE lord_id = $lord_id" );
   }
 
-  public static function discard( $lord_id ) {
+  public static function discard(int $lord_id ) {
     Abyss::DbQuery( "UPDATE lord SET place = 10 WHERE lord_id = $lord_id" );
   }
 
-  public static function use( $lord_id ) {
+  public static function use(int $lord_id ) {
     Abyss::DbQuery( "UPDATE lord SET used = 1 WHERE lord_id = $lord_id" );
   }
 

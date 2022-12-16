@@ -2,6 +2,7 @@
   font-family: TribalGaramond;
   src: url(img/TribalGaramond.ttf);
 }
+
 .board {
   background-repeat: no-repeat;
   background-size: contain;
@@ -25,7 +26,7 @@
 }
 
 .transition-position {
-  transition: left 0.5s ease-in-out, top 0.5s ease-in-out;
+  transition: left .5s ease-in-out, top .5s ease-in-out;
 }
 
 .location .location-clicker {
@@ -77,31 +78,15 @@
   left: 5px;
 }
 
-#threat-track .slot-0 {
-  top: 4px;
-}
-
-#threat-track .slot-1 {
-  top: 65px;
-}
-
-#threat-track .slot-2 {
-  top: 126px;
-}
-
-#threat-track .slot-3 {
-  top: 187px;
-}
-
-#threat-track .slot-4 {
-  top: 248px;
-}
-
-#threat-track .slot-5 {
-  top: 310px;
-}
+#threat-track .slot-0 {top: 4px; }
+#threat-track .slot-1 {top: 65px; }
+#threat-track .slot-2 {top: 126px; }
+#threat-track .slot-3 {top: 187px; }
+#threat-track .slot-4 {top: 248px; }
+#threat-track .slot-5 {top: 310px; }
 
 /* DECKS */
+
 .deck-empty {
   visibility: hidden !important;
 }
@@ -128,6 +113,7 @@ html body #game-holder .slot-fake {
 }
 
 /* LOCATIONS */
+
 .location {
   display: block;
   width: 350px; /* 370 / 420 */
@@ -159,85 +145,26 @@ html body #game-holder .slot-fake {
   position: relative;
 }
 
-.location-1 {
-  background-position: 0 0;
-}
-
-.location-2 {
-  background-position: 12.5% 0;
-}
-
-.location-3 {
-  background-position: 25% 0;
-}
-
-.location-4 {
-  background-position: 37.5% 0;
-}
-
-.location-5 {
-  background-position: 50% 0;
-}
-
-.location-6 {
-  background-position: 62.5% 0;
-}
-
-.location-7 {
-  background-position: 75% 0;
-}
-
-.location-8 {
-  background-position: 87.5% 0;
-}
-
-.location-9 {
-  background-position: 100% 0;
-}
-
-.location-10 {
-  background-position: 0 50%;
-}
-
-.location-11 {
-  background-position: 12.5% 50%;
-}
-
-.location-12 {
-  background-position: 25% 50%;
-}
-
-.location-13 {
-  background-position: 37.5% 50%;
-}
-
-.location-14 {
-  background-position: 50% 50%;
-}
-
-.location-15 {
-  background-position: 62.5% 50%;
-}
-
-.location-16 {
-  background-position: 75% 50%;
-}
-
-.location-17 {
-  background-position: 87.5% 50%;
-}
-
-.location-18 {
-  background-position: 100% 50%;
-}
-
-.location-19 {
-  background-position: 0 100%;
-}
-
-.location-20 {
-  background-position: 12.5% 100%;
-}
+.location-1 { background-position: 0 0; }
+.location-2 { background-position: 12.5% 0; }
+.location-3 { background-position: 25% 0; }
+.location-4 { background-position: 37.5% 0; }
+.location-5 { background-position: 50% 0; }
+.location-6 { background-position: 62.5% 0; }
+.location-7 { background-position: 75% 0; }
+.location-8 { background-position: 87.5% 0; }
+.location-9 { background-position: 100% 0; }
+.location-10 { background-position: 0 50%; }
+.location-11 { background-position: 12.5% 50%; }
+.location-12 { background-position: 25% 50%; }
+.location-13 { background-position: 37.5% 50%; }
+.location-14 { background-position: 50% 50%; }
+.location-15 { background-position: 62.5% 50%; }
+.location-16 { background-position: 75% 50%; }
+.location-17 { background-position: 87.5% 50%; }
+.location-18 { background-position: 100% 50%; }
+.location-19 { background-position: 0 100%; }
+.location-20 { background-position: 12.5% 100%; }
 
 .location .location-name {
   font-family: TribalGaramond;
@@ -280,6 +207,7 @@ html body #game-holder .slot-fake {
 }
 
 /* LORDS */
+
 #lords-track {
   position: absolute;
   bottom: 12px;
@@ -287,40 +215,20 @@ html body #game-holder .slot-fake {
   height: 136px;
 }
 
-#lords-track .slot-0 {
-  left: 13px;
-}
-
-#lords-track .slot-1 {
-  left: 118px;
-}
-
-#lords-track .slot-2 {
-  left: 222px;
-}
-
-#lords-track .slot-3 {
-  left: 326px;
-}
-
-#lords-track .slot-4 {
-  left: 430px;
-}
-
-#lords-track .slot-5 {
-  left: 532px;
-}
-
-#lords-track .slot-6 {
-  left: 637px;
-}
+#lords-track .slot-0 {left: 13px; }
+#lords-track .slot-1 {left: 118px; }
+#lords-track .slot-2 {left: 222px; }
+#lords-track .slot-3 {left: 326px; }
+#lords-track .slot-4 {left: 430px; }
+#lords-track .slot-5 {left: 532px; }
+#lords-track .slot-6 {left: 637px; }
 
 #lords-track .lord.selected {
   --scale: scale(1.5);
   z-index: 90;
 }
 
-#game-board-holder #bonus-pearls-holder {
+#game-board-holder  #bonus-pearls-holder {
   position: absolute;
   font-size: 0.4em;
   left: 430px;
@@ -328,8 +236,7 @@ html body #game-holder .slot-fake {
   text-align: right;
   top: calc(100% + 2px);
 }
-
-#game-board-holder #bonus-pearls-holder i {
+#game-board-holder  #bonus-pearls-holder i {
   width: 10px;
   height: 10px;
 }
@@ -347,11 +254,14 @@ html body #game-holder .slot-fake {
   position: absolute;
 }
 
-.player-panel .player-name {
-  text-shadow: 0 0 1px white, 0 0 2px white, 0 0 3px white, 0 0 4px white;
-}
-.player-panel .player-name[data-color=ffffff], .player-panel .player-name[data-color=FFFFFF] {
-  text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black, 0 0 4px black;
+.player-panel {
+  .player-name {
+    text-shadow: 0 0 1px white, 0 0 2px white, 0 0 3px white, 0 0 4px white;
+
+    &[data-color="ffffff"], &[data-color="FFFFFF"] {
+      text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black, 0 0 4px black;
+    }
+  }
 }
 
 .player-panel .lord {
@@ -393,7 +303,7 @@ html body #game-holder .slot-fake {
   color: white;
   bottom: 0;
   border-radius: 3px;
-  transition: transform 0.2s ease-in-out, left 0.5s ease-in-out, top 0.5s ease-in-out;
+  transition: transform .2s ease-in-out, left .5s ease-in-out, top .5s ease-in-out;
   cursor: pointer;
   box-shadow: 2px 2px #222;
   user-select: none;
@@ -401,7 +311,7 @@ html body #game-holder .slot-fake {
   -ms-user-select: none;
   -webkit-touch-callout: none;
   /* 10% for each horizontal, 33.33% for each vertical */
-  transform: var(--translate, translate(0)) var(--scale, scale(1));
+  transform: var(--translate,translate(0)) var(--scale,scale(1));
 }
 
 .lord.disabled {
@@ -413,155 +323,19 @@ html body #game-holder .slot-fake {
   z-index: 100;
 }
 
-.lord-back {
-  background-position: 0 0;
-}
-
+.lord-back { background-position: 0 0; }
 /* Soldiers (red) */
-.lord-1 {
-  background-position: 10% 0;
-}
-
-.lord-2 {
-  background-position: 20% 0;
-}
-
-.lord-3 {
-  background-position: 30% 0;
-}
-
-.lord-4 {
-  background-position: 40% 0;
-}
-
-.lord-5 {
-  background-position: 50% 0;
-}
-
-.lord-6 {
-  background-position: 60% 0;
-}
-
-.lord-7 {
-  background-position: 70% 0;
-}
-
+.lord-1 { background-position: 10% 0; } .lord-2 { background-position: 20% 0; } .lord-3 { background-position: 30% 0; } .lord-4 { background-position: 40% 0; } .lord-5 { background-position: 50% 0; } .lord-6 { background-position: 60% 0; } .lord-7 { background-position: 70% 0; }
 /* Merchants (green) */
-.lord-8 {
-  background-position: 80% 0;
-}
-
-.lord-9 {
-  background-position: 90% 0;
-}
-
-.lord-10 {
-  background-position: 100% 0;
-}
-
-.lord-11 {
-  background-position: 0% 33.33%;
-}
-
-.lord-12 {
-  background-position: 10% 33.33%;
-}
-
-.lord-13 {
-  background-position: 20% 33.33%;
-}
-
+.lord-8 { background-position: 80% 0; } .lord-9 { background-position: 90% 0; } .lord-10 { background-position: 100% 0; } .lord-11 { background-position: 0% 33.33%; } .lord-12 { background-position: 10% 33.33%; } .lord-13 { background-position: 20% 33.33%; }
 /* Mages (purple) */
-.lord-14 {
-  background-position: 30% 33.33%;
-}
-
-.lord-15 {
-  background-position: 40% 33.33%;
-}
-
-.lord-16 {
-  background-position: 50% 33.33%;
-}
-
-.lord-17 {
-  background-position: 60% 33.33%;
-}
-
-.lord-18 {
-  background-position: 70% 33.33%;
-}
-
-.lord-19 {
-  background-position: 80% 33.33%;
-}
-
-.lord-20 {
-  background-position: 90% 33.33%;
-}
-
+.lord-14 { background-position: 30% 33.33%; } .lord-15 { background-position: 40% 33.33%; } .lord-16 { background-position: 50% 33.33%; } .lord-17 { background-position: 60% 33.33%; } .lord-18 { background-position: 70% 33.33%; } .lord-19 { background-position: 80% 33.33%; } .lord-20 { background-position: 90% 33.33%; }
 /* Politicians (blue) */
-.lord-21 {
-  background-position: 100% 33.33%;
-}
-
-.lord-22 {
-  background-position: 0 66.66%;
-}
-
-.lord-23 {
-  background-position: 10% 66.66%;
-}
-
-.lord-24 {
-  background-position: 20% 66.66%;
-}
-
-.lord-25 {
-  background-position: 30% 66.66%;
-}
-
-.lord-26 {
-  background-position: 40% 66.66%;
-}
-
+.lord-21 { background-position: 100% 33.33%; } .lord-22 { background-position: 0 66.66%; } .lord-23 { background-position: 10% 66.66%; } .lord-24 { background-position: 20% 66.66%; } .lord-25 { background-position: 30% 66.66%; } .lord-26 { background-position: 40% 66.66%; }
 /* Farmers (yellow) */
-.lord-27 {
-  background-position: 50% 66.66%;
-}
-
-.lord-28 {
-  background-position: 60% 66.66%;
-}
-
-.lord-29 {
-  background-position: 70% 66.66%;
-}
-
-.lord-30 {
-  background-position: 80% 66.66%;
-}
-
-.lord-31 {
-  background-position: 90% 66.66%;
-}
-
-.lord-32 {
-  background-position: 100% 66.66%;
-}
-
+.lord-27 { background-position: 50% 66.66%; } .lord-28 { background-position: 60% 66.66%; } .lord-29 { background-position: 70% 66.66%; } .lord-30 { background-position: 80% 66.66%; } .lord-31 { background-position: 90% 66.66%; } .lord-32 { background-position: 100% 66.66%; }
 /* Ambassadors (grey) */
-.lord-33 {
-  background-position: 0 100%;
-}
-
-.lord-34 {
-  background-position: 10% 100%;
-}
-
-.lord-35 {
-  background-position: 20% 100%;
-}
+.lord-33 { background-position: 0 100%; } .lord-34 { background-position: 10% 100%; } .lord-35 { background-position: 20% 100%; }
 
 .lord .lord-name {
   font-family: TribalGaramond;
@@ -585,6 +359,7 @@ html .lord .lord-desc {
 }
 
 /* ALLIES */
+
 #explore-track {
   position: absolute;
   top: 8px;
@@ -592,62 +367,22 @@ html .lord .lord-desc {
   width: 100%;
 }
 
-#game-board #explore-track .slot-0 {
-  left: 9px;
-}
-
-#game-board #explore-track .slot-1 {
-  left: 141px;
-}
-
-#game-board #explore-track .slot-2 {
-  left: 273px;
-}
-
-#game-board #explore-track .slot-3 {
-  left: 406px;
-}
-
-#game-board #explore-track .slot-4 {
-  left: 539px;
-}
-
-#game-board #explore-track .slot-5 {
-  left: 671px;
-}
+#game-board #explore-track .slot-0 {left: 9px; }
+#game-board #explore-track .slot-1 {left: 141px; }
+#game-board #explore-track .slot-2 {left: 273px; }
+#game-board #explore-track .slot-3 {left: 406px; }
+#game-board #explore-track .slot-4 {left: 539px; }
+#game-board #explore-track .slot-5 {left: 671px; }
 
 #council-track {
   position: absolute;
 }
 
-#game-board #council-track .slot-0 {
-  --rotation: rotate(-40deg);
-  top: 250px;
-  left: 57px;
-}
-
-#game-board #council-track .slot-1 {
-  --rotation: rotate(-19deg);
-  top: 193px;
-  left: 177px;
-}
-
-#game-board #council-track .slot-2 {
-  left: 348px;
-  top: 177px;
-}
-
-#game-board #council-track .slot-3 {
-  --rotation: rotate(20deg);
-  top: 193px;
-  left: 514px;
-}
-
-#game-board #council-track .slot-4 {
-  --rotation: rotate(39deg);
-  top: 249px;
-  left: 627px;
-}
+#game-board #council-track .slot-0 {--rotation: rotate(-40deg); top: 250px; left: 57px;}
+#game-board #council-track .slot-1 {--rotation: rotate(-19deg); top: 193px; left: 177px;}
+#game-board #council-track .slot-2 {left: 348px; top: 177px;}
+#game-board #council-track .slot-3 {--rotation: rotate(20deg); top: 193px; left: 514px;}
+#game-board #council-track .slot-4 {--rotation: rotate(39deg); top: 249px; left: 627px;}
 
 .ally {
   width: 58px;
@@ -656,16 +391,16 @@ html .lord .lord-desc {
   background-size: 800% 400%;
   color: white;
   border-radius: 3px;
-  transition: transform 0.2s ease-in-out;
+  transition: transform .2s ease-in-out;
   cursor: pointer;
   /*box-shadow: 2px 2px rgba(0,0,0,0.7);*/
   box-shadow: 2px 2px #222;
   /* 100/7% for each horizontal, 33.33% for each vertical */
-  transform: var(--rotation, rotate(0)) var(--translate, translate(0)) var(--scale, scale(1));
+  transform: var(--rotation,rotate(0)) var(--translate,translate(0)) var(--scale,scale(1));
 }
 
 #explore-track .ally {
-  transition: transform 0.2s ease-in-out, left 0.5s ease-in-out, top 0.5s ease-in-out;
+  transition: transform .2s ease-in-out, left .5s ease-in-out, top .5s ease-in-out;
 }
 
 #game-board .ally {
@@ -733,113 +468,13 @@ html .lord .lord-desc {
   z-index: 100;
 }
 
-.ally-back {
-  background-position: 0 0;
-}
-
-.ally-4-1 {
-  background-position: 14.286% 0;
-}
-
-.ally-4-2 {
-  background-position: 28.571% 0;
-}
-
-.ally-4-3 {
-  background-position: 42.857% 0;
-}
-
-.ally-4-4 {
-  background-position: 57.143% 0;
-}
-
-.ally-4-5 {
-  background-position: 71.429% 0;
-}
-
-.ally-3-1 {
-  background-position: 85.714% 0;
-}
-
-.ally-3-2 {
-  background-position: 100% 0;
-}
-
-.ally-3-3 {
-  background-position: 0 33.33%;
-}
-
-.ally-3-4 {
-  background-position: 14.286% 33.33%;
-}
-
-.ally-3-5 {
-  background-position: 28.571% 33.33%;
-}
-
-.ally-monster-0 {
-  background-position: 42.857% 33.33%;
-}
-
-.ally-0-1 {
-  background-position: 57.143% 33.33%;
-}
-
-.ally-0-2 {
-  background-position: 71.429% 33.33%;
-}
-
-.ally-0-3 {
-  background-position: 85.714% 33.33%;
-}
-
-.ally-0-4 {
-  background-position: 100% 33.33%;
-}
-
-.ally-0-5 {
-  background-position: 0 66.66%;
-}
-
-.ally-1-1 {
-  background-position: 14.286% 66.66%;
-}
-
-.ally-1-2 {
-  background-position: 28.571% 66.66%;
-}
-
-.ally-1-3 {
-  background-position: 42.857% 66.66%;
-}
-
-.ally-1-4 {
-  background-position: 57.143% 66.66%;
-}
-
-.ally-1-5 {
-  background-position: 71.429% 66.66%;
-}
-
-.ally-2-1 {
-  background-position: 85.714% 66.66%;
-}
-
-.ally-2-2 {
-  background-position: 100% 66.66%;
-}
-
-.ally-2-3 {
-  background-position: 0 100%;
-}
-
-.ally-2-4 {
-  background-position: 14.286% 100%;
-}
-
-.ally-2-5 {
-  background-position: 28.571% 100%;
-}
+.ally-back { background-position: 0 0; }
+.ally-4-1 { background-position: 14.286% 0; } .ally-4-2 { background-position: 28.571% 0; } .ally-4-3 { background-position: 42.857% 0; } .ally-4-4 { background-position: 57.143% 0; } .ally-4-5 { background-position: 71.429% 0; }
+.ally-3-1 { background-position: 85.714% 0; } .ally-3-2 { background-position: 100% 0; } .ally-3-3 { background-position: 0 33.33%; } .ally-3-4 { background-position: 14.286% 33.33%; } .ally-3-5 { background-position: 28.571% 33.33%; }
+.ally-monster-0 { background-position: 42.857% 33.33%; }
+.ally-0-1 { background-position: 57.143% 33.33%; } .ally-0-2 { background-position: 71.429% 33.33%; } .ally-0-3 { background-position: 85.714% 33.33%; } .ally-0-4 { background-position: 100% 33.33%; } .ally-0-5 { background-position: 0 66.66%; }
+.ally-1-1 { background-position: 14.286% 66.66%; } .ally-1-2 { background-position: 28.571% 66.66%; } .ally-1-3 { background-position: 42.857% 66.66%; } .ally-1-4 { background-position: 57.143% 66.66%; } .ally-1-5 { background-position: 71.429% 66.66%; }
+.ally-2-1 { background-position: 85.714% 66.66%; } .ally-2-2 { background-position: 100% 66.66%; } .ally-2-3 { background-position: 0 100%; } .ally-2-4 { background-position: 14.286% 100%; } .ally-2-5 { background-position: 28.571% 100%; }
 
 .ally .ally-name {
   font-family: TribalGaramond;
@@ -890,6 +525,7 @@ html .lord .lord-desc {
 }
 
 /* ICONS */
+
 i.icon {
   background-image: url(img/icons.png);
   display: inline-block;
@@ -1029,21 +665,15 @@ i.icon-ally {
 }
 
 @keyframes emanateShadow {
-  0% {
-    box-shadow: 0 0 15px #fff;
-  }
-  33%, 100% {
-    box-shadow: 0 0 0 #fff;
-  }
+  0% {box-shadow: 0 0 15px #fff;}
+  33%, 100% {box-shadow: 0 0 0 #fff;}
 }
+
 @keyframes emanateBorder {
-  0% {
-    border: 2px solid white;
-  }
-  100% {
-    border: 2px solid #003D4F;
-  }
+  0% {border: 2px solid white;}
+  100% {border: 2px solid #003D4F;}
 }
+
 /* Custom tooltip (because dijit doesn't work with zoom) */
 .abs-tooltip {
   box-shadow: 0 5px 10px #adadad;
@@ -1055,7 +685,7 @@ i.icon-ally {
   z-index: 100;
   max-width: 300px;
   opacity: 0;
-  transition: opacity 0.4s ease-in-out;
+  transition: opacity .4s ease-in-out;
   pointer-events: none;
   color: black;
 }
@@ -1069,33 +699,26 @@ i.icon-ally {
   color: white;
   background-color: #081020;
 }
-
 #player-panel-holder {
   padding: 0 5px;
 }
-
 .playmat_on #player-panel-holder {
   padding: 20px;
 }
-
 #player-panel-holder .player-panel {
   border-radius: 3px;
 }
-
 .playmat_on #player-panel-holder .player-panel {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(255,255,255,0.05);
   background-image: none;
 }
-
 .playmat_on body {
   background: none;
   background-color: #081020;
 }
-
 #game-board-holder hr {
   display: none;
 }
-
 #game-board-holder.playmat-narrow hr {
   width: 100%;
   height: 0;
@@ -1111,11 +734,9 @@ i.icon-ally {
   margin-bottom: 20px;
   text-align: left;
 }
-
 #game-board-holder.playmat-narrow {
   text-align: center;
 }
-
 #game-board-holder.playmat-narrow #locations-holder {
   justify-content: center;
 }
@@ -1124,7 +745,6 @@ i.icon-ally {
 #game-board-holder:not(.playmat) {
   zoom: 1 !important;
 }
-
 #game-board-holder.playmat {
   position: relative;
   width: 1340px;
@@ -1132,7 +752,6 @@ i.icon-ally {
   margin-bottom: 10px;
   margin-right: 0;
 }
-
 #game-board-holder.playmat #game-board {
   background-image: url(img/playmat.jpg);
   width: 1340px;
@@ -1141,7 +760,6 @@ i.icon-ally {
   top: 0;
   left: 0;
 }
-
 #game-board-holder.playmat #bonus-pearls-holder {
   display: none;
 }
@@ -1154,48 +772,17 @@ i.icon-ally {
   top: 26px;
   left: 30px;
 }
-
 #game-board-holder.playmat .threat-token {
   width: 52px;
   height: 52px;
-  transition: left 0.5s ease-in-out, top 0.5s ease-in-out, transform 0.5s ease-in-out;
+  transition: left .5s ease-in-out, top .5s ease-in-out, transform .5s ease-in-out;
 }
-
-#game-board-holder.playmat #threat-track .slot-0 {
-  transform: rotate(10deg);
-  top: 4px;
-  left: 76px;
-}
-
-#game-board-holder.playmat #threat-track .slot-1 {
-  transform: rotate(9deg);
-  top: 111px;
-  left: 55px;
-}
-
-#game-board-holder.playmat #threat-track .slot-2 {
-  transform: rotate(8deg);
-  top: 218px;
-  left: 35px;
-}
-
-#game-board-holder.playmat #threat-track .slot-3 {
-  transform: rotate(5deg);
-  top: 320px;
-  left: 21px;
-}
-
-#game-board-holder.playmat #threat-track .slot-4 {
-  transform: rotate(3deg);
-  top: 421px;
-  left: 10px;
-}
-
-#game-board-holder.playmat #threat-track .slot-5 {
-  transform: rotate(0deg);
-  top: 523px;
-  left: 4px;
-}
+#game-board-holder.playmat #threat-track .slot-0 { transform: rotate(10deg); top: 4px; left: 76px; }
+#game-board-holder.playmat #threat-track .slot-1 { transform: rotate(9deg); top: 111px; left: 55px; }
+#game-board-holder.playmat #threat-track .slot-2 { transform: rotate(8deg); top: 218px; left: 35px; }
+#game-board-holder.playmat #threat-track .slot-3 { transform: rotate(5deg); top: 320px; left: 21px; }
+#game-board-holder.playmat #threat-track .slot-4 { transform: rotate(3deg); top: 421px; left: 10px; }
+#game-board-holder.playmat #threat-track .slot-5 { transform: rotate(0deg); top: 523px; left: 4px; }
 
 #game-board-holder.playmat #locations-holder-holder {
   position: absolute;
@@ -1205,109 +792,43 @@ i.icon-ally {
   transform: scale(0.87);
   transform-origin: top right;
 }
-
 #game-board-holder.playmat #locations-holder-holder #locations-holder {
   flex-direction: column;
 }
-
 #game-board-holder.playmat #lords-track {
   bottom: 56px;
   left: 278px;
   width: 762px;
 }
-
-#game-board-holder.playmat #lords-track .slot-0 {
-  left: 13px;
-}
-
-#game-board-holder.playmat #lords-track .slot-1 {
-  left: 129px;
-}
-
-#game-board-holder.playmat #lords-track .slot-2 {
-  left: 234px;
-}
-
-#game-board-holder.playmat #lords-track .slot-3 {
-  left: 339px;
-}
-
-#game-board-holder.playmat #lords-track .slot-4 {
-  left: 444px;
-}
-
-#game-board-holder.playmat #lords-track .slot-5 {
-  left: 550px;
-}
-
-#game-board-holder.playmat #lords-track .slot-6 {
-  left: 655px;
-}
+#game-board-holder.playmat #lords-track .slot-0 {left: 13px; }
+#game-board-holder.playmat #lords-track .slot-1 {left: 129px; }
+#game-board-holder.playmat #lords-track .slot-2 {left: 234px; }
+#game-board-holder.playmat #lords-track .slot-3 {left: 339px; }
+#game-board-holder.playmat #lords-track .slot-4 {left: 444px; }
+#game-board-holder.playmat #lords-track .slot-5 {left: 550px; }
+#game-board-holder.playmat #lords-track .slot-6 {left: 655px; }
 
 #game-board-holder.playmat #explore-track {
   left: 317px;
   top: 42px;
   width: 650px;
 }
-
-#game-board-holder.playmat #explore-track .slot-0 {
-  left: 0;
-  top: 12px;
-}
-
-#game-board-holder.playmat #explore-track .slot-1 {
-  left: 121px;
-}
-
-#game-board-holder.playmat #explore-track .slot-2 {
-  left: 239px;
-}
-
-#game-board-holder.playmat #explore-track .slot-3 {
-  left: 352px;
-}
-
-#game-board-holder.playmat #explore-track .slot-4 {
-  left: 464px;
-}
-
-#game-board-holder.playmat #explore-track .slot-5 {
-  left: 575px;
-}
+#game-board-holder.playmat #explore-track .slot-0 {left: 0; top: 12px; }
+#game-board-holder.playmat #explore-track .slot-1 {left: 121px; }
+#game-board-holder.playmat #explore-track .slot-2 {left: 239px; }
+#game-board-holder.playmat #explore-track .slot-3 {left: 352px; }
+#game-board-holder.playmat #explore-track .slot-4 {left: 464px; }
+#game-board-holder.playmat #explore-track .slot-5 {left: 575px; }
 
 #game-board-holder.playmat #council-track {
   left: 30px;
   top: 28px;
 }
-
-#game-board-holder.playmat #council-track .slot-0 {
-  --rotation: rotate(-25deg);
-  top: 237px;
-  left: 204px;
-}
-
-#game-board-holder.playmat #council-track .slot-1 {
-  --rotation: rotate(-10deg);
-  top: 189px;
-  left: 356px;
-}
-
-#game-board-holder.playmat #council-track .slot-2 {
-  left: 533px;
-  top: 176px;
-}
-
-#game-board-holder.playmat #council-track .slot-3 {
-  --rotation: rotate(13deg);
-  top: 193px;
-  left: 713px;
-}
-
-#game-board-holder.playmat #council-track .slot-4 {
-  --rotation: rotate(28deg);
-  top: 239px;
-  left: 848px;
-}
+#game-board-holder.playmat #council-track .slot-0 {--rotation: rotate(-25deg); top: 237px; left: 204px;}
+#game-board-holder.playmat #council-track .slot-1 {--rotation: rotate(-10deg); top: 189px; left: 356px;}
+#game-board-holder.playmat #council-track .slot-2 { left: 533px; top: 176px; }
+#game-board-holder.playmat #council-track .slot-3 {--rotation: rotate(13deg); top: 193px; left: 713px;}
+#game-board-holder.playmat #council-track .slot-4 {--rotation: rotate(28deg); top: 239px; left: 848px;}
 
 .ally-back .deck-size, .lord-back .deck-size, .location-back .deck-size {
   position: absolute;
@@ -1330,35 +851,28 @@ i.icon-ally {
   padding: 10px 0;
   display: none;
 }
-
 #game-scoring table {
   margin: auto;
 }
-
 #game-scoring table td {
   padding: 10px;
 }
-
 #game-scoring table td.first-column {
   border-right: 2px solid white;
 }
-
 #game-scoring table tr.line-below {
   border-bottom: 2px solid white;
 }
-
 #game-scoring i.icon {
   width: 48px;
   height: 48px;
   vertical-align: middle;
   margin-left: 10px;
 }
-
 #game-scoring .arrow {
   margin-right: 10px;
   visibility: hidden;
 }
-
 #last-round {
   margin: 5px -5px -5px -5px;
   text-align: center;
@@ -1379,97 +893,96 @@ html a.bgabutton.affiliate-button:hover {
 }
 
 @keyframes wave {
-  from {
-    transform: translateY(1px);
-  }
-  to {
-    transform: translateY(-3px);
-  }
+  from { transform : translateY( 1px ); }
+  to   { transform : translateY( -3px ); }
 }
+
 .wavetext span {
   display: inline-block;
+ 
   animation-duration: 0.3s;
   animation-name: wave;
   animation-iteration-count: infinite;
   animation-direction: alternate;
 }
 
-.wavetext :nth-child(20n+0) {
-  animation-delay: -0.3s;
+.wavetext :nth-child( 20n + 0 ) {
+    animation-delay : 
+      calc(-20s * 2 * 0.3 / 40 );
 }
-
-.wavetext :nth-child(20n+1) {
-  animation-delay: -0.285s;
+.wavetext :nth-child( 20n + 1 ) {
+  animation-delay : 
+    calc(-19s * 2 * 0.3 / 40 );
 }
-
-.wavetext :nth-child(20n+2) {
-  animation-delay: -0.27s;
+.wavetext :nth-child( 20n + 2 ) {
+  animation-delay : 
+    calc(-18s * 2 * 0.3 / 40 );
 }
-
-.wavetext :nth-child(20n+3) {
-  animation-delay: -0.255s;
+.wavetext :nth-child( 20n + 3 ) {
+  animation-delay : 
+    calc(-17s * 2 * 0.3 / 40 );
 }
-
-.wavetext :nth-child(20n+4) {
-  animation-delay: -0.24s;
+.wavetext :nth-child( 20n + 4 ) {
+  animation-delay : 
+    calc(-16s * 2 * 0.3 / 40 );
 }
-
-.wavetext :nth-child(20n+5) {
-  animation-delay: -0.225s;
+.wavetext :nth-child( 20n + 5 ) {
+  animation-delay : 
+    calc(-15s * 2 * 0.3 / 40 );
 }
-
-.wavetext :nth-child(20n+6) {
-  animation-delay: -0.21s;
+.wavetext :nth-child( 20n + 6 ) {
+  animation-delay : 
+    calc(-14s * 2 * 0.3 / 40 );
 }
-
-.wavetext :nth-child(20n+7) {
-  animation-delay: -0.195s;
+.wavetext :nth-child( 20n + 7 ) {
+  animation-delay : 
+    calc(-13s * 2 * 0.3 / 40 );
 }
-
-.wavetext :nth-child(20n+8) {
-  animation-delay: -0.18s;
+.wavetext :nth-child( 20n + 8 ) {
+  animation-delay : 
+    calc(-12s * 2 * 0.3 / 40 );
 }
-
-.wavetext :nth-child(20n+9) {
-  animation-delay: -0.165s;
+.wavetext :nth-child( 20n + 9 ) {
+  animation-delay : 
+    calc(-11s * 2 * 0.3 / 40 );
 }
-
-.wavetext :nth-child(20n+10) {
-  animation-delay: -0.15s;
+.wavetext :nth-child( 20n + 10 ) {
+  animation-delay : 
+    calc(-10s * 2 * 0.3 / 40 );
 }
-
-.wavetext :nth-child(20n+11) {
-  animation-delay: -0.135s;
+.wavetext :nth-child( 20n + 11 ) {
+  animation-delay : 
+    calc(-9s * 2 * 0.3 / 40 );
 }
-
-.wavetext :nth-child(20n+12) {
-  animation-delay: -0.12s;
+.wavetext :nth-child( 20n + 12 ) {
+  animation-delay : 
+    calc(-8s * 2 * 0.3 / 40 );
 }
-
-.wavetext :nth-child(20n+13) {
-  animation-delay: -0.105s;
+.wavetext :nth-child( 20n + 13 ) {
+  animation-delay : 
+    calc(-7s * 2 * 0.3 / 40 );
 }
-
-.wavetext :nth-child(20n+14) {
-  animation-delay: -0.09s;
+.wavetext :nth-child( 20n + 14 ) {
+  animation-delay : 
+    calc(-6s * 2 * 0.3 / 40 );
 }
-
-.wavetext :nth-child(20n+15) {
-  animation-delay: -0.075s;
+.wavetext :nth-child( 20n + 15 ) {
+  animation-delay : 
+    calc(-5s * 2 * 0.3 / 40 );
 }
-
-.wavetext :nth-child(20n+16) {
-  animation-delay: -0.06s;
+.wavetext :nth-child( 20n + 16 ) {
+  animation-delay : 
+    calc(-4s * 2 * 0.3 / 40 );
 }
-
-.wavetext :nth-child(20n+17) {
-  animation-delay: -0.045s;
+.wavetext :nth-child( 20n + 17 ) {
+  animation-delay : 
+    calc(-3s * 2 * 0.3 / 40 );
 }
-
-.wavetext :nth-child(20n+18) {
-  animation-delay: -0.03s;
+.wavetext :nth-child( 20n + 18 ) {
+  animation-delay : 
+    calc(-2s * 2 * 0.3 / 40 );
 }
-
-.wavetext :nth-child(20n+19) {
-  animation-delay: -0.015s;
+.wavetext :nth-child( 20n + 19 ) {
+  animation-delay : 
+    calc(-1s * 2 * 0.3 / 40 );
 }

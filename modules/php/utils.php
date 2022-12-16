@@ -125,7 +125,7 @@ trait UtilTrait {
     }
 
     public function getLordCost( $lord, int $player_id) {
-        $cost = $lord["cost"];
+        $cost = intval($lord["cost"]);
         if (Lord::playerHas( 25 , $player_id )) {
             $cost -= 2;
         }

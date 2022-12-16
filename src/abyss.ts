@@ -9,6 +9,9 @@ let debounce;
 
 class Abyss implements AbyssGame {
     private gamedatas: AbyssGamedatas;
+    private allyManager: AllyManager;
+    private lordManager: LordManager;
+    private locationManager: LocationManager;
     private useZoom: boolean;
     private zoomLevel: number;
     private lastExploreTime: number;
@@ -18,6 +21,10 @@ class Abyss implements AbyssGame {
 
     setup(gamedatas: AbyssGamedatas) {
         this.gamedatas = gamedatas;
+
+        this.allyManager = new AllyManager(this);
+        this.lordManager = new LordManager(this);
+        this.locationManager = new LocationManager(this);
 
         // Use zoom when not on FF
         this.useZoom = false; //navigator.userAgent.toLowerCase().indexOf('firefox') <= -1;
@@ -63,17 +70,26 @@ class Abyss implements AbyssGame {
                     height: height
                 });
             }
-            Locations.organise();
+            this.locationManager.organise();
         }, 200));
         
         // Setting up player boards
-        for( var player_id in gamedatas.players )
+        for( var playerId in gamedatas.players )
         {
-            var player = gamedatas.players[player_id];
+            var player = gamedatas.players[playerId];
 
             // Setting up players boards if needed
-            var player_board_div = $('player_board_'+player_id);
-            dojo.place( (this as any).format_block('jstpl_player_board', player ), player_board_div );
+            var player_board_div = $('player_board_'+playerId);
+            let html = `
+            <div id="cp_board_p${player.id}" class="cp_board" data-player-id="${player.id}">
+                <span class="pearl-holder spacer" id="pearl-holder_p${player.id}"><i class="icon icon-pearl"></i><span class="spacer" id="pearlcount_p${player.id}">${player.pearls}</span></span>
+                <span class="key-holder spacer" id="key-holder_p${player.id}"><i class="icon icon-key"></i><span class="spacer" id="keycount_p${player.id}">${player.keys}</span><span class="key-addendum">(+<span id="lordkeycount_p${player.id}"></span>)</span></span>
+                <span class="ally-holder spacer" id="ally-holder_p${player.id}"><i class="icon icon-ally"></i><span class="spacer" id="allycount_p${player.id}">${player.hand_size}</span></span>
+                <span class="monster-holder spacer" id="monster-holder_p${player.id}"><i class="icon icon-monster"></i><span class="spacer" id="monstercount_p${player.id}">${player.num_monsters}</span></span>
+                <span class="lordcount-holder spacer"><i class="icon icon-lord"></i><span id="lordcount_p${player.id}">0</span></span>
+                <div class="monster-hand" id="monster-hand_p${player.id}"></div>
+            </div>`;
+            dojo.place( html, player_board_div );
             
             // Set up scoring table in advance (helpful for testing!)
             let splitPlayerName = '';
@@ -81,14 +97,14 @@ class Abyss implements AbyssGame {
             for (let i in chars) {
                 splitPlayerName += `<span>${chars[i]}</span>`;
             }
-            $('scoring-row-players').innerHTML += `<td><span id="scoring-row-name-p${player_id}" style="color:#${player.color};"><span>${splitPlayerName}</span></span></td>`;
+            $('scoring-row-players').innerHTML += `<td><span id="scoring-row-name-p${playerId}" style="color:#${player.color};"><span>${splitPlayerName}</span></span></td>`;
             
-            $('scoring-row-location').innerHTML += `<td id="scoring-row-location-p${player_id}"></td>`;
-            $('scoring-row-lord').innerHTML += `<td id="scoring-row-lord-p${player_id}"></td>`;
-            $('scoring-row-affiliated').innerHTML += `<td id="scoring-row-affiliated-p${player_id}"></td>`;
-            $('scoring-row-monster').innerHTML += `<td id="scoring-row-monster-p${player_id}"></td>`;
+            $('scoring-row-location').innerHTML += `<td id="scoring-row-location-p${playerId}"></td>`;
+            $('scoring-row-lord').innerHTML += `<td id="scoring-row-lord-p${playerId}"></td>`;
+            $('scoring-row-affiliated').innerHTML += `<td id="scoring-row-affiliated-p${playerId}"></td>`;
+            $('scoring-row-monster').innerHTML += `<td id="scoring-row-monster-p${playerId}"></td>`;
             
-            $('scoring-row-total').innerHTML += `<td id="scoring-row-total-p${player_id}"></td>`;
+            $('scoring-row-total').innerHTML += `<td id="scoring-row-total-p${playerId}"></td>`;
         }
         
         // Add an extra column at the end, just for padding reasons
@@ -111,88 +127,89 @@ class Abyss implements AbyssGame {
             players_done[p] = 1;
             var player = gamedatas.players[p];
 
-            var template = `<div id="player-panel-${p}" class="player-panel whiteblock">
-            <h3>${player.name}</h3>
-            ${p == (this as any).player_id ? `<div id="player-hand" class="hand"><i id="no-hand-msg">${_("No Allies in hand")}</i></div>` : ''}
-            <h4>${_("Affiliated Allies")}</h4>
-            <i id="no-affiliated-msg-p${p}">${_("No Affiliated Allies")}</i>
-            <div class="affiliated"></div>
-            <h4>${_("Lords")}</h4>
-            <i id="no-lords-msg-p${p}">${_("No Lords")}</i>
-            <div class="free-lords"></div>
-            <div class="locations"></div>
-            </div>`;
+            var template = `
+            <div id="player-panel-${p}" class="player-panel whiteblock">
+                <h3 class="player-name" style="color: #${player.color};" data-color="${player.color}">${player.name}</h3>
+                ${p == (this as any).player_id ? `<div id="player-hand" class="hand"><i id="no-hand-msg">${_("No Allies in hand")}</i></div>` : ''}
+                <h4>${_("Affiliated Allies")}</h4>
+                <i id="no-affiliated-msg-p${p}">${_("No Affiliated Allies")}</i>
+                <div id="player-panel-${p}-affiliated" class="affiliated"></div>
+                <h4>${_("Lords")}</h4>
+                <i id="no-lords-msg-p${p}">${_("No Lords")}</i>
+                <div class="free-lords"></div>
+                <div class="locations"></div>
+            </div>
+            `;
             
             let playerPanel = dojo.place( template, $('player-panel-holder') );
             
             // Add a whiteblock for the player
             if (p == (this as any).player_id) {
-            // Add player hand
-            for (var j in player.hand) {
-                let node = Ally.placeWithTooltip(player.hand[j], $('player-hand'));
-            }
-            var handTitle = _("Hand");
-            // <h4>${handTitle}</h4>
+                // Add player hand
+                for (var j in player.hand) {
+                    this.allyManager.placeWithTooltip(player.hand[j], $('player-hand'));
+                }
+                // <h4>${_("Hand")}</h4>
             }
             
             // Add player affiliated
-            Ally.placeAffiliated(player.affiliated, playerPanel);
+            this.allyManager.placeAffiliated(player.affiliated, Number(p));
             
             // Add locations
             var locationsHolder = dojo.query(`#player-panel-${p} .locations`)[0];
             for (var j in player.locations) {
             var location = player.locations[j];
-            var locations_holder = dojo.query('#player-panel-' + player_id + ' .locations')[0];
+            var locations_holder = dojo.query('#player-panel-' + playerId + ' .locations')[0];
             var lords = [];
             for (var k in player.lords) {
                 var lord = player.lords[k];
                 if (+lord.location == +location.location_id) {
-                lords.push(lord);
+                    lords.push(lord);
                 }
             }
-            let locationNode = Locations.placeWithTooltip( location, locationsHolder );
-            Locations.placeLords(locationNode, lords);
+            let locationNode = this.locationManager.placeWithTooltip( location, locationsHolder );
+            this.locationManager.placeLords(locationNode, lords);
             }
             
             var freeLordHolder = dojo.query(`#player-panel-${p} .free-lords`)[0];
             for (var j in player.lords) {
-            var lord = player.lords[j];
-            if (lord.location == null) {
-                Lord.placeWithTooltip(lord, freeLordHolder);
-            }
+                var lord = player.lords[j];
+                if (lord.location == null) {
+                    this.lordManager.placeWithTooltip(lord, freeLordHolder);
+                }
             }
 
-            Lord.updateLordKeys(p);
-            Locations.organisePlayerBoard(p);
+            this.lordManager.updateLordKeys(p);
+            this.locationManager.organisePlayerBoard(p);
 
             p = gamedatas.turn_order[p];
         } while (p != (this as any).player_id);
 
         // Monsters
-        for( var player_id in gamedatas.players ) {
-            var monster_hand = $('monster-hand_p' + player_id);
+        for( var playerId in gamedatas.players ) {
+            var monster_hand = $('monster-hand_p' + playerId);
             if (monster_hand) {
-                var player = gamedatas.players[player_id];
+                var player = gamedatas.players[playerId];
 
                 if (player.monsters && Object.keys(player.monsters).length > 0) {
-                dojo.style(monster_hand, "display", "block");
-                for (var i in player.monsters) {
-                    dojo.place( '<i class="icon icon-monster-faceup icon-monster-'+ player.monsters[i].value +'">'+ player.monsters[i].value +'</i>', monster_hand );
-                }
+                    dojo.style(monster_hand, "display", "block");
+                    for (var i in player.monsters) {
+                        dojo.place( '<i class="icon icon-monster-faceup icon-monster-'+ player.monsters[i].value +'">'+ player.monsters[i].value +'</i>', monster_hand );
+                    }
                 }
             }
         }
 
         // Lords
         for ( var i in gamedatas.lord_slots ) {
-            let node = Lord.placeWithTooltip( gamedatas.lord_slots[i], $('lords-track') );
+            let node = this.lordManager.placeWithTooltip( gamedatas.lord_slots[i], $('lords-track') );
         }
 
         // Allies
         for ( var i in gamedatas.ally_explore_slots ) {
             var ally = gamedatas.ally_explore_slots[i];
             if (ally.faction == null) ally.faction = 'monster';
-            Ally.placeWithTooltip(ally, $('explore-track'));
+            this.allyManager.placeWithTooltip(ally, $('explore-track'));
         }
         for ( var i in gamedatas.ally_council_slots ) {
             var num = gamedatas.ally_council_slots[i];
@@ -210,7 +227,7 @@ class Abyss implements AbyssGame {
         // Locations
         for ( var i in gamedatas.location_available ) {
             var location = gamedatas.location_available[i];
-            Locations.placeWithTooltip(location, $('locations-holder'));
+            this.locationManager.placeWithTooltip(location, $('locations-holder'));
         }
         this.setDeckSize(dojo.query('#locations-holder .location-back'), gamedatas.location_deck);
 
@@ -278,16 +295,16 @@ class Abyss implements AbyssGame {
                     let firstValue = +pieces[0];
                     let allSame = true;
                     for (let i = 0; i < 5; i++) {
-                    let max = +pieces[i];
-                    if (max != firstValue) {
-                        allSame = false;
-                    }
-                    for (let j = 0; j <= max; j++) {
-                        $('autopass-'+i+'-'+j).checked = true;
-                    }
+                        let max = +pieces[i];
+                        if (max != firstValue) {
+                            allSame = false;
+                        }
+                        for (let j = 0; j <= max; j++) {
+                            $('autopass-'+i+'-'+j).checked = true;
+                        }
                     }
                     if (allSame) {
-                    $('autopass-all-'+firstValue).checked = true;
+                        $('autopass-all-'+firstValue).checked = true;
                     }
                 }
             }
@@ -309,12 +326,12 @@ class Abyss implements AbyssGame {
                 dojo.connect($('autopass-all-'+i), 'onclick', () => {
                     // Check only this one
                     for (let j = 0; j <= 5; j++) {
-                    $('autopass-all-'+j).checked = i == j;
+                        $('autopass-all-'+j).checked = i == j;
                     }
                     for (let faction = 0; faction < 5; faction++) {
-                    for (let j = 0; j <= 5; j++) {
-                        $('autopass-'+faction+'-'+j).checked = j <= i;
-                    }
+                        for (let j = 0; j <= 5; j++) {
+                            $('autopass-'+faction+'-'+j).checked = j <= i;
+                        }
                     }
                     self.onUpdateAutopass();
                 });
@@ -340,9 +357,9 @@ class Abyss implements AbyssGame {
             $('no-affiliated-msg-p' + i).style.display = affiliated.length > 0 ? 'none' : 'block';
             
             if (i == (this as any).player_id) {
-            // Hand?
-            const hand = dojo.query('.ally', $('player-hand'));
-            $('no-hand-msg').style.display = hand.length > 0 ? 'none' : 'block';
+                // Hand?
+                const hand = dojo.query('.ally', $('player-hand'));
+                $('no-hand-msg').style.display = hand.length > 0 ? 'none' : 'block';
             }
         }
     }
@@ -350,13 +367,13 @@ class Abyss implements AbyssGame {
     setDeckSize(deck /*dojo query result*/, num: number) {
         deck.removeClass("deck-empty deck-low deck-medium deck-full");
         if (num == 0) {
-        deck.addClass("deck-empty");
+            deck.addClass("deck-empty");
         } else if (num <= 2) {
-        deck.addClass("deck-low");
+            deck.addClass("deck-low");
         } else if (num <= 5) {
-        deck.addClass("deck-medium");
+            deck.addClass("deck-medium");
         } else {
-        deck.addClass("deck-full");
+            deck.addClass("deck-full");
         }
 
         // Set deck-size data
@@ -367,8 +384,8 @@ class Abyss implements AbyssGame {
             var node = deck[i];
             let deckSize = dojo.query('.deck-size', node);
             if (deckSize.length > 0) {
-            let n = deckSize[0];
-            n.innerHTML = num > 0 ? num : "";
+                let n = deckSize[0];
+                n.innerHTML = num > 0 ? num : "";
             }
         }
     }
@@ -416,74 +433,95 @@ class Abyss implements AbyssGame {
             }
         }
         
-        switch( stateName )
-        {
-        case 'recruitPay':
-            // highlight the given lord
-            dojo.query("#lords-track .lord[data-lord-id=" + args.args.lord_id + "]").addClass("selected");
+        switch( stateName ) {
+            case 'recruitPay':
+                this.onEnteringRecruitPay(args.args);
+                break;
+            case 'lord7':
+                this.onEnterinLord7();
+                break;
+            case 'controlPostDraw':
+                this.onEnteringControlPostDraw(args.args);
+                // then do entering control code
+            case 'control':
+                this.onEnteringControl(args.args);
+                break;
+            case 'locationEffectBlackSmokers':
+                this.onEnteringLocationEffectBlackSmokers(args.args);
+                break;
+            case 'purchase': case 'explore': case 'explore2': case 'explore3':
+                this.onEnteringPurchaseExplore(args.args);
+                break;
+        }
+    }
 
-            if ((this as any).isCurrentPlayerActive()) {
+    private onEnteringRecruitPay(args: EnteringRecruitPayArgs) {
+        // highlight the given lord
+        dojo.query("#lords-track .lord[data-lord-id=" + args.lord_id + "]").addClass("selected");
+
+        if ((this as any).isCurrentPlayerActive()) {
             var lord = dojo.query("#lords-track .lord.selected")[0];
-            var cost = +args.args.cost;
+            var cost = +args.cost;
             $('button_recruit').innerHTML = _('Recruit') + ' ('+cost+' <i class="icon icon-pearl"></i>)';
             dojo.setAttr($('button_recruit'), "data-base-cost", cost);
-            }
+        }
+    }
 
-            break;
-        case 'lord7':
-            // Put a red border around the player monster tokens (who aren't me)
-            if ((this as any).isCurrentPlayerActive()) {
+    private onEnterinLord7() {
+        // Put a red border around the player monster tokens (who aren't me)
+        if ((this as any).isCurrentPlayerActive()) {
             for( var player_id in this.gamedatas.players ) {
                 if (player_id != (this as any).player_id) {
-                dojo.query("#cp_board_p" + player_id + " .icon.icon-monster").addClass("clickable");
+                    dojo.query("#cp_board_p" + player_id + " .icon.icon-monster").addClass("clickable");
                 }
             }
-            }
-            break;
-        case 'controlPostDraw':
-            // Fade out the locations you can't buy
-            if ((this as any).isCurrentPlayerActive()) {
+        }
+    }
+
+    private onEnteringControlPostDraw(args: EnteringControlPostDrawArgs) {
+        // Fade out the locations you can't buy
+        if ((this as any).isCurrentPlayerActive()) {
             dojo.query("#locations-holder .location:not(.location-back)").addClass("unavailable");
             dojo.query("#locations-holder-overflow .location:not(.location-back)").addClass("unavailable");
-            for( var iLocationId in args.args.location_ids ) {
-                var location_id = args.args.location_ids[iLocationId];
+            for( var iLocationId in args.location_ids ) {
+                var location_id = args.location_ids[iLocationId];
                 dojo.query("#locations-holder .location.location-" + location_id).removeClass("unavailable");
                 dojo.query("#locations-holder-overflow .location.location-" + location_id).removeClass("unavailable");
             }
-            }
-        case 'control':
-            dojo.query(".free-lords .lord").removeClass("selected");
-            for( var iLordId in args.args.default_lord_ids ) {
-            var lord_id = args.args.default_lord_ids[iLordId];
+        }
+    }
+
+    private onEnteringControl(args: EnteringControlPostDrawArgs) {
+        dojo.query(".free-lords .lord").removeClass("selected");
+        for( var iLordId in args.default_lord_ids ) {
+            var lord_id = args.default_lord_ids[iLordId];
             dojo.query("#player-panel-" + (this as any).player_id + " .free-lords .lord.lord-" + lord_id).addClass("selected");
-            }
-            break;
-        case 'locationEffectBlackSmokers':
-            // Draw all the locations in a div at the top. Register to each an onclick to select it.
-            if ((this as any).isCurrentPlayerActive()) {
-            for( var iLocation in args.args._private.locations ) {
-                var location = args.args._private.locations[iLocation];
-                var location_element = Locations.placeWithTooltip(location, $('game-extra'));
+        }
+    }
+
+    private onEnteringLocationEffectBlackSmokers(args: EnteringLocationEffectBlackSmokersArgs) {
+        // Draw all the locations in a div at the top. Register to each an onclick to select it.
+        if ((this as any).isCurrentPlayerActive()) {
+            for( var iLocation in args._private.locations ) {
+                var location = args._private.locations[iLocation];
+                var location_element = this.locationManager.placeWithTooltip(location, $('game-extra'));
                 dojo.addClass(location_element, 'card-current-move');
                 dojo.connect(location_element, 'onclick', this, 'onClickLocation');
             }
             dojo.style($('game-extra'), "display", "block");
-            }
-            break;
-        case 'purchase': case 'explore': case 'explore2': case 'explore3':
-            // Disable players who have passed
-            (this as any).enableAllPlayerPanels();
-            for( var iPlayer in args.args.passed_players ) {
-                (this as any).disablePlayerPanel( args.args.passed_players[iPlayer] );
-            }
-            
-            // Underline the first player
-            let first_player = args.args.first_player
-            dojo.query('a', $('player_name_' + first_player)).style('text-decoration', 'underline');
-            break;
-        case 'dummmy':
-            break;
         }
+    }
+
+    private onEnteringPurchaseExplore(args: EnteringPurchaseArgs) {
+        // Disable players who have passed
+        (this as any).enableAllPlayerPanels();
+        for( var iPlayer in args.passed_players ) {
+            (this as any).disablePlayerPanel( args.passed_players[iPlayer] );
+        }
+        
+        // Underline the first player
+        let first_player = args.first_player;
+        dojo.query('a', $('player_name_' + first_player)).style('text-decoration', 'underline');
     }
 
     // onLeavingState: this method is called each time we are leaving a game state.
@@ -493,29 +531,25 @@ class Abyss implements AbyssGame {
         $('game-extra').innerHTML = '';
         dojo.style($('game-extra'), "display", "none");
 
-        switch( stateName )
-        {
-
-        case 'recruitPay':
-            dojo.query("#lords-track .lord").removeClass("selected");
-            dojo.query("#player-hand .ally").removeClass("selected");
-            break;
-        case 'lord7':
-            // Put a red border around the player monster tokens (who aren't me)
-            dojo.query(".cp_board .icon.icon-monster").removeClass("clickable");
-            break;
-        case 'controlPostDraw': case 'control':
-            dojo.query("#locations-holder .location").removeClass("unavailable");
-            dojo.query("#locations-holder-overflow .location").removeClass("unavailable");
-        case 'lord19': case 'lord19b':
-            dojo.query(".free-lords .lord").removeClass("selected");
-            break;
-        case 'purchase': case 'explore': case 'explore2': case 'explore3':
-            (this as any).enableAllPlayerPanels();
-            dojo.query('.player-name a').style('text-decoration', '');
-            break;
-        case 'dummmy':
-            break;
+        switch( stateName ) {
+            case 'recruitPay':
+                dojo.query("#lords-track .lord").removeClass("selected");
+                dojo.query("#player-hand .ally").removeClass("selected");
+                break;
+            case 'lord7':
+                // Put a red border around the player monster tokens (who aren't me)
+                dojo.query(".cp_board .icon.icon-monster").removeClass("clickable");
+                break;
+            case 'controlPostDraw': case 'control':
+                dojo.query("#locations-holder .location").removeClass("unavailable");
+                dojo.query("#locations-holder-overflow .location").removeClass("unavailable");
+            case 'lord19': case 'lord19b':
+                dojo.query(".free-lords .lord").removeClass("selected");
+                break;
+            case 'purchase': case 'explore': case 'explore2': case 'explore3':
+                (this as any).enableAllPlayerPanels();
+                dojo.query('.player-name a').style('text-decoration', '');
+                break;
         }
     }
 
@@ -524,84 +558,82 @@ class Abyss implements AbyssGame {
     //
     onUpdateActionButtons(stateName: string, args: any) {
         if ((this as any).isCurrentPlayerActive() && ["plotAtCourt", "action", "secondStack", "explore", "explore2", "explore3", "chooseMonsterReward", "recruitPay", "affiliate", "cleanupDiscard", "controlPostDraw", "unusedLords"].includes(stateName)) {
-            dojo.query("#player-panel-"+(this as any).player_id+" .free-lords .lord").forEach(function (node) {
-            // unused, and unturned...
-            var used = +dojo.attr(node, "data-used");
-            var turned = +dojo.attr(node, "data-turned");
-            var effect = +dojo.attr(node, "data-effect");
+            dojo.query("#player-panel-"+(this as any).player_id+" .free-lords .lord").forEach(node => {
+                // unused, and unturned...
+                var used = +dojo.attr(node, "data-used");
+                var turned = +dojo.attr(node, "data-turned");
+                var effect = +dojo.attr(node, "data-effect");
 
-            if (! used && ! turned && effect == 3) {
-                dojo.addClass(node, "unused");
-            }
+                if (! used && ! turned && effect == 3) {
+                    dojo.addClass(node, "unused");
+                }
             });
         } else {
             dojo.query(".lord").removeClass("unused");
         }
 
-        if( (this as any).isCurrentPlayerActive() )
-        {
-            switch( stateName )
-            {
+        if( (this as any).isCurrentPlayerActive() ) {
+            switch( stateName ) {
                 case 'purchase':
-                var cost = args.cost;
-                (this as any).addActionButton( 'button_purchase', _('Purchase') + ` (${cost} <i class="icon icon-pearl"></i>)`, 'onPurchase' );
-                (this as any).addActionButton( 'button_pass', _('Pass'), 'onPass' );
-                break;
+                    var cost = args.cost;
+                    (this as any).addActionButton( 'button_purchase', _('Purchase') + ` (${cost} <i class="icon icon-pearl"></i>)`, 'onPurchase' );
+                    (this as any).addActionButton( 'button_pass', _('Pass'), 'onPass' );
+                    break;
                 case 'chooseMonsterReward':
-                for (var i in args.rewards) {
-                    var r: string = args.rewards[i];
-                    r = r.replace(/K/g, "<i class=\"icon icon-key\"></i>");
-                    r = r.replace(/P/g, "<i class=\"icon icon-pearl\"></i>");
-                    r = r.replace(/M/g, "<i class=\"icon icon-monster\"></i>");
-                    (this as any).addActionButton( 'button_reward_' + i, r, 'onChooseMonsterReward' );
-                }
-                break;
+                    for (var i in args.rewards) {
+                        var r: string = args.rewards[i];
+                        r = r.replace(/K/g, "<i class=\"icon icon-key\"></i>");
+                        r = r.replace(/P/g, "<i class=\"icon icon-pearl\"></i>");
+                        r = r.replace(/M/g, "<i class=\"icon icon-monster\"></i>");
+                        (this as any).addActionButton( 'button_reward_' + i, r, 'onChooseMonsterReward' );
+                    }
+                    break;
                 case 'recruitPay':
-                (this as any).addActionButton( 'button_recruit', _('Recruit'), 'onRecruit' );
-                (this as any).addActionButton( 'button_pass', _('Cancel'), 'onPass' );
-                break;
+                    (this as any).addActionButton( 'button_recruit', _('Recruit'), 'onRecruit' );
+                    (this as any).addActionButton( 'button_pass', _('Cancel'), 'onPass' );
+                    break;
                 case 'affiliate':
-                for (var i in args.allies) {
-                    var ally = args.allies[i];
-                    var r: string = ally.value + ' ' + Ally.allyNameText(ally);
-                    var btnId = 'button_affiliate_' + ally.ally_id;
-                    (this as any).addActionButton( btnId, r, 'onChooseAffiliate' );
-                    dojo.addClass($(btnId), 'affiliate-button')
-                }
-                break;
+                    for (var i in args.allies) {
+                        var ally = args.allies[i];
+                        var r: string = ally.value + ' ' + this.allyManager.allyNameText(ally);
+                        var btnId = 'button_affiliate_' + ally.ally_id;
+                        (this as any).addActionButton( btnId, r, 'onChooseAffiliate' );
+                        dojo.addClass($(btnId), 'affiliate-button')
+                    }
+                    break;
                 case 'plotAtCourt':
-                (this as any).addActionButton( 'button_plot', _('Plot') + ` (1 <i class="icon icon-pearl"></i>)`, 'onPlot' );
-                (this as any).addActionButton( 'button_pass', _('Pass'), 'onPass' );
-                break;
+                    (this as any).addActionButton( 'button_plot', _('Plot') + ` (1 <i class="icon icon-pearl"></i>)`, 'onPlot' );
+                    (this as any).addActionButton( 'button_pass', _('Pass'), 'onPass' );
+                    break;
                 case 'lord23': case 'lord26': case 'locationEffectBlackSmokers': case 'lord19': case 'lord22': case 'lord19b': case 'unusedLords':
-                (this as any).addActionButton( 'button_pass', _('Pass'), 'onPass' );
-                break;
+                    (this as any).addActionButton( 'button_pass', _('Pass'), 'onPass' );
+                    break;
                 case 'lord12': case 'lord17': case 'lord21':
-                (this as any).addActionButton( 'button_pass', _('Cancel'), 'onPass' );
-                break;
+                    (this as any).addActionButton( 'button_pass', _('Cancel'), 'onPass' );
+                    break;
                 case 'lord2': case 'lord5': case 'cleanupDiscard': case 'postpurchaseDiscard':
-                (this as any).addActionButton( 'button_discard', _('Discard'), 'onDiscard' );
-                break;
+                    (this as any).addActionButton( 'button_discard', _('Discard'), 'onDiscard' );
+                    break;
                 case 'lord7':
-                // Put a red border around the player monster tokens (who aren't me)
-                for( var player_id in this.gamedatas.players ) {
-                    if (player_id != (this as any).player_id) {
-                    var num_tokens = +$('monstercount_p' + player_id).innerHTML;
-                    if (num_tokens > 0) {
-                        (this as any).addActionButton( 'button_steal_monster_token_' + player_id, this.gamedatas.players[player_id].name, 'onClickMonsterIcon' );
+                    // Put a red border around the player monster tokens (who aren't me)
+                    for( var player_id in this.gamedatas.players ) {
+                        if (player_id != (this as any).player_id) {
+                            var num_tokens = +$('monstercount_p' + player_id).innerHTML;
+                            if (num_tokens > 0) {
+                                (this as any).addActionButton( 'button_steal_monster_token_' + player_id, this.gamedatas.players[player_id].name, 'onClickMonsterIcon' );
+                            }
+                        }
                     }
-                    }
-                }
-                break;
+                    break;
                 case 'control':
-                var s = _('Draw ${n}');
-                let location_deck = dojo.query('.location.location-back')[0];
-                let location_deck_size = +dojo.attr(location_deck, 'data-size');
-                for (let i = 1; i <= 4; i++) {
-                    if (location_deck_size < i) continue;
-                    (this as any).addActionButton( 'button_draw_' + i, dojo.string.substitute( s, {n: i} ), 'onDrawLocation' );
-                }
-                break;
+                    var s = _('Draw ${n}');
+                    let location_deck = dojo.query('.location.location-back')[0];
+                    let location_deck_size = +dojo.attr(location_deck, 'data-size');
+                    for (let i = 1; i <= 4; i++) {
+                        if (location_deck_size < i) continue;
+                        (this as any).addActionButton( 'button_draw_' + i, dojo.string.substitute( s, {n: i} ), 'onDrawLocation' );
+                    }
+                    break;
             }
         }
     }
@@ -609,13 +641,100 @@ class Abyss implements AbyssGame {
     ///////////////////////////////////////////////////
     //// Utility methods
 
-    /*
-
-        Here, you can defines some utility methods that you can use everywhere in your javascript
-        script.
-
-    */
-
+    public connectTooltip(node: any, html: string | Function, offsetType: string) {
+        let tt = $('abs-tooltip-0');
+        dojo.connect(node, "onmouseenter", () => {
+          if ((this as any).prefs[200].value == 1) {
+            return;
+          }
+          let r = node.getBoundingClientRect();
+          let outer = $('game-holder').getBoundingClientRect();
+          let left = r.left - outer.left;
+          let top = r.top - outer.top;
+          
+          let zoomSupported = this.useZoom;
+          
+          // Always include content zoom
+          let contentZoom = zoomSupported ? (+dojo.style($('page-content'), 'zoom') || 1) : 1;
+          let totalZoom = contentZoom;
+          
+          // Only include game zoom if the node is in the zoomed element
+          let gameZoom = 1;
+          if (zoomSupported && dojo.hasClass($('game-board-holder'), "playmat") && $('game-board-holder').contains(node)) {
+            gameZoom = this.zoomLevel;
+          }
+          if (dojo.hasClass($('game-board-holder'), "playmat") && $('locations-holder-holder').contains(node)) {
+            gameZoom *= zoomSupported ? (dojo.style($('locations-holder-holder'), 'zoom') || 1) : 1;
+          }
+          
+          totalZoom *= gameZoom;
+          top *= totalZoom;
+          left *= totalZoom;
+          
+          if (typeof html === 'function') {
+            tt.innerHTML = html.call(this)
+          } else {
+            tt.innerHTML = html;
+          }
+          
+          // If there is room above, put it there...
+          let offsetX = 0;
+          let offsetY = 0;
+          if (offsetType === "lord") {
+            offsetX = 44 * gameZoom;
+            offsetY = 68 * gameZoom;
+          } else if (offsetType === "ally") {
+            offsetX = 29 * gameZoom;
+            offsetY = 43 * gameZoom;
+          }
+          let padding = 20;
+          let positions = ["right", "top", "bottom", "left"];
+          let originalTop = top;
+          let originalLeft = left;
+          for (let i in positions) {
+            top = originalTop;
+            left = originalLeft;
+            
+            let position = positions[i];
+            if (position == "right") {
+              left += node.offsetWidth * totalZoom + padding;
+              left += offsetX;
+              top -= offsetY;
+            } else if (position == "top") {
+              top -= tt.offsetHeight * contentZoom + padding;
+              left -= offsetX;
+              top -= offsetY;
+            } else if (position == "bottom") {
+              top += node.offsetHeight * totalZoom + padding;
+              left -= offsetX;
+              top += offsetY;
+            } else if (position == "left") {
+              left -= tt.offsetWidth * contentZoom + padding;
+              left -= offsetX;
+              top -= offsetY;
+            }
+            
+            // If it fits, stop here
+            let right = left + tt.offsetWidth * contentZoom;
+            let bottom = top + tt.offsetHeight * contentZoom;
+            if (right > $('page-content').offsetWidth) {
+              continue;
+            }
+            if (left < 0) {
+              continue;
+            }
+            let scrollLimit = window.scrollY - $('page-content').offsetTop;
+            if (top < scrollLimit) {
+              continue;
+            }
+            
+            break;
+          }
+          
+          dojo.style(tt, {'opacity': '1', 'top': top + 'px', 'left': left + 'px'});
+        });
+        dojo.connect(node, "onmouseleave", () => dojo.style(tt, {'opacity': '0'}));
+    }
 
     ///////////////////////////////////////////////////
     //// Player's action
@@ -1086,7 +1205,7 @@ class Abyss implements AbyssGame {
         dojo.style($('last-round'), { 'display': 'block' });
     }
     
-    notif_endGame_scoring ( notif )
+    notif_endGame_scoring ( notif: Notif<NotifEndGameScoringArgs> )
     {
         let breakdowns = notif.args.breakdowns;
         let winnerIds = notif.args.winner_ids;
@@ -1116,7 +1235,7 @@ class Abyss implements AbyssGame {
         setTimeout(this.setScoringRowWinner.bind(this, winnerIds), currentTime);
     }
 
-    notif_useLord( notif ) {
+    notif_useLord( notif: Notif<NotifUseLordArgs> ) {
         dojo.query(".lord.lord-" + notif.args.lord_id).forEach(node => {
             dojo.setAttr(node, "data-used", "1");
         });
@@ -1128,14 +1247,14 @@ class Abyss implements AbyssGame {
         });
     }
 
-    notif_score( notif ) {
+    notif_score( notif: Notif<NotifScoreArgs> ) {
         var score = notif.args.score;
         var player_id = notif.args.player_id;
 
         (this as any).scoreCtrl[player_id].toValue(score)
     }
 
-    notif_control( notif ) {
+    notif_control( notif: Notif<NotifControlArgs> ) {
         var location = notif.args.location;
         var lords = notif.args.lords;
         var player_id = notif.args.player_id;
@@ -1149,21 +1268,21 @@ class Abyss implements AbyssGame {
 
         // Add the location to the player board
         var locations_holder = dojo.query('#player-panel-' + player_id + ' .locations')[0];
-        var added_location = Locations.placeWithTooltip(location, locations_holder);
-        Locations.organisePlayerBoard(player_id);
+        var added_location = this.locationManager.placeWithTooltip(location, locations_holder);
+        this.locationManager.organisePlayerBoard(player_id);
 
         // Add the lords to the location
         for (var i in lords) {
             var lord = lords[i];
-            Lord.placeWithTooltip( lord, dojo.query('.trapped-lords-holder', added_location)[0] );
+            this.lordManager.placeWithTooltip( lord, dojo.query('.trapped-lords-holder', added_location)[0] );
         }
         
-        Lord.updateLordKeys(player_id);
+        this.lordManager.updateLordKeys(player_id);
         
         this.organisePanelMessages();
     }
 
-    notif_loseLocation( notif ) {
+    notif_loseLocation( notif: Notif<NotifLoseLocationArgs> ) {
         var location_id = notif.args.location_id;
         var player_id = notif.args.player_id;
 
@@ -1172,44 +1291,44 @@ class Abyss implements AbyssGame {
         dojo.destroy(node);
         });
         
-        Lord.updateLordKeys(player_id);
+        this.lordManager.updateLordKeys(player_id);
         
         this.organisePanelMessages();
     }
 
-    notif_newLocations( notif ) {
+    notif_newLocations( notif: Notif<NotifNewLocationsArgs> ) {
         var locations = notif.args.locations;
         var deck_size = notif.args.deck_size;
 
         for (var i in locations) {
             var location = locations[i];
-            Locations.placeWithTooltip( location, $('locations-holder') );
+            this.locationManager.placeWithTooltip( location, $('locations-holder') );
         }
 
         this.setDeckSize(dojo.query('#locations-holder .location-back'), deck_size);
     }
 
-    notif_disable( notif ) {
+    notif_disable( notif: Notif<NotifDisableArgs> ) {
         var lord_id = notif.args.lord_id;
         dojo.query('.lord-' + lord_id).addClass('disabled');
         for( var player_id in this.gamedatas.players ) {
-            Lord.updateLordKeys(player_id);
+            this.lordManager.updateLordKeys(player_id);
         }
     }
 
-    notif_allyDeckShuffle ( notif ) {
+    notif_allyDeckShuffle ( notif: Notif<NotifAllyDeckShuffleArgs> ) {
         this.setDeckSize(dojo.query('#explore-track .slot-0'), notif.args.deck_size);
     }
 
-    notif_monsterReward( notif ) {
+    notif_monsterReward( notif: Notif<NotifMonsterRewardArgs> ) {
         var player_id = notif.args.player_id;
         $('pearlcount_p' + player_id).innerHTML = +($('pearlcount_p' + player_id).innerHTML) + +notif.args.pearls;
         $('monstercount_p' + player_id).innerHTML = +($('monstercount_p' + player_id).innerHTML) + +notif.args.monsters;
         $('keycount_p' + player_id).innerHTML = +($('keycount_p' + player_id).innerHTML) + +notif.args.keys;
-        this.notif_setThreat({args: {threat: 0}});
+        this.notif_setThreat({args: {threat: 0}} as Notif<NotifThreatArgs>);
     }
 
-    notif_monsterTokens( notif )
+    notif_monsterTokens( notif: Notif<NotifMonsterTokensArgs> )
     {
         var monsters = notif.args.monsters;
 
@@ -1222,7 +1341,7 @@ class Abyss implements AbyssGame {
         }
     }
     
-    notif_monsterHand( notif ) {
+    notif_monsterHand( notif: Notif<NotifMonsterHandArgs> ) {
         var monsters = notif.args.monsters;
         var playerId = notif.args.player_id;
 
@@ -1236,7 +1355,7 @@ class Abyss implements AbyssGame {
         }
     }
 
-    notif_plot( notif ) {
+    notif_plot( notif: Notif<NotifPlotArgs> ) {
         var lord = notif.args.lord;
         var player_id = notif.args.player_id;
         var deck_size = +notif.args.deck_size;
@@ -1244,7 +1363,7 @@ class Abyss implements AbyssGame {
         var old_lord = notif.args.old_lord;
 
         $('pearlcount_p' + player_id).innerHTML = +($('pearlcount_p' + player_id).innerHTML) - pearls;
-        let node = Lord.placeWithTooltip( lord, $('lords-track') );
+        let node = this.lordManager.placeWithTooltip( lord, $('lords-track') );
         dojo.setStyle(node, "left", "13px");
         requestAnimationFrame(() => {
         dojo.setStyle(node, "left", "");
@@ -1252,14 +1371,14 @@ class Abyss implements AbyssGame {
         this.setDeckSize(dojo.query('#lords-track .slot-0'), deck_size);
 
         if (old_lord) {
-        dojo.query('.lord-' + old_lord.lord_id).forEach(function(node) { dojo.destroy(node); });
+        dojo.query('.lord-' + old_lord.lord_id).forEach(node => dojo.destroy(node));
         }
     }
 
-    notif_affiliate( notif ) {
+    notif_affiliate( notif: Notif<NotifAffiliateArgs> ) {
         var ally = notif.args.ally;
         var player_id = notif.args.player_id;
-        Ally.addAffiliated(player_id, ally);
+        this.allyManager.addAffiliated(player_id, ally);
         
         if (notif.args.also_discard) {
             // Also discard this ally from my hand!
@@ -1275,12 +1394,12 @@ class Abyss implements AbyssGame {
         this.organisePanelMessages();
     }
 
-    notif_explore( notif ) {
+    notif_explore( notif: Notif<NotifExploreArgs> ) {
         var ally = notif.args.ally;
         if (ally.faction == null) {
             ally.faction = 'monster';
         }
-        let node = Ally.placeWithTooltip(ally, $('explore-track'));
+        let node = this.allyManager.placeWithTooltip(ally, $('explore-track'));
         dojo.setStyle(node, "left", "9px");
         requestAnimationFrame(() => {
             dojo.setStyle(node, "left", "");
@@ -1292,7 +1411,7 @@ class Abyss implements AbyssGame {
         this.lastExploreTime = new Date().getTime();
     }
     
-    notif_exploreTake( notif ) {
+    notif_exploreTake( notif: Notif<NotifExploreTakeArgs> ) {
         // If this comes right after notif_explore, we want to delay by about 1-2 seconds
         let deltaTime = this.lastExploreTime ? (new Date().getTime() - this.lastExploreTime) : 1000;
         
@@ -1308,7 +1427,7 @@ class Abyss implements AbyssGame {
         this.organisePanelMessages();
     }
 
-    notif_exploreTake_real( notif ) {
+    notif_exploreTake_real( notif: Notif<NotifExploreTakeArgs> ) {
         let player_id = notif.args.player_id;
         var slot = notif.args.slot;
 
@@ -1344,7 +1463,7 @@ class Abyss implements AbyssGame {
                         var animation = (this as any).slideToObject( theAlly, $('player-hand'), 600, delay );
                         animation.onEnd = () => {
                             dojo.destroy(theAlly);
-                            Ally.addHand(player_id, notif.args.ally);
+                            this.allyManager.addHand(player_id, notif.args.ally);
                             $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
                         };
                         animation.play();
@@ -1367,7 +1486,7 @@ class Abyss implements AbyssGame {
         this.organisePanelMessages();
     }
 
-    notif_purchase( notif ) {
+    notif_purchase( notif: Notif<NotifPurchaseArgs> ) {
         let player_id = notif.args.player_id;
         let theAlly = dojo.query('#explore-track .slot-' + notif.args.slot)[0];
 
@@ -1381,7 +1500,7 @@ class Abyss implements AbyssGame {
             var animation = (this as any).slideToObject( theAlly, $('player-hand'), 600 );
             animation.onEnd = () => {
                 dojo.destroy(theAlly);
-                Ally.addHand(player_id, notif.args.ally);
+                this.allyManager.addHand(player_id, notif.args.ally);
                 $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
             };
             animation.play();
@@ -1399,14 +1518,14 @@ class Abyss implements AbyssGame {
         this.organisePanelMessages();
     }
 
-    notif_setThreat( notif ) {
+    notif_setThreat( notif: Notif<NotifThreatArgs> ) {
         // Update handsize and pearls of purchasing player
         var tt = $('threat-token');
         dojo.removeClass(tt, 'slot-0 slot-1 slot-2 slot-3 slot-4 slot-5');
         dojo.addClass(tt, 'slot-' + notif.args.threat);
     }
 
-    notif_discardCouncil( notif ) {
+    notif_discardCouncil( notif: Notif<NotifDiscardCouncilArgs> ) {
         var player_id = notif.args.player_id;
         var faction = notif.args.faction;
         var num = notif.args.num;
@@ -1416,7 +1535,7 @@ class Abyss implements AbyssGame {
         this.setDeckSize(deck, 0);
     }
 
-    notif_requestSupport( notif ) {
+    notif_requestSupport( notif: Notif<NotifRequestSupportArgs> ) {
         let player_id = notif.args.player_id;
         var faction = notif.args.faction;
         var num = notif.args.num;
@@ -1426,7 +1545,7 @@ class Abyss implements AbyssGame {
         // Add cards to the player's hand
         if (player_id != (this as any).player_id) {
         for (var i = 0; i < num; i++) {
-            var anim = (this as any).slideTemporaryObject( Ally.renderBack(), 'council-track', 'council-track-' + faction, $('player_board_' + player_id), 600, i * 200 );
+            var anim = (this as any).slideTemporaryObject( this.allyManager.renderBack(), 'council-track', 'council-track-' + faction, $('player_board_' + player_id), 600, i * 200 );
             dojo.connect(anim, 'onEnd', () => {
                 $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
             });
@@ -1438,7 +1557,7 @@ class Abyss implements AbyssGame {
         this.organisePanelMessages();
     }
 
-    notif_requestSupportCards( notif ) {
+    notif_requestSupportCards( notif: Notif<NotifRequestSupportCardsArgs> ) {
         let player_id = notif.args.player_id;
         var faction = notif.args.faction;
         let allies = notif.args.allies;
@@ -1447,10 +1566,10 @@ class Abyss implements AbyssGame {
         var delay = 0;
         for (var j in allies) {
             let ally = allies[j];
-            var anim = (this as any).slideTemporaryObject( Ally.render(ally), 'council-track', 'council-track-' + faction, $('player-hand'), 600, delay );
-            dojo.connect(anim, 'onEnd', () => {
-                Ally.addHand(player_id, ally);
-            });
+            var anim = (this as any).slideTemporaryObject( this.allyManager.render(ally), 'council-track', 'council-track-' + faction, $('player-hand'), 600, delay );
+            dojo.connect(anim, 'onEnd', () => 
+                this.allyManager.addHand(player_id, ally)
+            );
             delay += 200;
         }
         
@@ -1473,7 +1592,7 @@ class Abyss implements AbyssGame {
         }
     }
 
-    notif_recruit( notif ) {
+    notif_recruit( notif: Notif<NotifRecruitArgs> ) {
         var lord = notif.args.lord;
         var player_id = +notif.args.player_id;
         var spent_pearls = +notif.args.spent_pearls;
@@ -1510,21 +1629,21 @@ class Abyss implements AbyssGame {
 
         // Add the lord
         if (lord) {
-            Lord.placeWithTooltip( lord, dojo.query('#player-panel-'+player_id+' .free-lords')[0] );
+            this.lordManager.placeWithTooltip( lord, dojo.query('#player-panel-'+player_id+' .free-lords')[0] );
         }
         
-        Lord.updateLordKeys(player_id);
+        this.lordManager.updateLordKeys(player_id);
         this.organisePanelMessages();
     }
 
-    notif_refillLords( notif ) {
+    notif_refillLords( notif: Notif<NotifRefillLordsArgs> ) {
         var lords = notif.args.lords;
         var player_id = +notif.args.player_id;
         var deck_size = notif.args.deck_size;
         for (var i in lords) {
             var lord = lords[i];
             if (dojo.query("#lords-track .lord[data-lord-id=" + lord.lord_id + "]").length == 0) {
-                let node = Lord.placeWithTooltip( lord, $('lords-track') );
+                let node = this.lordManager.placeWithTooltip( lord, $('lords-track') );
                 dojo.setStyle(node, "left", "13px");
                 requestAnimationFrame(() => {
                     dojo.setStyle(node, "left", "");
@@ -1534,7 +1653,7 @@ class Abyss implements AbyssGame {
         this.setDeckSize(dojo.query('#lords-track .slot-0'), deck_size);
     }
 
-    notif_diff( notif )
+    notif_diff( notif: Notif<NotifDiffArgs> )
     {
         var player_id = +notif.args.player_id;
         var source = notif.args.source;

@@ -152,19 +152,4 @@
   </table>
 </div>
 
-<script type="text/javascript">
-
-// Javascript HTML templates
-
-var jstpl_player_board = '\<div id="cp_board_p${id}" class="cp_board" data-player-id="${id}">\
-    <span class="pearl-holder spacer" id="pearl-holder_p${id}"><i class="icon icon-pearl"></i><span class="spacer" id="pearlcount_p${id}">${pearls}</span></span>\
-    <span class="key-holder spacer" id="key-holder_p${id}"><i class="icon icon-key"></i><span class="spacer" id="keycount_p${id}">${keys}</span><span class="key-addendum">(+<span id="lordkeycount_p${id}"></span>)</span></span>\
-    <span class="ally-holder spacer" id="ally-holder_p${id}"><i class="icon icon-ally"></i><span class="spacer" id="allycount_p${id}">${hand_size}</span></span>\
-    <span class="monster-holder spacer" id="monster-holder_p${id}"><i class="icon icon-monster"></i><span class="spacer" id="monstercount_p${id}">${num_monsters}</span></span>\
-    <span class="lordcount-holder spacer"><i class="icon icon-lord"></i><span id="lordcount_p${id}">0</span></span>\
-    <div class="monster-hand" id="monster-hand_p${id}"></div>\
-</div>';
-
-</script>
-
 {OVERALL_GAME_FOOTER}
