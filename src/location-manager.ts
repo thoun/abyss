@@ -1,9 +1,9 @@
 class LocationManager {
-  private static uniqueId: 0;
+  private static uniqueId: number = 0;
 
   constructor(private game: AbyssGame) {}
 
-  makeDesc(location, laurel?) {
+  makeDesc(location: AbyssLocation, laurel?) {
     let pointsReplacement = laurel ? '<i class="icon icon-laurel"></i>' : ' <i class="fa fa-star"></i>';
     // TODO : Wrap points in nobr to avoid line breaks
     var desc = dojo.replace(_(location.desc).replace(/\$/g, pointsReplacement), {
@@ -21,11 +21,10 @@ class LocationManager {
     return desc;
   }
 
-  render(location) {
-    LocationManager.uniqueId++;
+  render(location: AbyssLocation) {
     var desc = this.makeDesc(location, true);
 
-    return `<div id="location-uid-${LocationManager.uniqueId}" class="location board location-${location.location_id}" data-location-id="${location.location_id}">
+    return `<div id="location-uid-${++LocationManager.uniqueId}" class="location board location-${location.location_id}" data-location-id="${location.location_id}">
       <div class="location-clicker"></div>
       <span class="location-name">${_(location.name)}</span>
       <span class="location-desc">${desc}</span>
@@ -33,11 +32,11 @@ class LocationManager {
     </div>`;
   }
 
-  placeLords(locationNode, lords) {
+  placeLords(locationNode, lords: AbyssLord[]) {
     for (let i in lords) {
       let lord = lords[i];
       let parent = dojo.query('.trapped-lords-holder', locationNode)[0];
-      this.placeWithTooltip(lord, parent);
+      this.game.lordManager.placeWithTooltip(lord, parent);
     }
   }
 
@@ -61,7 +60,7 @@ class LocationManager {
     }
   }
 
-  renderTooltip(location) {
+  renderTooltip(location: AbyssLocation) {
     var desc = this.makeDesc(location);
     return `<div class="abs-tooltip-location">
       <h3 style="padding-right: 50px;">${_(location.name)}</h3>
@@ -70,7 +69,7 @@ class LocationManager {
     </div>`;
   }
 
-  placeWithTooltip(location, parent) {
+  placeWithTooltip(location: AbyssLocation, parent) {
     let node = dojo.place( this.render(location), parent );
     this.game.connectTooltip( node, this.renderTooltip(location), "location" );
     if (parent?.id == 'locations-holder') {

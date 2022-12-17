@@ -1,14 +1,13 @@
 class AllyManager {
-  private static uniqueId: 0;
+  private static uniqueId: number = 0;
 
   constructor(private game: AbyssGame) {}
 
   render(ally: AbyssAlly) {
-    AllyManager.uniqueId++;
-    return `<div id="ally-uid-${AllyManager.uniqueId}" data-ally-id="${ally.ally_id}" data-faction="${ally.faction}" data-value="${ally.value}" class="ally ally-${ally.faction}-${ally.value} ${ally.place >= 0 ? ('slot-' + ally.place) : ''}"></div>`;
+    return `<div id="ally-uid-${++AllyManager.uniqueId}" data-ally-id="${ally.ally_id}" data-faction="${ally.faction}" data-value="${ally.value}" class="ally ally-${ally.faction}-${ally.value} ${ally.place >= 0 ? ('slot-' + ally.place) : ''}"></div>`;
   }
 
-  placeWithTooltip(ally, parent) {
+  placeWithTooltip(ally: AbyssAlly, parent) {
     let node = dojo.place( this.render(ally), parent );
     this.game.connectTooltip( node, this.renderTooltip(ally), "ally" );
     return node;
@@ -107,7 +106,7 @@ class AllyManager {
     return newNode;
   }
 
-  addAffiliated(player_id, ally) {
+  addAffiliated(player_id, ally: AbyssAlly) {
     var node = dojo.query('#player-panel-' + player_id + ' .affiliated-faction[data-faction=' + ally.faction + ']')[0];
     var refNode = node;
     var pos = 'last';

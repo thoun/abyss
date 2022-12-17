@@ -1,3 +1,6 @@
+const isDebug = window.location.host == 'studio.boardgamearena.com' || window.location.hash.indexOf('debug') > -1;
+const log = isDebug ? console.log.bind(window.console) : function () { };
+
 declare const define;
 declare const ebg;
 declare const $;
@@ -8,10 +11,11 @@ declare const g_gamethemeurl;
 let debounce;
 
 class Abyss implements AbyssGame {
+    public allyManager: AllyManager;
+    public lordManager: LordManager;
+    public locationManager: LocationManager;
+
     private gamedatas: AbyssGamedatas;
-    private allyManager: AllyManager;
-    private lordManager: LordManager;
-    private locationManager: LocationManager;
     private useZoom: boolean;
     private zoomLevel: number;
     private lastExploreTime: number;
@@ -20,7 +24,11 @@ class Abyss implements AbyssGame {
     }
 
     setup(gamedatas: AbyssGamedatas) {
+        log( "Starting game setup" );
+        
         this.gamedatas = gamedatas;
+
+        log('gamedatas', gamedatas);
 
         this.allyManager = new AllyManager(this);
         this.lordManager = new LordManager(this);
@@ -37,15 +45,17 @@ class Abyss implements AbyssGame {
                 dojo.removeClass($('game-board-holder'), "playmat");
             }
         });
+
+        const usePlaymat = (this as any).prefs[100].value == 1 ;   
         // On resize, fit cards to screen (debounced)
-        if (self.prefs[100].value == 1) {
+        if (usePlaymat) {
             dojo.addClass($('game-board-holder'), "playmat");
         }
         dojo.connect(window, "onresize", debounce(() => {
             let r = $('game-holder').getBoundingClientRect();
             let w = r.width;
             let zoom = 1;
-            if (self.prefs[100].value == 1) {
+            if (usePlaymat) {
                 if (w > 1000) {
                     zoom = w/1340;
                     dojo.addClass($('game-board-holder'), "playmat");
@@ -86,7 +96,7 @@ class Abyss implements AbyssGame {
                 <span class="key-holder spacer" id="key-holder_p${player.id}"><i class="icon icon-key"></i><span class="spacer" id="keycount_p${player.id}">${player.keys}</span><span class="key-addendum">(+<span id="lordkeycount_p${player.id}"></span>)</span></span>
                 <span class="ally-holder spacer" id="ally-holder_p${player.id}"><i class="icon icon-ally"></i><span class="spacer" id="allycount_p${player.id}">${player.hand_size}</span></span>
                 <span class="monster-holder spacer" id="monster-holder_p${player.id}"><i class="icon icon-monster"></i><span class="spacer" id="monstercount_p${player.id}">${player.num_monsters}</span></span>
-                <span class="lordcount-holder spacer"><i class="icon icon-lord"></i><span id="lordcount_p${player.id}">0</span></span>
+                <span class="lordcount-holder spacer"><i class="icon icon-lord"></i><span id="lordcount_p${player.id}">${player.lords.length}</span></span>
                 <div class="monster-hand" id="monster-hand_p${player.id}"></div>
             </div>`;
             dojo.place( html, player_board_div );
@@ -158,17 +168,17 @@ class Abyss implements AbyssGame {
             // Add locations
             var locationsHolder = dojo.query(`#player-panel-${p} .locations`)[0];
             for (var j in player.locations) {
-            var location = player.locations[j];
-            var locations_holder = dojo.query('#player-panel-' + playerId + ' .locations')[0];
-            var lords = [];
-            for (var k in player.lords) {
-                var lord = player.lords[k];
-                if (+lord.location == +location.location_id) {
-                    lords.push(lord);
+                var location = player.locations[j];
+                var locations_holder = dojo.query('#player-panel-' + playerId + ' .locations')[0];
+                var lords = [];
+                for (var k in player.lords) {
+                    var lord = player.lords[k];
+                    if (+lord.location == +location.location_id) {
+                        lords.push(lord);
+                    }
                 }
-            }
-            let locationNode = this.locationManager.placeWithTooltip( location, locationsHolder );
-            this.locationManager.placeLords(locationNode, lords);
+                let locationNode = this.locationManager.placeWithTooltip( location, locationsHolder );
+                this.locationManager.placeLords(locationNode, lords);
             }
             
             var freeLordHolder = dojo.query(`#player-panel-${p} .free-lords`)[0];

@@ -3,8 +3,7 @@ var AllyManager = /** @class */ (function () {
         this.game = game;
     }
     AllyManager.prototype.render = function (ally) {
-        AllyManager.uniqueId++;
-        return "<div id=\"ally-uid-".concat(AllyManager.uniqueId, "\" data-ally-id=\"").concat(ally.ally_id, "\" data-faction=\"").concat(ally.faction, "\" data-value=\"").concat(ally.value, "\" class=\"ally ally-").concat(ally.faction, "-").concat(ally.value, " ").concat(ally.place >= 0 ? ('slot-' + ally.place) : '', "\"></div>");
+        return "<div id=\"ally-uid-".concat(++AllyManager.uniqueId, "\" data-ally-id=\"").concat(ally.ally_id, "\" data-faction=\"").concat(ally.faction, "\" data-value=\"").concat(ally.value, "\" class=\"ally ally-").concat(ally.faction, "-").concat(ally.value, " ").concat(ally.place >= 0 ? ('slot-' + ally.place) : '', "\"></div>");
     };
     AllyManager.prototype.placeWithTooltip = function (ally, parent) {
         var node = dojo.place(this.render(ally), parent);
@@ -114,6 +113,7 @@ var AllyManager = /** @class */ (function () {
         this.game.connectTooltip(newNode, this.renderTooltip(ally), "ally");
         return newNode;
     };
+    AllyManager.uniqueId = 0;
     return AllyManager;
 }());
 var LordManager = /** @class */ (function () {
@@ -122,8 +122,7 @@ var LordManager = /** @class */ (function () {
     }
     // TODO : Names need to move outside of PHP and into js for i18n
     LordManager.prototype.render = function (lord) {
-        LordManager.uniqueId++;
-        return "<div id=\"lord-uid-".concat(LordManager.uniqueId, "\" class=\"lord lord-").concat(lord.lord_id, " slot-").concat(lord.place, " transition-position ").concat((lord.turned == 1) ? 'disabled' : '', "\" data-lord-id=\"").concat(lord.lord_id, "\" data-cost=\"").concat(lord.cost, "\" data-diversity=\"").concat(lord.diversity, "\" data-used=\"").concat(lord.used, "\" data-turned=\"").concat(lord.turned, "\" data-effect=\"").concat(lord.effect, "\" data-keys=\"").concat(lord.keys, "\">\n      <span class=\"lord-desc\"><span class=\"lord-name\">").concat(_(lord.name), "</span>").concat(_(lord.desc), "</span>\n    </div>");
+        return "<div id=\"lord-uid-".concat(++LordManager.uniqueId, "\" class=\"lord lord-").concat(lord.lord_id, " slot-").concat(lord.place, " transition-position ").concat((lord.turned == 1) ? 'disabled' : '', "\" data-lord-id=\"").concat(lord.lord_id, "\" data-cost=\"").concat(lord.cost, "\" data-diversity=\"").concat(lord.diversity, "\" data-used=\"").concat(lord.used, "\" data-turned=\"").concat(lord.turned, "\" data-effect=\"").concat(lord.effect, "\" data-keys=\"").concat(lord.keys, "\">\n      <span class=\"lord-desc\"><span class=\"lord-name\">").concat(_(lord.name), "</span>").concat(_(lord.desc), "</span>\n    </div>");
     };
     LordManager.prototype.renderTooltip = function (lord) {
         var descSection = "";
@@ -216,6 +215,7 @@ var LordManager = /** @class */ (function () {
         $('lordkeycount_p' + playerId).innerHTML = keys;
         $('lordcount_p' + playerId).innerHTML = numLords;
     };
+    LordManager.uniqueId = 0;
     return LordManager;
 }());
 var LocationManager = /** @class */ (function () {
@@ -240,15 +240,14 @@ var LocationManager = /** @class */ (function () {
         return desc;
     };
     LocationManager.prototype.render = function (location) {
-        LocationManager.uniqueId++;
         var desc = this.makeDesc(location, true);
-        return "<div id=\"location-uid-".concat(LocationManager.uniqueId, "\" class=\"location board location-").concat(location.location_id, "\" data-location-id=\"").concat(location.location_id, "\">\n      <div class=\"location-clicker\"></div>\n      <span class=\"location-name\">").concat(_(location.name), "</span>\n      <span class=\"location-desc\">").concat(desc, "</span>\n      <div class=\"trapped-lords-holder\"></div>\n    </div>");
+        return "<div id=\"location-uid-".concat(++LocationManager.uniqueId, "\" class=\"location board location-").concat(location.location_id, "\" data-location-id=\"").concat(location.location_id, "\">\n      <div class=\"location-clicker\"></div>\n      <span class=\"location-name\">").concat(_(location.name), "</span>\n      <span class=\"location-desc\">").concat(desc, "</span>\n      <div class=\"trapped-lords-holder\"></div>\n    </div>");
     };
     LocationManager.prototype.placeLords = function (locationNode, lords) {
         for (var i in lords) {
             var lord = lords[i];
             var parent_1 = dojo.query('.trapped-lords-holder', locationNode)[0];
-            this.placeWithTooltip(lord, parent_1);
+            this.game.lordManager.placeWithTooltip(lord, parent_1);
         }
     };
     LocationManager.prototype.organisePlayerBoard = function (player_id) {
@@ -300,15 +299,20 @@ var LocationManager = /** @class */ (function () {
             }
         }
     };
+    LocationManager.uniqueId = 0;
     return LocationManager;
 }());
+var isDebug = window.location.host == 'studio.boardgamearena.com' || window.location.hash.indexOf('debug') > -1;
+var log = isDebug ? console.log.bind(window.console) : function () { };
 var debounce;
 var Abyss = /** @class */ (function () {
     function Abyss() {
     }
     Abyss.prototype.setup = function (gamedatas) {
         var _this = this;
+        log("Starting game setup");
         this.gamedatas = gamedatas;
+        log('gamedatas', gamedatas);
         this.allyManager = new AllyManager(this);
         this.lordManager = new LordManager(this);
         this.locationManager = new LocationManager(this);
@@ -323,15 +327,16 @@ var Abyss = /** @class */ (function () {
                 dojo.removeClass($('game-board-holder'), "playmat");
             }
         });
+        var usePlaymat = this.prefs[100].value == 1;
         // On resize, fit cards to screen (debounced)
-        if (self.prefs[100].value == 1) {
+        if (usePlaymat) {
             dojo.addClass($('game-board-holder'), "playmat");
         }
         dojo.connect(window, "onresize", debounce(function () {
             var r = $('game-holder').getBoundingClientRect();
             var w = r.width;
             var zoom = 1;
-            if (self.prefs[100].value == 1) {
+            if (usePlaymat) {
                 if (w > 1000) {
                     zoom = w / 1340;
                     dojo.addClass($('game-board-holder'), "playmat");
@@ -365,7 +370,7 @@ var Abyss = /** @class */ (function () {
             var player = gamedatas.players[playerId];
             // Setting up players boards if needed
             var player_board_div = $('player_board_' + playerId);
-            var html = "\n            <div id=\"cp_board_p".concat(player.id, "\" class=\"cp_board\" data-player-id=\"").concat(player.id, "\">\n                <span class=\"pearl-holder spacer\" id=\"pearl-holder_p").concat(player.id, "\"><i class=\"icon icon-pearl\"></i><span class=\"spacer\" id=\"pearlcount_p").concat(player.id, "\">").concat(player.pearls, "</span></span>\n                <span class=\"key-holder spacer\" id=\"key-holder_p").concat(player.id, "\"><i class=\"icon icon-key\"></i><span class=\"spacer\" id=\"keycount_p").concat(player.id, "\">").concat(player.keys, "</span><span class=\"key-addendum\">(+<span id=\"lordkeycount_p").concat(player.id, "\"></span>)</span></span>\n                <span class=\"ally-holder spacer\" id=\"ally-holder_p").concat(player.id, "\"><i class=\"icon icon-ally\"></i><span class=\"spacer\" id=\"allycount_p").concat(player.id, "\">").concat(player.hand_size, "</span></span>\n                <span class=\"monster-holder spacer\" id=\"monster-holder_p").concat(player.id, "\"><i class=\"icon icon-monster\"></i><span class=\"spacer\" id=\"monstercount_p").concat(player.id, "\">").concat(player.num_monsters, "</span></span>\n                <span class=\"lordcount-holder spacer\"><i class=\"icon icon-lord\"></i><span id=\"lordcount_p").concat(player.id, "\">0</span></span>\n                <div class=\"monster-hand\" id=\"monster-hand_p").concat(player.id, "\"></div>\n            </div>");
+            var html = "\n            <div id=\"cp_board_p".concat(player.id, "\" class=\"cp_board\" data-player-id=\"").concat(player.id, "\">\n                <span class=\"pearl-holder spacer\" id=\"pearl-holder_p").concat(player.id, "\"><i class=\"icon icon-pearl\"></i><span class=\"spacer\" id=\"pearlcount_p").concat(player.id, "\">").concat(player.pearls, "</span></span>\n                <span class=\"key-holder spacer\" id=\"key-holder_p").concat(player.id, "\"><i class=\"icon icon-key\"></i><span class=\"spacer\" id=\"keycount_p").concat(player.id, "\">").concat(player.keys, "</span><span class=\"key-addendum\">(+<span id=\"lordkeycount_p").concat(player.id, "\"></span>)</span></span>\n                <span class=\"ally-holder spacer\" id=\"ally-holder_p").concat(player.id, "\"><i class=\"icon icon-ally\"></i><span class=\"spacer\" id=\"allycount_p").concat(player.id, "\">").concat(player.hand_size, "</span></span>\n                <span class=\"monster-holder spacer\" id=\"monster-holder_p").concat(player.id, "\"><i class=\"icon icon-monster\"></i><span class=\"spacer\" id=\"monstercount_p").concat(player.id, "\">").concat(player.num_monsters, "</span></span>\n                <span class=\"lordcount-holder spacer\"><i class=\"icon icon-lord\"></i><span id=\"lordcount_p").concat(player.id, "\">").concat(player.lords.length, "</span></span>\n                <div class=\"monster-hand\" id=\"monster-hand_p").concat(player.id, "\"></div>\n            </div>");
             dojo.place(html, player_board_div);
             // Set up scoring table in advance (helpful for testing!)
             var splitPlayerName = '';

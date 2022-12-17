@@ -9,8 +9,25 @@ interface AbyssAlly {
     place;
 }
 
-interface AbyssLocation {
+interface AbyssLord {
+    lord_id;
+    turned;
+    cost;
+    diversity;
+    used;
+    effect;
+    keys;
+    name;
+    desc;
+    faction;
+    place;
+    points;
+}
 
+interface AbyssLocation {
+    desc;
+    location_id;
+    name;
 }
 
 interface AbyssPlayer extends Player {
@@ -52,6 +69,10 @@ interface AbyssGamedatas {
 }
 
 interface AbyssGame extends Game {
+    allyManager: AllyManager;
+    lordManager: LordManager;
+    locationManager: LocationManager;
+
     connectTooltip(node: any, html: string | Function, offsetType: string): void;
 }
 

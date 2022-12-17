@@ -1,18 +1,16 @@
 class LordManager {
-  private static uniqueId: 0;
+  private static uniqueId: number = 0;
 
   constructor(private game: AbyssGame) {}
 
   // TODO : Names need to move outside of PHP and into js for i18n
-  render
-  (lord) {
-    LordManager.uniqueId++;
-    return `<div id="lord-uid-${LordManager.uniqueId}" class="lord lord-${lord.lord_id} slot-${lord.place} transition-position ${(lord.turned == 1) ? 'disabled' : ''}" data-lord-id="${lord.lord_id}" data-cost="${lord.cost}" data-diversity="${lord.diversity}" data-used="${lord.used}" data-turned="${lord.turned}" data-effect="${lord.effect}" data-keys="${lord.keys}">
+  render(lord: AbyssLord) {
+    return `<div id="lord-uid-${++LordManager.uniqueId}" class="lord lord-${lord.lord_id} slot-${lord.place} transition-position ${(lord.turned == 1) ? 'disabled' : ''}" data-lord-id="${lord.lord_id}" data-cost="${lord.cost}" data-diversity="${lord.diversity}" data-used="${lord.used}" data-turned="${lord.turned}" data-effect="${lord.effect}" data-keys="${lord.keys}">
       <span class="lord-desc"><span class="lord-name">${_(lord.name)}</span>${_(lord.desc)}</span>
     </div>`;
   }
 
-  renderTooltip(lord) {
+  renderTooltip(lord: AbyssLord) {
     let descSection = "";
     if (lord.desc != "") {
       descSection = '<hr>';
@@ -91,7 +89,7 @@ class LordManager {
     </div>`;
   }
 
-  placeWithTooltip(lord, parent) {
+  placeWithTooltip(lord: AbyssLord, parent) {
     let node = dojo.place( this.render(lord), parent );
     this.game.connectTooltip( node, this.renderTooltip.bind(this, lord), "lord" );
     return node;
