@@ -204,4 +204,12 @@
         self::ajaxResponse( );
     }
 
-  }
+    public function payMartialLaw() {
+        self::setAjaxMode();
+
+        $this->game->payMartialLaw();
+
+        self::ajaxResponse( );
+    }
+
+}

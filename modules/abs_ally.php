@@ -44,7 +44,7 @@ class Ally
     );
   }
 
-  public static function drawCouncilSlot( $faction, $player_id ) {
+  public static function drawCouncilSlot( $faction, int $player_id) {
     $allies = Abyss::getCollection( "SELECT * FROM ally WHERE place = 6 AND faction = $faction" );
     Abyss::DbQuery( "UPDATE ally SET place = ".(-1 * $player_id)." WHERE place = 6 AND faction = $faction" );
     return $allies;
@@ -81,7 +81,7 @@ class Ally
     return Abyss::getCollection( "SELECT * FROM ally WHERE just_spent" );
   }
 
-  public static function getDiversityAndValue( $hand, $required ) {
+  public static function getDiversityAndValue(array $hand, $required ) {
     $value = 0;
     $factions = array();
     $includesRequired = ! isset($required);
@@ -99,7 +99,7 @@ class Ally
     );
   }
 
-  public static function removeCardsFromHand( $player_id, $ally_ids ) {
+  public static function removeCardsFromHand(int $player_id, array $ally_ids) {
     Abyss::DbQuery( "UPDATE ally SET just_spent = 0 WHERE 1" );
 
     if (count($ally_ids) == 0) {
@@ -118,11 +118,11 @@ class Ally
     return $allies;
   }
 
-  public static function affiliate( $player_id, $ally_id ) {
+  public static function affiliate(int $player_id, int $ally_id) {
     Abyss::DbQuery( "UPDATE ally SET place = ".(-1 * $player_id).", affiliated = 1 WHERE ally_id = $ally_id" );
   }
 
-  public static function discard( $ally_id ) {
+  public static function discard(int $ally_id) {
     Abyss::DbQuery( "UPDATE ally SET place = 10 WHERE ally_id = $ally_id" );
   }
 }

@@ -28,6 +28,7 @@ define('ST_PLAYER_CLEANUP_DISCARD', 15);
 define('ST_PLAYER_CONTROL_POST_DRAW', 16);
 define('ST_PLAYER_LOCATION_EFFECT_BLACK_SMOKERS', 17);
 define('ST_PLAYER_UNUSED_LORDS', 18);
+define('ST_PLAYER_MARTIAL_LAW', 20);
 
 define('ST_MULTI_LORD2', 102);
 define('ST_PLAYER_LORD4', 104);
@@ -47,5 +48,10 @@ define('ST_PLAYER_LORD21', 121);
 define('ST_FINAL_SCORING', 98);
 define('ST_END_GAME', 99);
 define('END_SCORE', 100);
+
+/**
+ * Constants
+ */
+define('MARTIAL_LAW_ACTIVATED', 'MARTIAL_LAW_ACTIVATED');
 
 ?>

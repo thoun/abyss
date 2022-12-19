@@ -79,79 +79,78 @@ trait ActionTrait {
             $this->gamestate->nextState( "explore" );
         }
     
-            function exploreTake(int $slot, bool $fromRequest = true )
-        {
+        function exploreTake(int $slot, bool $fromRequest = true ) {
             // Check that this is the player's turn and that it is a "possible action" at this game state (see states.inc.php)
             if ($fromRequest) {
                 self::checkAction( 'exploreTake' );
             }
     
-                    $player_id = self::getActivePlayerId();
-    
-                    // This must be the last ally in the track
-                    $slots = Ally::getExploreSlots();
-                    if ($slot != count($slots)) {
-                        throw new BgaUserException( self::_("You can only take the last card in the explore track.") );
-                    }
-    
-                    // If it's the last slot, you also gain a pearl
-                    if ($slot == 5) {
-                        self::incPlayerPearls( $player_id, 1, "explore" );
-                    }
-    
-                    $ally = end($slots);
-    
-                    if ($ally['faction'] === NULL) {
-                        // If it's a monster, go through the monster rigmarole
-                        $this->gamestate->nextState( "exploreTakeMonster" );
-                    } else {
-                        // Otherwise, add it to your hand
-                        self::DbQuery( "UPDATE ally SET place = ".($player_id * -1)." WHERE ally_id = " . $ally["ally_id"] );
-                        $this->gamestate->nextState( "exploreTakeAlly" );
-                    }
-    
-                    // If you have the Ship Master, you gain extra Pearls
-                    if (Lord::playerHas( 8, $player_id )) {
-                        $factions = array();
-                        foreach ($slots as $s) {
-                            if ($s["ally_id"] == $ally["ally_id"]) continue;
-                            if ($s["faction"] === NULL) continue;
-                            $factions[$s["faction"]] = 1;
-                        }
-                        if (count($factions) > 0) {
-                            self::incPlayerPearls( $player_id, count($factions), "lord_8" );
-                        }
-                    }
-    
-                    // Move each ally to the appropriate council stack and discard monster allies
-                    self::DbQuery( "UPDATE ally SET place = 6 WHERE faction IS NOT NULL AND place >= 1 AND place <= 5");
-                    self::DbQuery( "UPDATE ally SET place = 10 WHERE faction IS NULL AND place >= 1");
-    
-                    // Notification
-                    $players = self::loadPlayersBasicInfos();
-                    if ($ally['faction'] !== NULL) {
-                        self::notifyAllPlayers( "exploreTake", clienttranslate('${player_name} takes ${card_name}'), array(
-                                'ally' => $ally,
-                                'slot' => $slot,
-                                'player_id' => $player_id,
-                                'player_name' => $players[$player_id]["player_name"],
-                                'card_name' => array(
-                                    'log' => '<span style="color:'.$this->factions[$ally["faction"]]["colour"].'">${value} ${faction}</span>',
-                                    'args' => array(
-                                        'value' => $ally["value"],
-                                        'faction' => $this->factions[$ally["faction"]]["ally_name"],
-                                        'i18n' => ['faction']
-                                    )
-                                ),
-                        ) );
-                    } else {
-                        self::notifyAllPlayers( "exploreTake", clienttranslate('${player_name} fights a Monster'), array(
-                                'ally' => $ally,
-                                'slot' => $slot,
-                                'player_id' => $player_id,
-                                'player_name' => $players[$player_id]["player_name"],
-                        ));
-                    }
+            $player_id = self::getActivePlayerId();
+
+            // This must be the last ally in the track
+            $slots = Ally::getExploreSlots();
+            if ($slot != count($slots)) {
+                throw new BgaUserException( self::_("You can only take the last card in the explore track.") );
+            }
+
+            // If it's the last slot, you also gain a pearl
+            if ($slot == 5) {
+                self::incPlayerPearls( $player_id, 1, "explore" );
+            }
+
+            $ally = end($slots);
+
+            if ($ally['faction'] === NULL) {
+                // If it's a monster, go through the monster rigmarole
+                $this->gamestate->nextState( "exploreTakeMonster" );
+            } else {
+                // Otherwise, add it to your hand
+                self::DbQuery( "UPDATE ally SET place = ".($player_id * -1)." WHERE ally_id = " . $ally["ally_id"] );
+                $this->gamestate->nextState( "exploreTakeAlly" );
+            }
+
+            // If you have the Ship Master, you gain extra Pearls
+            if (Lord::playerHas( 8, $player_id )) {
+                $factions = array();
+                foreach ($slots as $s) {
+                    if ($s["ally_id"] == $ally["ally_id"]) continue;
+                    if ($s["faction"] === NULL) continue;
+                    $factions[$s["faction"]] = 1;
+                }
+                if (count($factions) > 0) {
+                    self::incPlayerPearls( $player_id, count($factions), "lord_8" );
+                }
+            }
+
+            // Move each ally to the appropriate council stack and discard monster allies
+            self::DbQuery( "UPDATE ally SET place = 6 WHERE faction IS NOT NULL AND place >= 1 AND place <= 5");
+            self::DbQuery( "UPDATE ally SET place = 10 WHERE faction IS NULL AND place >= 1");
+
+            // Notification
+            $players = self::loadPlayersBasicInfos();
+            if ($ally['faction'] !== NULL) {
+                self::notifyAllPlayers( "exploreTake", clienttranslate('${player_name} takes ${card_name}'), array(
+                        'ally' => $ally,
+                        'slot' => $slot,
+                        'player_id' => $player_id,
+                        'player_name' => $players[$player_id]["player_name"],
+                        'card_name' => array(
+                            'log' => '<span style="color:'.$this->factions[$ally["faction"]]["colour"].'">${value} ${faction}</span>',
+                            'args' => array(
+                                'value' => $ally["value"],
+                                'faction' => $this->factions[$ally["faction"]]["ally_name"],
+                                'i18n' => ['faction']
+                            )
+                        ),
+                ) );
+            } else {
+                self::notifyAllPlayers( "exploreTake", clienttranslate('${player_name} fights a Monster'), array(
+                        'ally' => $ally,
+                        'slot' => $slot,
+                        'player_id' => $player_id,
+                        'player_name' => $players[$player_id]["player_name"],
+                ));
+            }
         }
     
             function recruit(int $lord_id )
@@ -504,76 +503,75 @@ trait ActionTrait {
                     }
         }
     
-            function pay(array $ally_ids )
-            {
-                    // Check that this is the player's turn and that it is a "possible action" at this game state (see states.inc.php)
-                    self::checkAction( 'pay' );
-    
-                    $player_id = self::getActivePlayerId();
-                    $lord_id = self::getGameStateValue( 'selected_lord' );
-                    $lord = Lord::getInTrack( $lord_id );
-                    $ally_ids = array_unique($ally_ids);
-    
-                    // Do you have these cards in your hand? (+ remove them if you do)
-                    $allies = Ally::removeCardsFromHand( $player_id, $ally_ids );
-    
-                    // Do they satisfy diversity requirements?
-                    $r = Ally::getDiversityAndValue( $allies, $lord['faction'] );
-                    $shortfall = self::getLordCost($lord, $player_id) - $r['value'];
-                    $pearls = self::getPlayerPearls( $player_id );
-                    $hasDiplomat = Lord::playerHas( 24 , $player_id );
-    
-                    if (!$hasDiplomat && !$r['includesRequired'])
-                        throw new BgaUserException( self::_("You must include an Ally of the Lord's faction.") );
-                    if ($r['diversity'] != $lord['diversity'])
-                        throw new BgaUserException( sprintf(self::_("You must use exactly %d different faction(s)."), $lord['diversity']) );
-                    if ($shortfall > $pearls)
-                        throw new BgaUserException( self::_("You do not have enough Pearls to make up the shortfall.") );
-    
-                    // Are there any superfluous cards?
-                    if ($shortfall < 0) {
-                        $surplus = -1 * $shortfall;
-                        // Do any cards have a value lower than the surplus?
-                        // Also, of a faction which is already represented
-                        foreach ($allies as $k => $ally) {
-                            if ($ally['value'] <= $surplus) {
-                                // Is this faction represented elsewhere?
-                                foreach ($allies as $k2 => $ally2) {
-                                    if ($k == $k2) continue;
-                                    if ($ally2['faction'] == $ally['faction'])
-                                        throw new BgaUserException( self::_("You cannot use superfluous cards to purchase a Lord.") );
-                                }
-                            }
+        function pay(array $ally_ids) {
+            // Check that this is the player's turn and that it is a "possible action" at this game state (see states.inc.php)
+            self::checkAction( 'pay' );
+
+            $player_id = self::getActivePlayerId();
+            $lord_id = self::getGameStateValue( 'selected_lord' );
+            $lord = Lord::getInTrack( $lord_id );
+            $ally_ids = array_unique($ally_ids);
+
+            // Do you have these cards in your hand? (+ remove them if you do)
+            $allies = Ally::removeCardsFromHand( $player_id, $ally_ids );
+
+            // Do they satisfy diversity requirements?
+            $r = Ally::getDiversityAndValue( $allies, $lord['faction'] );
+            $shortfall = self::getLordCost($lord, $player_id) - $r['value'];
+            $pearls = self::getPlayerPearls( $player_id );
+            $hasDiplomat = Lord::playerHas( 24 , $player_id );
+
+            if (!$hasDiplomat && !$r['includesRequired'])
+                throw new BgaUserException( self::_("You must include an Ally of the Lord's faction.") );
+            if ($r['diversity'] != $lord['diversity'])
+                throw new BgaUserException( sprintf(self::_("You must use exactly %d different faction(s)."), $lord['diversity']) );
+            if ($shortfall > $pearls)
+                throw new BgaUserException( self::_("You do not have enough Pearls to make up the shortfall.") );
+
+            // Are there any superfluous cards?
+            if ($shortfall < 0) {
+                $surplus = -1 * $shortfall;
+                // Do any cards have a value lower than the surplus?
+                // Also, of a faction which is already represented
+                foreach ($allies as $k => $ally) {
+                    if ($ally['value'] <= $surplus) {
+                        // Is this faction represented elsewhere?
+                        foreach ($allies as $k2 => $ally2) {
+                            if ($k == $k2) continue;
+                            if ($ally2['faction'] == $ally['faction'])
+                                throw new BgaUserException( self::_("You cannot use superfluous cards to purchase a Lord.") );
                         }
                     }
-    
-                    // Pay pearls (if shortfall positive)
-                    if ($shortfall > 0) {
-                        self::DbQuery( "UPDATE player SET player_pearls = player_pearls - $shortfall WHERE player_id = " . $player_id );
-                    } else {
-                        $shortfall = 0;
-                    }
-    
-                    // Add the lord to your board!
-                    Lord::giveToPlayer( $lord_id, $player_id );
-    
-                    $message = clienttranslate('${player_name} recruits ${lord_name} with ${num_allies} Allies and ${spent_pearls} Pearl(s)');
-                    if ($shortfall == 0) {
-                        $message = clienttranslate('${player_name} recruits ${lord_name} with ${num_allies} Allies');
-                    }
-    
-                    self::notifyAllPlayers( "recruit", $message, array(
-                            'lord' => $lord,
-                            'spent_allies' => array_values($allies),
-                            'spent_pearls' => $shortfall,
-                            'player_id' => $player_id,
-                            'player_name' => self::getActivePlayerName(),
-                            "i18n" => array('lord_name'),
-                            "lord_name" => $this->lords[$lord_id]["name"],
-                            'num_allies' => count($allies),
-                    ) );
-    
-                    $this->gamestate->nextState( "pay" );
+                }
+            }
+
+            // Pay pearls (if shortfall positive)
+            if ($shortfall > 0) {
+                self::DbQuery( "UPDATE player SET player_pearls = player_pearls - $shortfall WHERE player_id = " . $player_id );
+            } else {
+                $shortfall = 0;
+            }
+
+            // Add the lord to your board!
+            Lord::giveToPlayer( $lord_id, $player_id );
+
+            $message = clienttranslate('${player_name} recruits ${lord_name} with ${num_allies} Allies and ${spent_pearls} Pearl(s)');
+            if ($shortfall == 0) {
+                $message = clienttranslate('${player_name} recruits ${lord_name} with ${num_allies} Allies');
+            }
+
+            self::notifyAllPlayers( "recruit", $message, array(
+                    'lord' => $lord,
+                    'spent_allies' => array_values($allies),
+                    'spent_pearls' => $shortfall,
+                    'player_id' => $player_id,
+                    'player_name' => self::getActivePlayerName(),
+                    "i18n" => array('lord_name'),
+                    "lord_name" => $this->lords[$lord_id]["name"],
+                    'num_allies' => count($allies),
+            ));
+
+            $this->gamestate->nextState( "pay" );
         }
     
             function requestSupport( $faction )
@@ -697,7 +695,17 @@ trait ActionTrait {
     
                 $state = $this->gamestate->state();
                 $source = '';
-                if ($state['name'] == 'lord2') {
+                
+                $afterMartialLaw = 'stay';
+
+                if ($state['name'] == 'martialLaw') {
+                    $args = $this->argMartialLaw();
+                    if (count($ally_ids) > $args['diff']) {
+                        throw new BgaUserException( sprintf( self::_("You must discard %d card(s)."), 1 ) );
+                    } else if (count($ally_ids) == $args['diff']) {
+                        $afterMartialLaw = 'next';
+                    }
+                } else if ($state['name'] == 'lord2') {
                     // Discard 1 card
                     $source = "lord_2";
                     if (count($ally_ids) != 1) {
@@ -736,7 +744,9 @@ trait ActionTrait {
                         'source' => $source
                 ) );
     
-                if ($state['name'] == 'cleanupDiscard' || $state['name'] == 'postpurchaseDiscard') {
+                if ($state['name'] == 'martialLaw') {
+                    $this->gamestate->nextState($afterMartialLaw);
+                } else if ($state['name'] == 'cleanupDiscard' || $state['name'] == 'postpurchaseDiscard') {
                     $this->gamestate->nextState( "next" );
                 } else {
                     $this->gamestate->setPlayerNonMultiactive($player_id, 'next');
@@ -1191,4 +1201,27 @@ trait ActionTrait {
                 
                 // $this->gamestate->nextState( 'loopback' );
             }
+
+    function payMartialLaw() {
+        $playerId = self::getActivePlayerId();
+
+        $args = $this->argMartialLaw();
+        $playerPearls = $this->getPlayerPearls($playerId);
+        $diff = $args['diff'];
+
+        if ($playerPearls < $diff) {
+            throw new BgaVisibleSystemException("You do not have enough pearls to pay.");
+        }
+
+        self::DbQuery( "UPDATE player SET player_pearls = player_pearls - $diff WHERE player_id = $playerId");
+
+        self::notifyAllPlayers("payMartialLaw", clienttranslate('${player_name} pays ${diff} pearl(s) for martial law'), [
+            'spentPearls' => $diff,
+            'playerId' => $playerId,
+            'diff' => $diff, // for log
+            'player_name' => self::getActivePlayerName(),
+        ]);
+
+        $this->gamestate->nextState('next');
+    }
 }

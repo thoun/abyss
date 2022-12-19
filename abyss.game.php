@@ -79,6 +79,8 @@ class Abyss extends Table {
 
 				"temp_value" => 20,
 				"previous_state" => 21,
+
+                MARTIAL_LAW_ACTIVATED => 22,
         ]);
 
 				Lord::init( $this );
@@ -127,6 +129,7 @@ class Abyss extends Table {
 		self::setGameStateInitialValue( 'selected_lord', 0 );
 		self::setGameStateInitialValue( 'extra_turn', 0 );
 		self::setGameStateInitialValue( 'game_ending_player', -1 );
+		$this->setGameStateInitialValue(MARTIAL_LAW_ACTIVATED, 0);
 
         // Init game statistics
         // (note: statistics used in this file must be defined in your stats.inc.php file)

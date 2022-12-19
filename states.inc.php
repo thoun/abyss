@@ -100,20 +100,20 @@ $machinestates = array(
  	),
 
  	ST_PRE_PURCHASE => array(
- 			"name" => "prepurchase",
- 			"type" => "game",
+		"name" => "prepurchase",
+		"type" => "game",
   		"action" => "stPrePurchase",
- 			"transitions" => array( "purchase" => ST_PLAYER_PURCHASE, "explore" => ST_PRE_EXPLORE )
+ 		"transitions" => array( "purchase" => ST_PLAYER_PURCHASE, "explore" => ST_PRE_EXPLORE )
  	),
 
  	ST_PLAYER_PURCHASE => array(
- 			"name" => "purchase",
- 			"description" => clienttranslate('${actplayer} may purchase the last Ally or pass'),
- 			"descriptionmyturn" => clienttranslate('${you} may purchase the last Ally or pass'),
- 			"type" => "activeplayer",
+		"name" => "purchase",
+		"description" => clienttranslate('${actplayer} may purchase the last Ally or pass'),
+		"descriptionmyturn" => clienttranslate('${you} may purchase the last Ally or pass'),
+		"type" => "activeplayer",
   		"args" => "argPurchase",
- 			"possibleactions" => array( "purchase", "pass" ),
- 			"transitions" => array( "purchase" => ST_PLAYER_POST_PURCHASE_DISCARD, "pass" => ST_PRE_PURCHASE, "zombiePass" => ST_PRE_PURCHASE, "loopback" => ST_PLAYER_PURCHASE )
+		"possibleactions" => array( "purchase", "pass" ),
+		"transitions" => array( "purchase" => ST_PLAYER_POST_PURCHASE_DISCARD, "pass" => ST_PRE_PURCHASE, "zombiePass" => ST_PRE_PURCHASE, "loopback" => ST_PLAYER_PURCHASE )
  	),
 
  	ST_PRE_EXPLORE => array(
@@ -180,14 +180,29 @@ $machinestates = array(
  	),
 
  	ST_PLAYER_CONTROL => array(
- 			"name" => "control", // Also in $state_ids
+ 		"name" => "control", // Also in $state_ids
   		"description" => clienttranslate('${actplayer} must choose a Location to control'),
- 			"descriptionmyturn" => clienttranslate('${you} must choose a face-up Location to control or draw some from the deck'),
- 			"type" => "activeplayer",
+ 		"descriptionmyturn" => clienttranslate('${you} must choose a face-up Location to control or draw some from the deck'),
+ 		"type" => "activeplayer",
   		"args" => "argControlPostDraw",
   		"possibleactions" => array( "chooseLocation", "drawLocations"/*, "lordEffect"*/ ),
  			"transitions" => array( "chooseLocation" => ST_PRE_CONTROL, "drawLocations" => ST_PLAYER_CONTROL_POST_DRAW, "locationEffectBlackSmokers" => ST_PLAYER_LOCATION_EFFECT_BLACK_SMOKERS, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_NEXT_PLAYER, "loopback" => ST_PLAYER_CONTROL )
  	),
+
+ 	ST_PLAYER_MARTIAL_LAW => [
+ 		"name" => "martialLaw",
+  		"description" => clienttranslate('${actplayer} must select allies to discard or pay ${diff} pearls'),
+ 		"descriptionmyturn" => clienttranslate('${you} must select allies to discard or pay ${diff} pearls'),
+ 		"type" => "activeplayer",
+		"action" => "stMartialLaw",
+  		"args" => "argMartialLaw",
+  		"possibleactions" => [ 'payMartialLaw', 'discard' ],
+ 		"transitions" => [ 
+			"stay" => ST_PLAYER_MARTIAL_LAW, 
+			"next" => ST_NEXT_PLAYER, 
+			"zombiePass" => ST_NEXT_PLAYER,
+		],
+	],
 
  	ST_NEXT_PLAYER => array(
  			"name" => "next",

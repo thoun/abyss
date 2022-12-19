@@ -68,11 +68,11 @@ trait UtilTrait {
     }
 
     function getPlayerPearls(int $player_id) {
-        return self::getUniqueValueFromDB( "SELECT player_pearls FROM player WHERE player_id = $player_id" );
+        return intval(self::getUniqueValueFromDB( "SELECT player_pearls FROM player WHERE player_id = $player_id"));
     }
 
     function getPlayerKeys(int $player_id) {
-        return self::getUniqueValueFromDB( "SELECT player_keys FROM player WHERE player_id = $player_id" );
+        return intval(self::getUniqueValueFromDB( "SELECT player_keys FROM player WHERE player_id = $player_id"));
     }
 
     function incPlayerPearls(int $player_id, int $diff, string $source) {

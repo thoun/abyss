@@ -98,6 +98,11 @@ interface EnteringPurchaseArgs {
     cost: number;
 }
 
+interface EnteringMartialLawArgs {
+    canPay: boolean;
+    diff: number;
+}
+
 interface NotifEndGameScoringArgs {
     breakdowns;
     winner_ids;
@@ -238,4 +243,9 @@ interface NotifDiffArgs {
     allies_lost;
     monster;
     monster_count;
+}
+
+interface NotifPayMartialLawArgs {
+    playerId: number;
+    spentPearls: number;
 }

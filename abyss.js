@@ -641,6 +641,7 @@ var Abyss = /** @class */ (function () {
     //                  You can use this method to perform some user interface changes at this moment.
     //
     Abyss.prototype.onEnteringState = function (stateName, args) {
+        log('onEnteringState', stateName, args);
         // Remove all current move indicators
         dojo.query('.card-current-move').removeClass('card-current-move');
         if (this.isCurrentPlayerActive()) {
@@ -766,6 +767,7 @@ var Abyss = /** @class */ (function () {
     //                 You can use this method to perform some user interface changes at this moment.
     //
     Abyss.prototype.onLeavingState = function (stateName) {
+        log('onLeavingState', stateName);
         $('game-extra').innerHTML = '';
         dojo.style($('game-extra'), "display", "none");
         switch (stateName) {
@@ -798,6 +800,8 @@ var Abyss = /** @class */ (function () {
     //                        action status bar (ie: the HTML links in the status bar).
     //
     Abyss.prototype.onUpdateActionButtons = function (stateName, args) {
+        //log('onUpdateActionButtons', stateName, args);
+        var _this = this;
         if (this.isCurrentPlayerActive() && ["plotAtCourt", "action", "secondStack", "explore", "explore2", "explore3", "chooseMonsterReward", "recruitPay", "affiliate", "cleanupDiscard", "controlPostDraw", "unusedLords"].includes(stateName)) {
             dojo.query("#player-panel-" + this.player_id + " .free-lords .lord").forEach(function (node) {
                 // unused, and unturned...
@@ -884,6 +888,23 @@ var Abyss = /** @class */ (function () {
                         if (location_deck_size < i_6)
                             continue;
                         this.addActionButton('button_draw_' + i_6, dojo.string.substitute(s, { n: i_6 }), 'onDrawLocation');
+                    }
+                    break;
+                case 'martialLaw':
+                    var martialLawArgs = args;
+                    if ((martialLawArgs === null || martialLawArgs === void 0 ? void 0 : martialLawArgs.diff) > 0) {
+                        this.addActionButton('button_discard', _('Discard selected allies'), function () { return _this.onDiscard(); });
+                        var ally_ids = [];
+                        dojo.query("#player-hand .ally.selected").forEach(function (node) {
+                            return ally_ids.push(+dojo.attr(node, 'data-ally-id'));
+                        });
+                        if (!ally_ids.length) {
+                            document.getElementById('button_discard').classList.add('disabled');
+                        }
+                        this.addActionButton('button_payMartialLaw', _('Pay') + " ".concat(martialLawArgs.diff, " <i class=\"icon icon-pearl\"></i>"), function () { return _this.payMartialLaw(); });
+                        if (!martialLawArgs.canPay) {
+                            document.getElementById('button_payMartialLaw').classList.add('disabled');
+                        }
                     }
                     break;
             }
@@ -999,7 +1020,7 @@ var Abyss = /** @class */ (function () {
         }
         var ally_ids = [];
         dojo.query("#player-hand .ally.selected").forEach(function (node) {
-            ally_ids.push(+dojo.attr(node, 'data-ally-id'));
+            return ally_ids.push(+dojo.attr(node, 'data-ally-id'));
         });
         this.ajaxcall("/abyss/abyss/discard.html", { lock: true, ally_ids: ally_ids.join(';') }, this, function () { }, function () { });
     };
@@ -1170,6 +1191,13 @@ var Abyss = /** @class */ (function () {
                 dojo.stopEvent(evt);
                 // Multi-discard: select, otherwise just discard this one
                 dojo.toggleClass(evt.target, 'selected');
+                if (this.gamedatas.gamestate.name === 'martialLaw') {
+                    var ally_ids = [];
+                    dojo.query("#player-hand .ally.selected").forEach(function (node) {
+                        return ally_ids.push(+dojo.attr(node, 'data-ally-id'));
+                    });
+                    document.getElementById('button_discard').classList.toggle('disabled', !ally_ids.length);
+                }
                 // Discard this card directly?
                 // var ally_id = dojo.attr(evt.target, 'data-ally-id');
                 // (this as any).ajaxcall( "/abyss/abyss/discard.html", { lock: true, ally_ids: ally_id }, this,
@@ -1251,6 +1279,21 @@ var Abyss = /** @class */ (function () {
         var num = +evt.currentTarget.id.replace('button_draw_', '');
         this.ajaxcall("/abyss/abyss/drawLocations.html", { lock: true, num: num }, this, function () { }, function () { });
     };
+    Abyss.prototype.payMartialLaw = function () {
+        if (!this.checkAction('payMartialLaw')) {
+            return;
+        }
+        this.takeAction('payMartialLaw');
+    };
+    Abyss.prototype.takeAction = function (action, data) {
+        data = data || {};
+        data.lock = true;
+        this.ajaxcall("/abyss/abyss/".concat(action, ".html"), data, this, function () { });
+    };
+    Abyss.prototype.takeNoLockAction = function (action, data) {
+        data = data || {};
+        this.ajaxcall("/abyss/abyss/".concat(action, ".html"), data, this, function () { });
+    };
     ///////////////////////////////////////////////////
     //// Reaction to cometD notifications
     /*
@@ -1290,6 +1333,7 @@ var Abyss = /** @class */ (function () {
         dojo.subscribe('refreshLords', this, "notif_refreshLords");
         dojo.subscribe('finalRound', this, "notif_finalRound");
         dojo.subscribe('endGame_scoring', this, "notif_endGame_scoring");
+        dojo.subscribe('payMartialLaw', this, "notif_payMartialLaw");
         // Depends on nbr. players
         var num_players = Object.keys(this.gamedatas.players).length;
         this.notifqueue.setSynchronous('endGame_scoring', 5000 * num_players + 3000);
@@ -1786,6 +1830,10 @@ var Abyss = /** @class */ (function () {
             }
         }
         this.organisePanelMessages();
+    };
+    Abyss.prototype.notif_payMartialLaw = function (notif) {
+        var playerId = notif.args.playerId;
+        $('pearlcount_p' + playerId).innerHTML = +($('pearlcount_p' + playerId).innerHTML) - notif.args.spentPearls;
     };
     return Abyss;
 }());

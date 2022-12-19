@@ -407,6 +407,8 @@ class Abyss implements AbyssGame {
     //                  You can use this method to perform some user interface changes at this moment.
     //
     onEnteringState(stateName: string, args: any) {
+        log('onEnteringState', stateName, args);
+
         // Remove all current move indicators
         dojo.query('.card-current-move').removeClass('card-current-move');
         if ((this as any).isCurrentPlayerActive()) {
@@ -538,6 +540,8 @@ class Abyss implements AbyssGame {
     //                 You can use this method to perform some user interface changes at this moment.
     //
     onLeavingState(stateName: string) {
+        log('onLeavingState', stateName);
+        
         $('game-extra').innerHTML = '';
         dojo.style($('game-extra'), "display", "none");
 
@@ -567,6 +571,8 @@ class Abyss implements AbyssGame {
     //                        action status bar (ie: the HTML links in the status bar).
     //
     onUpdateActionButtons(stateName: string, args: any) {
+        //log('onUpdateActionButtons', stateName, args);
+
         if ((this as any).isCurrentPlayerActive() && ["plotAtCourt", "action", "secondStack", "explore", "explore2", "explore3", "chooseMonsterReward", "recruitPay", "affiliate", "cleanupDiscard", "controlPostDraw", "unusedLords"].includes(stateName)) {
             dojo.query("#player-panel-"+(this as any).player_id+" .free-lords .lord").forEach(node => {
                 // unused, and unturned...
@@ -642,6 +648,25 @@ class Abyss implements AbyssGame {
                     for (let i = 1; i <= 4; i++) {
                         if (location_deck_size < i) continue;
                         (this as any).addActionButton( 'button_draw_' + i, dojo.string.substitute( s, {n: i} ), 'onDrawLocation' );
+                    }
+                    break;
+                case 'martialLaw':
+                    const martialLawArgs = args as EnteringMartialLawArgs;
+                    if (martialLawArgs?.diff > 0) {
+                        (this as any).addActionButton( 'button_discard', _('Discard selected allies'), () => this.onDiscard() );
+
+                        var ally_ids = [];
+                        dojo.query("#player-hand .ally.selected").forEach(node => 
+                            ally_ids.push(+dojo.attr(node, 'data-ally-id'))
+                        );
+                        if (!ally_ids.length) {
+                            document.getElementById('button_discard').classList.add('disabled');
+                        }
+
+                        (this as any).addActionButton( 'button_payMartialLaw', _('Pay') + ` ${martialLawArgs.diff} <i class="icon icon-pearl"></i>`, () => this.payMartialLaw());
+                        if (!martialLawArgs.canPay) {
+                            document.getElementById('button_payMartialLaw').classList.add('disabled');
+                        }
                     }
                     break;
             }
@@ -765,9 +790,9 @@ class Abyss implements AbyssGame {
         }
 
         var ally_ids = [];
-        dojo.query("#player-hand .ally.selected").forEach(node => {
-            ally_ids.push(+dojo.attr(node, 'data-ally-id'));
-        });
+        dojo.query("#player-hand .ally.selected").forEach(node => 
+            ally_ids.push(+dojo.attr(node, 'data-ally-id'))
+        );
 
         (this as any).ajaxcall( "/abyss/abyss/discard.html", { lock: true, ally_ids: ally_ids.join(';') }, this,
         () => {},
@@ -1019,6 +1044,14 @@ class Abyss implements AbyssGame {
             // Multi-discard: select, otherwise just discard this one
             dojo.toggleClass(evt.target, 'selected');
 
+            if (this.gamedatas.gamestate.name === 'martialLaw') {
+                var ally_ids = [];
+                dojo.query("#player-hand .ally.selected").forEach(node => 
+                    ally_ids.push(+dojo.attr(node, 'data-ally-id'))
+                );
+                document.getElementById('button_discard').classList.toggle('disabled', !ally_ids.length);
+            }
+
             // Discard this card directly?
             // var ally_id = dojo.attr(evt.target, 'data-ally-id');
             // (this as any).ajaxcall( "/abyss/abyss/discard.html", { lock: true, ally_ids: ally_id }, this,
@@ -1132,6 +1165,25 @@ class Abyss implements AbyssGame {
         );
     }
 
+    payMartialLaw() {
+        if(!(this as any).checkAction('payMartialLaw')) {
+            return;
+        }
+
+        this.takeAction('payMartialLaw');
+    }
+
+    public takeAction(action: string, data?: any) {
+        data = data || {};
+        data.lock = true;
+        (this as any).ajaxcall(`/abyss/abyss/${action}.html`, data, this, () => {});
+    }
+
+    public takeNoLockAction(action: string, data?: any) {
+        data = data || {};
+        (this as any).ajaxcall(`/abyss/abyss/${action}.html`, data, this, () => {});
+    }
+
 
     ///////////////////////////////////////////////////
     //// Reaction to cometD notifications
@@ -1173,6 +1225,7 @@ class Abyss implements AbyssGame {
         dojo.subscribe( 'refreshLords', this, "notif_refreshLords" );
         dojo.subscribe( 'finalRound', this, "notif_finalRound" )
         dojo.subscribe( 'endGame_scoring', this, "notif_endGame_scoring" );
+        dojo.subscribe( 'payMartialLaw', this, "notif_payMartialLaw" );
         
         // Depends on nbr. players
         let num_players = Object.keys(this.gamedatas.players).length;
@@ -1733,5 +1786,10 @@ class Abyss implements AbyssGame {
         }
         
         this.organisePanelMessages();
+    }
+
+    notif_payMartialLaw(notif: Notif<NotifPayMartialLawArgs>) {
+        const playerId = notif.args.playerId;
+        $('pearlcount_p' + playerId).innerHTML = +($('pearlcount_p' + playerId).innerHTML) - notif.args.spentPearls;
     }
 }

@@ -10,7 +10,16 @@ trait DebugUtilTrait {
         if ($this->getBgaEnvironment() != 'studio') { 
             return;
         }
+
+		$this->debugPickAllies(2343492);
     }
+
+	function debugPickAllies(int $playerId, int $number = 14) {
+		for ($i=0; $i<$number; $i++) {
+			$ally = Ally::draw();
+			self::DbQuery( "UPDATE ally SET place = ".($playerId * -1)." WHERE ally_id = " . $ally["ally_id"] );
+		}
+	}
 
     public function debugReplacePlayersIds() {
         if ($this->getBgaEnvironment() != 'studio') { 
