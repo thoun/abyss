@@ -74,7 +74,7 @@ trait StateTrait {
         }
 
         // TODO : In theory there can be multiple...
-        $winner_id = self::getUniqueValueFromDB( "SELECT player_id FROM player ORDER BY player_score DESC, player_score_aux DESC LIMIT 1" );
+        $winner_id = intval(self::getUniqueValueFromDB("SELECT player_id FROM player ORDER BY player_score DESC, player_score_aux DESC LIMIT 1"));
 
         // Send a notification to delay the endGame
         self::notifyAllPlayers( "endGame_scoring", '',
@@ -211,24 +211,24 @@ trait StateTrait {
     }
 
     function stPreControl() {
-        $player_id = self::getActivePlayerId();
+        $player_id = intval(self::getActivePlayerId());
 
         // Shuffle Lords along to the right
         $lords = Lord::moveToRight();
         self::setGameStateValue( 'selected_lord', 0 );
 
-        self::notifyAllPlayers( "moveLordsRight", '', array() );
+        self::notifyAllPlayers( "moveLordsRight", '', []);
 
         if (count($lords) <= 2) {
             // If the PP is showing, add PP, and draw new Lords (here)
             self::incPlayerPearls( $player_id, 2, "recruit" );
             $lords = Lord::refill();
 
-            self::notifyAllPlayers( "refillLords", '', array(
-                    'lords' => $lords,
-                    'player_id' => $player_id,
-                    'deck_size' => Lord::getDeckSize()
-            ) );
+            self::notifyAllPlayers( "refillLords", '', [
+                'lords' => $lords,
+                'player_id' => $player_id,
+                'deck_size' => Lord::getDeckSize()
+            ]);
         }
 
         // How many keys does the player have?
@@ -303,7 +303,7 @@ trait StateTrait {
                         Ally::affiliate( $pid, $ally["ally_id"] );
                         self::notifyAllPlayers( "affiliate", clienttranslate('${player_name} affiliates ${card_name}'), array(
                                 'ally' => $ally,
-                                'player_id' => $pid,
+                                'player_id' => intval($pid),
                                 'also_discard' => true,
                                 'player_name' => $p["player_name"],
                                 'card_name' => array(

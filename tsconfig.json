@@ -13,6 +13,7 @@
         "src/abyss.d.ts",
         "node_modules/bga-cards/src/animations.ts",
         "node_modules/bga-cards/src/animations-functions.ts",
+        "node_modules/bga-cards/src/sort.ts",
         "node_modules/bga-cards/src/stocks/card-stock.ts",
         "node_modules/bga-cards/src/stocks/deck.ts",
         "node_modules/bga-cards/src/stocks/line-stock.ts",
@@ -25,6 +26,7 @@
         "src/lord-manager.ts",
         "src/location-manager.ts",
         "src/helpers.ts",
+        "src/player-table.ts",
         "src/abyss.ts",
         "src/define.ts"
     ]

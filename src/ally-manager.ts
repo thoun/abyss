@@ -3,7 +3,7 @@ class AllyManager extends CardManager<AbyssAlly> {
 
   constructor(public game: AbyssGame) {
     super(game, {
-      getId: ally => ally.ally_id,
+      getId: ally => `ally-${ally.ally_id}`,
       setupDiv: (ally, div) => {
         div.classList.add(`ally`, `ally-${ally.faction}-${ally.value}`);
         if (ally.place >= 0) {
@@ -12,6 +12,8 @@ class AllyManager extends CardManager<AbyssAlly> {
         div.dataset.allyId = `${ally.ally_id}`;
         div.dataset.faction = `${ally.faction}`;
         div.dataset.value = `${ally.value}`;
+
+      this.game.connectTooltip(div, this.renderTooltip(ally), "ally");
       },
       setupFrontDiv: (ally, div) => {
         div.classList.add( `ally-${ally.faction}-${ally.value}`);
@@ -43,13 +45,6 @@ class AllyManager extends CardManager<AbyssAlly> {
 
   renderTooltip(ally: AbyssAlly) {
     if (ally.faction >= 0) {
-      let allies = [
-        '<span style="color: purple">' + _('Jellyfish') + '</span>',
-        '<span style="color: red">' + _('Crab') + '</span>',
-        '<span style="color: #999900">' + _('Seahorse') + '</span>',
-        '<span style="color: green">' + _('Shellfish') + '</span>',
-        '<span style="color: blue">' + _('Squid') + '</span>'
-      ];
       return `<div class="abs-tooltip-ally">
         ${this.allyNameText(ally)}
         <br>
@@ -102,27 +97,7 @@ class AllyManager extends CardManager<AbyssAlly> {
     return parent;
   }
 
-  addHand(player_id, ally: AbyssAlly) {
-    var node = $('player-hand');
-    var refNode = node;
-    var pos = 'last';
-    // Put it before the first ally which is bigger
-    for (var i = 0; i < node.childNodes.length; i++) {
-      var n = node.childNodes[i];
-      var value = dojo.attr(n, 'data-ally-id');
-      if (+value > +ally.ally_id) {
-        refNode = n;
-        pos = 'before';
-        break;
-      }
-    }
-    let newNode = dojo.place(this.render(ally), refNode, pos);
-    this.game.connectTooltip( newNode, this.renderTooltip(ally), "ally" );
-    (this.game as any).organisePanelMessages();
-    return newNode;
-  }
-
-  addAffiliated(player_id, ally: AbyssAlly) {
+  addAffiliated(player_id: number, ally: AbyssAlly) {
     var node = dojo.query('#player-panel-' + player_id + ' .affiliated-faction[data-faction=' + ally.faction + ']')[0];
     var refNode = node;
     var pos = 'last';

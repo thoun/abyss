@@ -3,44 +3,54 @@
  */
 
 interface AbyssAlly {
-    ally_id;
-    faction;
-    value;
-    place;
+    ally_id: number;
+    faction: number | null | 'monster';
+    value: number;
+    just_spent: boolean;
+    affiliated: boolean;
+    place: number;
 }
 
 interface AbyssLord {
-    lord_id;
-    turned;
-    cost;
-    diversity;
-    used;
-    effect;
-    keys;
+    lord_id: number;
+    points: number;
+    keys: number;
+    cost: number;
+    diversity: number;
+    used: boolean;
+    turned: boolean;
+    faction: number;
+    place: number;
+    location?: number;
     name;
     desc;
-    faction;
-    place;
-    points;
+    effect;
 }
 
 interface AbyssLocation {
+    location_id: number;
+    name: number;
     desc;
-    location_id;
-    name;
+}
+
+interface AbyssMonster {
+    monster_id: number;
+    value: number;
+    place: number;
 }
 
 interface AbyssPlayer extends Player {
-    hand: any[];
-    affiliated;
-    locations;
-    lords;
-    monsters;
-    pearls;
-    keys;
-    autopass;
-    hand_size;
-    num_monsters;
+    hand: AbyssAlly[];
+    affiliated: AbyssAlly[];
+    locations: AbyssLocation[];
+    lords: AbyssLord[];
+    monsters?: AbyssMonster[];
+    pearls: number;
+    nebulis?: number;
+    keys: string;
+    autopass: string;
+    hand_size: number;
+    num_monsters: number;
 }
 
 interface AbyssGamedatas {
@@ -56,16 +66,18 @@ interface AbyssGamedatas {
     tablespeed: string;
 
     // Add here variables you set up in getAllDatas
-    turn_order;
-    game_ending_player;
-    lord_slots;
-    ally_explore_slots;
-    ally_council_slots;
-    lord_deck;
-    ally_deck;
-    threat_level;
-    location_available;
-    location_deck;
+    turn_order: { [playerId: number]: number };
+    game_ending_player: number;
+    lord_slots: AbyssLord[];
+    ally_explore_slots: AbyssAlly[];
+    ally_council_slots: number[];
+    lord_deck: number;
+    ally_deck: number;
+    threat_level: number;
+    location_available: AbyssLocation[];
+    location_deck: number;
+
+    krakenExpansion: boolean;
 }
 
 interface AbyssGame extends Game {
@@ -74,6 +86,8 @@ interface AbyssGame extends Game {
     locationManager: LocationManager;
 
     connectTooltip(node: any, html: string | Function, offsetType: string): void;
+    getPlayerId(): number;
+    organisePanelMessages(): void;
 }
 
 interface EnteringRecruitPayArgs {
@@ -104,145 +118,137 @@ interface EnteringMartialLawArgs {
 }
 
 interface NotifEndGameScoringArgs {
-    breakdowns;
-    winner_ids;
+    breakdowns: any[];
+    winner_ids: number[];
 }
 
 interface NotifUseLordArgs {
-    lord_id;
+    lord_id: number;
 }
 
 interface NotifScoreArgs {
-    score;
-    player_id;
+    score: number;
+    player_id: number;
 }
 
 interface NotifControlArgs {
-    location;
-    lords;
-    player_id;
+    location: AbyssLocation;
+    lords: AbyssLord[];
+    player_id: number;
 }
 
 interface NotifLoseLocationArgs {
-    location_id;
-    player_id;
+    location_id: number;
+    player_id: number;
 }
 
 interface NotifNewLocationsArgs {
-    locations;
-    deck_size;
+    locations: AbyssLocation[];
+    deck_size: number;
 }
 
 interface NotifDisableArgs {
-    lord_id;
+    lord_id: number;
 }
 
 interface NotifAllyDeckShuffleArgs {
-    deck_size;
+    deck_size: number;
 }
 
 interface NotifMonsterRewardArgs {
-    player_id;
-    pearls;
-    monsters;
-    keys;
-}
-
-interface NotifMonsterRewardArgs {
-    monsters;
+    player_id: number;
+    pearls: number;
+    monsters: number;
+    keys: number;
 }
 
 interface NotifMonsterTokensArgs {
-    monsters;
-    player_id;
+    monsters: AbyssMonster[];
 }
 
 interface NotifMonsterHandArgs {
-    monsters;
-    player_id;
+    monsters: AbyssMonster[];
+    player_id: number;
 }
 
 interface NotifPlotArgs {
-    lord;
-    player_id;
-    deck_size;
-    pearls;
-    old_lord;
+    lord: AbyssLord;
+    player_id: number;
+    deck_size: number;
+    pearls: number;
+    old_lord: AbyssLord;
 }
 
 interface NotifAffiliateArgs {
-    ally;
-    player_id;
-    also_discard;
+    ally: AbyssAlly;
+    player_id: number;
+    also_discard: boolean;
 }
 
 interface NotifExploreArgs {
-    ally;
-    deck_size;
+    ally: AbyssAlly;
+    deck_size: number;
 }
 
 interface NotifExploreTakeArgs {
-    player_id;
-    slot;
-    ally;
+    player_id: number;
+    slot: number;
+    ally: AbyssAlly;
 }
 
 interface NotifPurchaseArgs {
-    player_id;
+    player_id: number;
     slot;
-    cost;
-    first_player_id;
-    ally;
-}
-
-interface NotifExploreTakeArgs {
-    threat;
+    cost: number;
+    first_player_id: number;
+    ally: AbyssAlly;
 }
 
 interface NotifThreatArgs {
-    threat;
+    threat: number;
 }
 
 interface NotifDiscardCouncilArgs {
-    player_id;
-    faction;
-    num;
+    player_id: number;
+    faction: number;
+    num: number;
 }
 
 interface NotifRequestSupportArgs {
-    player_id;
-    faction;
-    num;
+    player_id: number;
+    faction: number;
+    num: number;
 }
 
 interface NotifRequestSupportCardsArgs {
-    player_id;
-    faction;
-    allies;
+    player_id: number;
+    faction: number;
+    allies: AbyssAlly[];
 }
 
 interface NotifRecruitArgs {
-    lord;
-    player_id;
-    spent_pearls;
-    spent_lords;
-    spent_allies;
+    lord: AbyssLord;
+    player_id: number;
+    spent_pearls: number;
+    spent_lords: AbyssLord[];
+    spent_allies: AbyssAlly[];
 }
 
 interface NotifRefillLordsArgs {
-    lords;
-    player_id;
-    deck_size;
+    lords: AbyssLord[];
+    player_id: number;
+    deck_size: number;
 }
 
 interface NotifDiffArgs {
-    player_id;
-    source;
-    pearls;
-    keys;
-    allies_lost;
-    monster;
-    monster_count;
+    player_id: number;
+    source?: string;
+    pearls?: number;
+    nebulis?: number;
+    keys?: number;
+    allies_lost?: AbyssAlly[];
+    monster?: AbyssMonster[];
+    monster_count?: number;
 }
 
 interface NotifPayMartialLawArgs {

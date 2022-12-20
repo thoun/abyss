@@ -62,6 +62,10 @@ trait UtilTrait {
         return self::getUniqueValueFromDB("SELECT player_name FROM player WHERE player_id = $playerId");
     }
 
+    function isKrakenExpansion() {
+        return intval($this->getGameStateValue(KRAKEN_EXPANSION)) == 2;
+    }
+
     function returnToPrevious() {
         $previous = self::getGameStateValue( "previous_state" );
         $this->gamestate->nextState( "return_$previous" );

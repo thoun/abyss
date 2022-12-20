@@ -8,7 +8,7 @@ class Location
     self::$game = $theGame;
   }
 
-  public static function setup() {
+  public static function setup(bool $krakenExpansion) {
 
     $sql = "INSERT INTO location (`location_id`) VALUES
       ( 1 ),
@@ -38,8 +38,19 @@ class Location
     self::draw();
   }
 
+  public function typedLocation(array $dbResult) {
+    $dbResult['location_id'] = intval($dbResult['location_id']);
+    $dbResult['place'] = intval($dbResult['place']);
+
+    return $dbResult;
+  }
+
+  public function typedLocations(array $dbResults) {
+    return array_values(array_map(fn($dbResult) => self::typedLocation($dbResult), $dbResults));
+  }
+
   public static function draw() {
-    $location = Abyss::getObject( "SELECT * FROM location WHERE place = 0 ORDER BY RAND() LIMIT 1" );
+    $location = self::typedLocation(Abyss::getObject( "SELECT * FROM location WHERE place = 0 ORDER BY RAND() LIMIT 1"));
     if (! $location) return null;
     Abyss::DbQuery( "UPDATE location SET place = 1 WHERE location_id = $location[location_id]" );
     $location["place"] = 1;
@@ -59,7 +70,7 @@ class Location
   }
 
   public static function getDeckSize() {
-    return Abyss::getValue( "SELECT COUNT(*) FROM location WHERE place = 0" );
+    return intval(Abyss::getValue("SELECT COUNT(*) FROM location WHERE place = 0"));
   }
 
   public static function getPlayerHand( $player_id ) {
@@ -206,6 +217,7 @@ class Location
   }
 
   public static function injectTextSingle( $loc ) {
+    $loc = self::typedLocation($loc);
     $loc["name"] = self::$game->locations[$loc["location_id"]]["name"];
     $loc["desc"] = self::$game->locations[$loc["location_id"]]["desc"];
     return $loc;

@@ -27,7 +27,7 @@ class Lord
     self::$game = $theGame;
   }
 
-  public static function setup() {
+  public static function setup(bool $krakenExpansion) {
     $sql = "INSERT INTO lord (lord_id, points, `keys`, cost, diversity, faction, effect) VALUES
       ( 1, 4, 1, 10, 2, ".self::FACTION_RED.", ".self::EFFECT_PASSIVE."),
       ( 2, 7, 0,  6, 3, ".self::FACTION_RED.", ".self::EFFECT_ONCE."),
@@ -75,12 +75,32 @@ class Lord
     self::refill();
   }
 
+  public function typedLord(array $dbResult) {
+    $dbResult['lord_id'] = intval($dbResult['lord_id']);
+    $dbResult['points'] = intval($dbResult['points']);
+    $dbResult['keys'] = intval($dbResult['keys']);
+    $dbResult['cost'] = intval($dbResult['cost']);
+    $dbResult['diversity'] = intval($dbResult['diversity']);
+    $dbResult['used'] = boolval($dbResult['used']);
+    $dbResult['turned'] = boolval($dbResult['turned']);
+    $dbResult['faction'] = intval($dbResult['faction']);
+    $dbResult['keys'] = $dbResult['keys'] == null ? null : intval($dbResult['keys']);
+    $dbResult['place'] = intval($dbResult['place']);
+    $dbResult['location'] = $dbResult['location'] == null ? null : intval($dbResult['location']);
+
+    return $dbResult;
+  }
+
+  public function typedLords(array $dbResults) {
+    return array_values(array_map(fn($dbResult) => self::typedLord($dbResult), $dbResults));
+  }
+
   public static function getSlots() {
     return self::injectText(Abyss::getCollection( "SELECT * FROM lord WHERE place >= 1 AND place <= 6 ORDER BY place ASC" ));
   }
 
   public static function getDeckSize() {
-    return Abyss::getValue( "SELECT COUNT(*) FROM lord WHERE place = 0" );
+    return intval(Abyss::getValue( "SELECT COUNT(*) FROM lord WHERE place = 0"));
   }
 
   public static function getInTrack(int $lord_id ) {
@@ -189,6 +209,7 @@ class Lord
 
   public static function injectTextSingle( $lord ) {
     if (isset($lord)) {
+      $lord = self::typedLord($lord);
       $lord["name"] = self::$game->lords[$lord["lord_id"]]["name"];
       $lord["desc"] = self::$game->lords[$lord["lord_id"]]["desc"];
     }

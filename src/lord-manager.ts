@@ -79,7 +79,7 @@ class LordManager extends CardManager<AbyssLord> {
       keysString += ' <i class="icon icon-key"></i>';
     }
     let costString = _('Cost');
-    let costNumber = lord.cost;
+    let costNumber: number | string = lord.cost;
     let trueCost = costNumber;
     
     // Only show true costs for lords in the row
@@ -118,15 +118,16 @@ class LordManager extends CardManager<AbyssLord> {
     return node;
   }
 
-  updateLordKeys(playerId) {
+  updateLordKeys(playerId: number | string) {
     let playerPanel = $('player-panel-' + playerId);
     let lords = dojo.query('.free-lords .lord', playerPanel);
     let keys = 0;
     let numLords = dojo.query('.lord', playerPanel).length;
     for (let i = 0; i < lords.length; i++) {
       let lord = lords[i];
-      if (! dojo.hasClass(lord, "disabled")) {
-        keys += +lord.getAttribute("data-keys");
+      if (!dojo.hasClass(lord, "disabled")) {
+        const keysStr = lord.getAttribute("data-keys");
+        keys += isNaN(keysStr) ? 0 : Number(keysStr);
       }
     }
     $('lordkeycount_p' + playerId).innerHTML = keys;

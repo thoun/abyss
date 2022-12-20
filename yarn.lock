@@ -12,7 +12,7 @@ anymatch@~3.1.2:
 
 bga-cards@thoun/bga-cards:
   version "1.0.0"
-  resolved "https://codeload.github.com/thoun/bga-cards/tar.gz/8ad5d21ed12f62af69e7d4938e551f48e0f90519"
+  resolved "https://codeload.github.com/thoun/bga-cards/tar.gz/e68985c960fd98a09466cdb2a0ead9b3be515c4d"
 
 binary-extensions@^2.0.0:
   version "2.2.0"
