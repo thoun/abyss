@@ -186,7 +186,7 @@ $machinestates = array(
  		"type" => "activeplayer",
   		"args" => "argControlPostDraw",
   		"possibleactions" => array( "chooseLocation", "drawLocations"/*, "lordEffect"*/ ),
- 			"transitions" => array( "chooseLocation" => ST_PRE_CONTROL, "drawLocations" => ST_PLAYER_CONTROL_POST_DRAW, "locationEffectBlackSmokers" => ST_PLAYER_LOCATION_EFFECT_BLACK_SMOKERS, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_NEXT_PLAYER, "loopback" => ST_PLAYER_CONTROL )
+ 			"transitions" => array( "chooseLocation" => ST_PRE_CONTROL, "drawLocations" => ST_PLAYER_CONTROL_POST_DRAW, "locationEffectBlackSmokers" => ST_PLAYER_LOCATION_EFFECT_BLACK_SMOKERS, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PLAYER_MARTIAL_LAW, "loopback" => ST_PLAYER_CONTROL )
  	),
 
  	ST_PLAYER_MARTIAL_LAW => [
@@ -263,7 +263,7 @@ $machinestates = array(
  			"type" => "activeplayer",
   		"action" => "stCleanupDiscard",
   		"possibleactions" => array( "discard", "lordEffect" ),
- 			"transitions" => array( "next" => ST_NEXT_PLAYER, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_CLEANUP_DISCARD )
+ 			"transitions" => array( "next" => ST_PLAYER_MARTIAL_LAW, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_CLEANUP_DISCARD )
  	),
 
  	ST_PLAYER_CONTROL_POST_DRAW => array(
@@ -273,7 +273,7 @@ $machinestates = array(
  			"type" => "activeplayer",
   		"args" => "argControlPostDraw",
 		"possibleactions" => array( "chooseLocation"/*, "lordEffect"*/ ),
- 			"transitions" => array( "chooseLocation" => ST_PRE_CONTROL, "locationEffectBlackSmokers" => ST_PLAYER_LOCATION_EFFECT_BLACK_SMOKERS, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_NEXT_PLAYER, "loopback" => ST_PLAYER_CONTROL_POST_DRAW )
+ 			"transitions" => array( "chooseLocation" => ST_PRE_CONTROL, "locationEffectBlackSmokers" => ST_PLAYER_LOCATION_EFFECT_BLACK_SMOKERS, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PLAYER_MARTIAL_LAW, "loopback" => ST_PLAYER_CONTROL_POST_DRAW )
  	),
 
  	ST_PLAYER_LOCATION_EFFECT_BLACK_SMOKERS => array(
