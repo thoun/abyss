@@ -173,10 +173,10 @@ $machinestates = array(
  	),
 
  	ST_PRE_CONTROL => array(
- 			"name" => "precontrol",
- 			"type" => "game",
+		"name" => "precontrol",
+		"type" => "game",
   		"action" => "stPreControl",
- 			"transitions" => array( "control" => ST_PLAYER_CONTROL, "next" => ST_PLAYER_UNUSED_LORDS )
+ 		"transitions" => array( "control" => ST_PLAYER_CONTROL, "next" => ST_PLAYER_UNUSED_LORDS )
  	),
 
  	ST_PLAYER_CONTROL => array(

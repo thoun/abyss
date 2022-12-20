@@ -1,7 +1,25 @@
-class LocationManager {
+class LocationManager extends CardManager<AbyssLocation> {
   private static uniqueId: number = 0;
 
-  constructor(private game: AbyssGame) {}
+  constructor(public game: AbyssGame) {
+    super(game, {
+      getId: location => location.location_id,
+      setupDiv: (location, div) => {
+        div.classList.add(`location`, `location-${location.location_id}`, `board`);
+        div.dataset.locationId = `${location.location_id}`;
+      },
+      setupFrontDiv: (location, div) => {
+        var desc = this.makeDesc(location, true);
+        div.classList.add(`location-${location.location_id}`);
+        div.innerHTML = `
+        <div class="location-clicker"></div>
+        <span class="location-name">${_(location.name)}</span>
+        <span class="location-desc">${desc}</span>
+        <div class="trapped-lords-holder"></div>
+        `;
+      },
+    });
+  }
 
   makeDesc(location: AbyssLocation, laurel?) {
     let pointsReplacement = laurel ? '<i class="icon icon-laurel"></i>' : ' <i class="fa fa-star"></i>';

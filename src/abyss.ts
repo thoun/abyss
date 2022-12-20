@@ -1197,46 +1197,43 @@ class Abyss implements AbyssGame {
                 your abyss.game.php file.
 
     */
-    setupNotifications() {
-        // Example 1: standard notification handling
-        dojo.subscribe( 'explore', this, "notif_explore" );
-        dojo.subscribe( 'purchase', this, "notif_purchase" );
-        dojo.subscribe( 'exploreTake', this, "notif_exploreTake" );
-        dojo.subscribe( 'setThreat', this, "notif_setThreat" );
-        dojo.subscribe( 'monsterReward', this, "notif_monsterReward" );
-        dojo.subscribe( 'monsterTokens', this, "notif_monsterTokens" );
-        dojo.subscribe( 'monsterHand', this, "notif_monsterHand" );
-        dojo.subscribe( 'discardCouncil', this, "notif_discardCouncil" );
-        dojo.subscribe( 'requestSupport', this, "notif_requestSupport" );
-        dojo.subscribe( 'requestSupportCards', this, "notif_requestSupportCards" );
-        dojo.subscribe( 'recruit', this, "notif_recruit" );
-        dojo.subscribe( 'refillLords', this, "notif_refillLords" );
-        dojo.subscribe( 'affiliate', this, "notif_affiliate" );
-        dojo.subscribe( 'plot', this, "notif_plot" );
-        dojo.subscribe( 'allyDeckShuffle', this, "notif_allyDeckShuffle" );
-        dojo.subscribe( 'diff', this, "notif_diff" );
-        dojo.subscribe( 'disable', this, "notif_disable" );
-        dojo.subscribe( 'moveLordsRight', this, "notif_moveLordsRight" );
-        dojo.subscribe( 'newLocations', this, "notif_newLocations" );
-        dojo.subscribe( 'control', this, "notif_control" );
-        dojo.subscribe( 'loseLocation', this, "notif_loseLocation" );
-        dojo.subscribe( 'score', this, "notif_score" );
-        dojo.subscribe( 'useLord', this, "notif_useLord" );
-        dojo.subscribe( 'refreshLords', this, "notif_refreshLords" );
-        dojo.subscribe( 'finalRound', this, "notif_finalRound" )
-        dojo.subscribe( 'endGame_scoring', this, "notif_endGame_scoring" );
-        dojo.subscribe( 'payMartialLaw', this, "notif_payMartialLaw" );
-        
-        // Depends on nbr. players
+    setupNotifications() {        
         let num_players = Object.keys(this.gamedatas.players).length;
-        (this as any).notifqueue.setSynchronous( 'endGame_scoring', 5000 * num_players + 3000 );
 
-        // Example 2: standard notification handling + tell the user interface to wait
-        //            during 3 seconds after calling the method in order to let the players
-        //            see what is happening in the game.
-        // dojo.subscribe( 'cardPlayed', this, "notif_cardPlayed" );
-        // this.notifqueue.setSynchronous( 'cardPlayed', 3000 );
-        //
+        const notifs = [
+            ['explore', 1],
+            ['purchase', 1],
+            ['exploreTake', 1000],
+            ['setThreat', 1],
+            ['monsterReward', 1],
+            ['monsterTokens', 1],
+            ['monsterHand', 1],
+            ['discardCouncil', 1],
+            ['requestSupport', 1],
+            ['requestSupportCards', 1],
+            ['recruit', 1],
+            ['refillLords', 1],
+            ['affiliate', 1],
+            ['plot', 1],
+            ['allyDeckShuffle', 1],
+            ['diff', 1],
+            ['disable', 1],
+            ['moveLordsRight', 1],
+            ['newLocations', 1],
+            ['control', 1],
+            ['loseLocation', 1],
+            ['score', 1],
+            ['useLord', 1],
+            ['refreshLords', 1],
+            ['finalRound', 1],
+            ['payMartialLaw', 1],
+            ['endGame_scoring', 5000 * num_players + 3000],
+        ];
+    
+        notifs.forEach((notif) => {
+            dojo.subscribe(notif[0], this, `notif_${notif[0]}`);
+            (this as any).notifqueue.setSynchronous(notif[0], notif[1]);
+        });
     }
     
     setScoringArrowRow(stage: string) {

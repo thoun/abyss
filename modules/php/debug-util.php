@@ -12,9 +12,10 @@ trait DebugUtilTrait {
         }
 
 		$this->debugPickAllies(2343492);
+		$this->debugPickAllies(2343493);
     }
 
-	function debugPickAllies(int $playerId, int $number = 14) {
+	function debugPickAllies(int $playerId, int $number = 12) {
 		for ($i=0; $i<$number; $i++) {
 			$ally = Ally::draw();
 			self::DbQuery( "UPDATE ally SET place = ".($playerId * -1)." WHERE ally_id = " . $ally["ally_id"] );

@@ -1,7 +1,23 @@
-class AllyManager {
+class AllyManager extends CardManager<AbyssAlly> {
   private static uniqueId: number = 0;
 
-  constructor(private game: AbyssGame) {}
+  constructor(public game: AbyssGame) {
+    super(game, {
+      getId: ally => ally.ally_id,
+      setupDiv: (ally, div) => {
+        div.classList.add(`ally`, `ally-${ally.faction}-${ally.value}`);
+        if (ally.place >= 0) {
+          div.classList.add(`slot-${ally.place}`);
+        }
+        div.dataset.allyId = `${ally.ally_id}`;
+        div.dataset.faction = `${ally.faction}`;
+        div.dataset.value = `${ally.value}`;
+      },
+      setupFrontDiv: (ally, div) => {
+        div.classList.add( `ally-${ally.faction}-${ally.value}`);
+      },
+    });
+  }
 
   render(ally: AbyssAlly) {
     return `<div id="ally-uid-${++AllyManager.uniqueId}" data-ally-id="${ally.ally_id}" data-faction="${ally.faction}" data-value="${ally.value}" class="ally ally-${ally.faction}-${ally.value} ${ally.place >= 0 ? ('slot-' + ally.place) : ''}"></div>`;
