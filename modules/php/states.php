@@ -249,7 +249,7 @@ trait StateTrait {
     }
 
     function stNextPlayer() {
-        $player_id = self::getActivePlayerId();
+        $player_id = intval(self::getActivePlayerId());
         $transition = "plot";
 
         $game_ending = self::getGameStateValue( 'game_ending_player' );

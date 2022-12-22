@@ -10,6 +10,8 @@ declare const g_gamethemeurl;
 
 let debounce;
 
+const FACTION_MONSTER = 100;
+
 class Abyss implements AbyssGame {
     public allyManager: AllyManager;
     public lordManager: LordManager;
@@ -136,7 +138,7 @@ class Abyss implements AbyssGame {
         // Allies
         for ( var i in gamedatas.ally_explore_slots ) {
             var ally = gamedatas.ally_explore_slots[i];
-            if (ally.faction == null) ally.faction = 'monster';
+            if (ally.faction == null) ally.faction = FACTION_MONSTER;
             this.allyManager.placeWithTooltip(ally, $('explore-track'));
         }
         for ( var i in gamedatas.ally_council_slots ) {
@@ -828,9 +830,9 @@ class Abyss implements AbyssGame {
                 if (location_deck_size == 0) {
                 (this as any).confirmationDialog( _('Are you sure you want to select this Location? There are no Locations left in the deck.'), dojo.hitch( this, function() {
                     var lord_ids = [];
-                    dojo.query("#player-panel-" + (this as any).player_id + " .free-lords .lord.selected").forEach((node) => {
-                    lord_ids.push(+dojo.attr(node, 'data-lord-id'));
-                    });
+                    dojo.query("#player-panel-" + (this as any).player_id + " .free-lords .lord.selected").forEach(node => 
+                        lord_ids.push(+dojo.attr(node, 'data-lord-id'))
+                    );
     
                     (this as any).ajaxcall( "/abyss/abyss/chooseLocation.html", { lock: true, location_id: location_id, lord_ids: lord_ids.join(';') }, this,
                     () => {},
@@ -842,9 +844,9 @@ class Abyss implements AbyssGame {
             }
             
             var lord_ids = [];
-            dojo.query("#player-panel-" + (this as any).player_id + " .free-lords .lord.selected").forEach(function (node) {
-            lord_ids.push(+dojo.attr(node, 'data-lord-id'));
-            });
+            dojo.query("#player-panel-" + (this as any).player_id + " .free-lords .lord.selected").forEach(node =>
+            lord_ids.push(+dojo.attr(node, 'data-lord-id'))
+            );
 
             (this as any).ajaxcall( "/abyss/abyss/chooseLocation.html", { lock: true, location_id: location_id, lord_ids: lord_ids.join(';') }, this,
             () => {},
@@ -1211,23 +1213,20 @@ class Abyss implements AbyssGame {
             let player_id = winner_ids[i];
             dojo.addClass($('scoring-row-name-p' + player_id), 'wavetext');
             
-            let stages = ['location', 'lord', 'affiliated', 'monster', 'total'];
-            for (let j in stages) {
-                let stage = stages[j];
-                dojo.style($('scoring-row-'+stage+'-p' + player_id), {'backgroundColor': 'rgba(255, 215, 0, 0.3)'});
-            }
+            ['location', 'lord', 'affiliated', 'monster', 'total'].forEach(stage =>
+                dojo.style($('scoring-row-'+stage+'-p' + player_id), {'backgroundColor': 'rgba(255, 215, 0, 0.3)'})
+            );
         }
     }
     
-    notif_finalRound( notif ) {
+    notif_finalRound( notif: Notif<NotifFinalRoundArgs>) {
         let playerId = notif.args.player_id;
         
         this.gamedatas.game_ending_player = playerId;
         dojo.style($('last-round'), { 'display': 'block' });
     }
     
-    notif_endGame_scoring ( notif: Notif<NotifEndGameScoringArgs> )
-    {
+    notif_endGame_scoring ( notif: Notif<NotifEndGameScoringArgs> ) {
         let breakdowns = notif.args.breakdowns;
         let winnerIds = notif.args.winner_ids;
         
@@ -1235,10 +1234,8 @@ class Abyss implements AbyssGame {
         dojo.style($('last-round'), { 'display': 'none' });
         dojo.style($('game-scoring'), {'display': 'block'});
         
-        let stages = ['location', 'lord', 'affiliated', 'monster', 'total'];
         let currentTime = 0;
-        for (let i in stages) {
-            let stage = stages[i];
+        ['location', 'lord', 'affiliated', 'monster', 'total'].forEach(stage => {
             let breakdownStage = stage + '_points';
             if (stage == 'total') {
                 breakdownStage = 'score';
@@ -1249,7 +1246,7 @@ class Abyss implements AbyssGame {
                 setTimeout(this.setScoringRowText.bind(this, stage, player_id, breakdowns[player_id][breakdownStage]), currentTime);
                 currentTime += 1000;
             }
-        }
+        });
         
         // Set winner to be animated!
         currentTime -= 500;
@@ -1288,15 +1285,7 @@ class Abyss implements AbyssGame {
         }
 
         // Add the location to the player board
-        var locations_holder = dojo.query('#player-panel-' + player_id + ' .locations')[0];
-        var added_location = this.locationManager.placeWithTooltip(location, locations_holder);
-        this.locationManager.organisePlayerBoard(player_id);
-
-        // Add the lords to the location
-        for (var i in lords) {
-            var lord = lords[i];
-            this.lordManager.placeWithTooltip( lord, dojo.query('.trapped-lords-holder', added_location)[0] );
-        }
+        this.getPlayerTable(player_id).addLocation(location, lords);
         
         this.lordManager.updateLordKeys(player_id);
         
@@ -1399,7 +1388,7 @@ class Abyss implements AbyssGame {
     notif_affiliate( notif: Notif<NotifAffiliateArgs> ) {
         var ally = notif.args.ally;
         var player_id = notif.args.player_id;
-        this.allyManager.addAffiliated(player_id, ally);
+        this.getPlayerTable(player_id).addAffiliated(ally);
         
         if (notif.args.also_discard) {
             // Also discard this ally from my hand!
@@ -1418,7 +1407,7 @@ class Abyss implements AbyssGame {
     notif_explore( notif: Notif<NotifExploreArgs> ) {
         var ally = notif.args.ally;
         if (ally.faction == null) {
-            ally.faction = 'monster';
+            ally.faction = FACTION_MONSTER;
         }
         let node = this.allyManager.placeWithTooltip(ally, $('explore-track'));
         dojo.setStyle(node, "left", "9px");
@@ -1461,7 +1450,7 @@ class Abyss implements AbyssGame {
                 let theAlly = ally[0];
                 var faction = dojo.attr(theAlly, 'data-faction');
                 dojo.setStyle(theAlly, "transition", "none");
-                if (faction == 'monster') {
+                if (faction == FACTION_MONSTER) {
                     // Monster just fades out
                     (this as any).fadeOutAndDestroy( theAlly, 400, delay );
                     delay += 200;
@@ -1556,7 +1545,7 @@ class Abyss implements AbyssGame {
         this.setDeckSize(deck, 0);
 
         // Add cards to the player's hand
-        if (player_id != (this as any).player_id) {
+        if (player_id != this.getPlayerId()) {
         for (var i = 0; i < num; i++) {
             var anim = (this as any).slideTemporaryObject( this.allyManager.renderBack(), 'council-track', 'council-track-' + faction, $('player_board_' + player_id), 600, i * 200 );
             dojo.connect(anim, 'onEnd', () => {
@@ -1577,16 +1566,14 @@ class Abyss implements AbyssGame {
 
         // Add cards to the player's hand
         var delay = 0;
-        for (var j in allies) {
-            let ally = allies[j];
-            setTimeout(() => 
-                this.getPlayerTable(Number(player_id)).addHandAlly(ally, document.getElementById('council-track-' + faction)),
-                delay
-            );
-            delay += 200;
-        }
-        
-        this.organisePanelMessages();
+        const ROTATIONS = [-25, -10, 0, 13, 28];
+        allies.forEach(ally => {
+            setTimeout(() => {
+                this.getPlayerTable(Number(player_id)).addHandAlly(ally, document.getElementById('council-track-' + faction), 'back', ROTATIONS[faction]);
+                this.organisePanelMessages();
+            }, delay);
+            delay += 250;
+        });
     }
 
     notif_moveLordsRight() {

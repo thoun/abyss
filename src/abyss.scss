@@ -3,6 +3,8 @@
   src: url(img/TribalGaramond.ttf);
 }
 
+@import '../node_modules/bga-cards/bga-cards';
+
 .board {
   background-repeat: no-repeat;
   background-size: contain;
@@ -262,31 +264,28 @@ html body #game-holder .slot-fake {
       text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black, 0 0 4px black;
     }
   }
-}
 
-.player-panel .lord {
-  display: inline-block;
-}
-
-.player-panel .locations {
-  position: relative;
-  z-index: 1;
-  padding-top: 5px;
-}
-
-.player-panel .locations:empty {
-  display: none;
-}
-
-.player-panel .location {
-  vertical-align: bottom;
-  display: inline-block;
-  pointer-events: none;
-}
-
-.locations-row {
-  padding-top: 50px;
-  pointer-events: none;
+  .lord {
+    display: inline-block;
+  }
+  
+  .locations {
+    position: relative;
+    z-index: 1;
+    padding-top: 5px;
+  }
+  
+  .locations:empty {
+    display: none;
+  }
+  
+  .location {
+    vertical-align: bottom;
+    display: inline-block;
+    pointer-events: none;
+  
+    margin-top: 50px;
+  }
 }
 
 #game-extra .location {
@@ -391,12 +390,14 @@ html .lord .lord-desc {
   background-size: 800% 400%;
   color: white;
   border-radius: 3px;
-  transition: transform .2s ease-in-out;
   cursor: pointer;
   /*box-shadow: 2px 2px rgba(0,0,0,0.7);*/
   box-shadow: 2px 2px #222;
-  /* 100/7% for each horizontal, 33.33% for each vertical */
-  transform: var(--rotation,rotate(0)) var(--translate,translate(0)) var(--scale,scale(1));
+  &:not(.card) {
+    transition: transform .2s ease-in-out;
+    /* 100/7% for each horizontal, 33.33% for each vertical */
+    transform: var(--rotation,rotate(0)) var(--translate,translate(0)) var(--scale,scale(1));
+  }
 }
 
 #explore-track .ally {

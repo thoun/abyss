@@ -4,7 +4,7 @@
 
 interface AbyssAlly {
     ally_id: number;
-    faction: number | null | 'monster';
+    faction: number | null;
     value: number;
     just_spent: boolean;
     affiliated: boolean;
@@ -115,6 +115,10 @@ interface EnteringPurchaseArgs {
 interface EnteringMartialLawArgs {
     canPay: boolean;
     diff: number;
+}
+
+interface NotifFinalRoundArgs {
+    player_id: number;
 }
 
 interface NotifEndGameScoringArgs {

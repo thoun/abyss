@@ -32,6 +32,18 @@ class Location
       (19 ),
       (20 )
     ";
+
+    if ($krakenExpansion) {
+      $sql .= ",
+      ( 101 ),
+      ( 102 ),
+      ( 103 ),
+      ( 104 ),
+      ( 105 ),
+      ( 106 )
+    ";
+    }
+
     Abyss::DbQuery( $sql );
 
     // Reveal the top one

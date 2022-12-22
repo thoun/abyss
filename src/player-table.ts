@@ -1,7 +1,12 @@
 class PlayerTable {
+    static sortAllies = sortFunction('faction', 'value');
+
     public playerId: number;
 
     private hand: LineStock<AbyssAlly>;
+    private affiliatedStocks: LineStock<AbyssAlly>[] = [];
+    private freeLords: LineStock<AbyssLord>;
+    private locations: LineStock<AbyssLocation>;
     private currentPlayer: boolean;
 
     constructor(private game: AbyssGame, player: AbyssPlayer) {
@@ -17,8 +22,8 @@ class PlayerTable {
             <div id="player-panel-${player.id}-affiliated" class="affiliated"></div>
             <h4>${_("Lords")}</h4>
             <i id="no-lords-msg-p${player.id}">${_("No Lords")}</i>
-            <div class="free-lords"></div>
-            <div class="locations"></div>
+            <div id="player-panel-${player.id}-free-lords" class="free-lords"></div>
+            <div id="player-panel-${player.id}-locations" class="locations"></div>
         </div>
         `;
         
@@ -28,44 +33,34 @@ class PlayerTable {
         if (this.currentPlayer) {
             this.hand = new LineStock<AbyssAlly>(this.game.allyManager, document.getElementById('player-hand'), {
                 center: false,
-                sort: sortFunction('faction', 'value'),
+                sort: PlayerTable.sortAllies,
             });
             this.hand.addCards(player.hand);
         }
         
         // Add player affiliated
-        this.game.allyManager.placeAffiliated(player.affiliated, this.playerId);
+        this.placeAffiliated(player.affiliated, this.playerId);
+        
+        // Add free lords
+        this.freeLords = new LineStock<AbyssLord>(this.game.lordManager, document.getElementById(`player-panel-${player.id}-free-lords`), {
+            center: false,
+        });
+        this.freeLords.addCards(player.lords.filter(lord => lord.location == null));
         
         // Add locations
-        var locationsHolder = dojo.query(`#player-panel-${player.id} .locations`)[0];
-        for (var j in player.locations) {
-            var location = player.locations[j];
-            var lords = [];
-            for (var k in player.lords) {
-                var lord = player.lords[k];
-                if (+lord.location == +location.location_id) {
-                    lords.push(lord);
-                }
-            }
-            let locationNode = this.game.locationManager.placeWithTooltip( location, locationsHolder );
-            this.game.locationManager.placeLords(locationNode, lords);
-        }
-        
-        var freeLordHolder = dojo.query(`#player-panel-${player.id} .free-lords`)[0];
-        for (var j in player.lords) {
-            var lord = player.lords[j];
-            if (lord.location == null) {
-                this.game.lordManager.placeWithTooltip(lord, freeLordHolder);
-            }
-        }
+        this.locations = new LineStock<AbyssLocation>(this.game.locationManager, document.getElementById(`player-panel-${player.id}-locations`), {
+            center: false,
+        });
+        player.locations.forEach(location => this.addLocation(location, player.lords.filter(lord => lord.location == location.location_id)));
 
         this.game.lordManager.updateLordKeys(this.playerId);
-        this.game.locationManager.organisePlayerBoard(this.playerId);
     }
     
-    public addHandAlly(ally: AbyssAlly, fromElement?: HTMLElement) {
+    public addHandAlly(ally: AbyssAlly, fromElement?: HTMLElement, originalSide?, rotationDelta?: number) {
         this.hand.addCard(ally, {
             fromElement,
+            originalSide,
+            rotationDelta,
         });
 
         this.game.organisePanelMessages();
@@ -82,13 +77,58 @@ class PlayerTable {
         $('no-lords-msg-p' + i).style.display = lords.length > 0 ? 'none' : 'block';
         
         // Affiliated?
-        const affiliated = dojo.query('.affiliated .ally', $('player-panel-' + i));
+        const affiliated = this.getAffiliatedAllies();
         $('no-affiliated-msg-p' + i).style.display = affiliated.length > 0 ? 'none' : 'block';
         
         if (this.currentPlayer) {
             // Hand?
-            const hand = dojo.query('.ally', $('player-hand'));
+            const hand = this.hand.getCards();
             $('no-hand-msg').style.display = hand.length > 0 ? 'none' : 'block';
         }
+    }
+
+    private placeAffiliated(allies: AbyssAlly[], playerId: number) {
+      let parent = document.getElementById(`player-panel-${playerId}-affiliated`);
+      for (var faction=0; faction < 5; faction++) {
+        let factionHolder = dojo.create("div");
+        factionHolder.className = "affiliated-faction";
+        factionHolder.setAttribute("data-faction", faction);
+        dojo.place(factionHolder, parent);
+
+        this.affiliatedStocks[faction] = new LineStock<AbyssAlly>(this.game.allyManager, factionHolder, {
+            center: false,
+            sort: PlayerTable.sortAllies,
+        });
+        this.affiliatedStocks[faction].addCards(allies.filter(ally => ally.faction == faction));
+      }
+      return parent;
+    }
+
+    public addAffiliated(ally: AbyssAlly) {
+        this.affiliatedStocks[ally.faction].addCard(ally);
+    }
+
+    private getAffiliatedAllies() {
+        let affiliated = [];
+
+        for (var faction=0; faction < 5; faction++) {
+            affiliated.push(...this.affiliatedStocks[faction].getCards());
+        }
+
+        return affiliated;
+    }
+
+    private placeLocationLords(location: AbyssLocation, lords: AbyssLord[]) {
+      const locationNode = this.game.locationManager.getCardElement(location);
+      for (let i in lords) {
+        let lord = lords[i];
+        let parent = dojo.query('.trapped-lords-holder', locationNode)[0];
+        this.game.lordManager.placeWithTooltip(lord, parent);
+      }
+    }
+    
+    public addLocation(location: AbyssLocation, lords: AbyssLord[]) {
+        this.locations.addCard(location);
+        this.placeLocationLords(location, lords);
     }
 }

@@ -18,6 +18,13 @@ class Ally {
       for ($j=0; $j<3; $j++) $sql .= ", ($i, 2)";
       for ($j=0; $j<4; $j++) $sql .= ", ($i, 1)";
     }
+
+    if ($krakenExpansion) {
+      for ($j=0; $j<2; $j++) $sql .= ", (10, 4)";
+      for ($j=0; $j<3; $j++) $sql .= ", (10, 3)";
+      for ($j=0; $j<2; $j++) $sql .= ", (10, 2)";
+    }
+
     Abyss::DbQuery( $sql );
   }
 

@@ -16,6 +16,8 @@ class Lord
 	const FACTION_GREEN = 3;
 	const FACTION_BLUE = 4;
 
+	const FACTION_SMUGGLER = 10;
+
 	const EFFECT_NONE = 0;
 	const EFFECT_ONCE = 1;
 	const EFFECT_PASSIVE = 2;
@@ -70,6 +72,35 @@ class Lord
       (34, 5, 0, 10, 5, NULL, ".self::EFFECT_ONCE."),
       (35, 3, 0, 10, 5, NULL, ".self::EFFECT_ONCE.")
     ";
+
+    if ($krakenExpansion) {
+      $sql .= ",
+        (101, 5, 1,  7, 1, ".self::FACTION_SMUGGLER.", ".self::EFFECT_TURN."),
+        (102, 6, 1,  7, 4, ".self::FACTION_SMUGGLER.", ".self::EFFECT_PASSIVE."),
+        (103, 5, 1,  7, 4, ".self::FACTION_SMUGGLER.", ".self::EFFECT_PASSIVE."),
+        (104, 8, 0,  7, 1, ".self::FACTION_SMUGGLER.", ".self::EFFECT_ONCE."),
+        (105, 7, 1,  7, 1, ".self::FACTION_SMUGGLER.", ".self::EFFECT_PASSIVE."),
+        (106, 4, 0,  5, 2, ".self::FACTION_SMUGGLER.", ".self::EFFECT_ONCE."),
+        (107, 4, 0,  5, 2, ".self::FACTION_SMUGGLER.", ".self::EFFECT_ONCE."),  
+        (108, 4, 0,  5, 2, ".self::FACTION_SMUGGLER.", ".self::EFFECT_ONCE."),
+
+        (109, 5, 1,  9, 2, ".self::FACTION_GREEN.", ".self::EFFECT_ONCE."),
+        (110, 7, 0, 10, 2, ".self::FACTION_GREEN.", ".self::EFFECT_ONCE."),
+  
+        (111, 5, 1,  9, 2, ".self::FACTION_PURPLE.", ".self::EFFECT_PASSIVE."),
+        (112, 7, 0,  7, 1, ".self::FACTION_PURPLE.", ".self::EFFECT_ONCE."),
+
+        (113, 4, 1,  9, 2, ".self::FACTION_RED.", ".self::EFFECT_PASSIVE."),
+        (114, 5, 0,  9, 3, ".self::FACTION_RED.", ".self::EFFECT_ONCE."),
+  
+        (115, 5, 1,  7, 2, ".self::FACTION_BLUE.", ".self::EFFECT_TURN."),
+        (116, 8, 0,  9, 2, ".self::FACTION_BLUE.", ".self::EFFECT_ONCE."),
+  
+        (117, 7, 1,  9, 2, ".self::FACTION_YELLOW.", ".self::EFFECT_NONE."),
+        (118,13, 0, 12, 1, ".self::FACTION_YELLOW.", ".self::EFFECT_NONE.")
+      ";
+    }
+
     Abyss::DbQuery( $sql );
 
     self::refill();

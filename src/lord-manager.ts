@@ -3,10 +3,10 @@ class LordManager extends CardManager<AbyssLord> {
 
   constructor(public game: AbyssGame) {
     super(game, {
-      getId: lord => lord.lord_id,
+      getId: lord => `lord-${lord.lord_id}`,
       setupDiv: (lord, div) => {
         div.classList.add(`lord`, `lord-${lord.lord_id}`, `slot-${lord.place}`, `transition-position`);
-        if (lord.turned == 1) {
+        if (lord.turned) {
           div.classList.add(`disabled`);
         }
         div.dataset.lordId = `${lord.lord_id}`;
@@ -16,6 +16,8 @@ class LordManager extends CardManager<AbyssLord> {
         div.dataset.turned = `${lord.turned}`;
         div.dataset.effect = `${lord.effect}`;
         div.dataset.keys = `${lord.keys}`;
+
+        this.game.connectTooltip(div, this.renderTooltip(lord), "lord" );
       },
       setupFrontDiv: (lord, div) => {
         div.classList.add(`lord-${lord.lord_id}`);
@@ -28,7 +30,7 @@ class LordManager extends CardManager<AbyssLord> {
 
   // TODO : Names need to move outside of PHP and into js for i18n
   render(lord: AbyssLord) {
-    return `<div id="lord-uid-${++LordManager.uniqueId}" class="lord lord-${lord.lord_id} slot-${lord.place} transition-position ${(lord.turned == 1) ? 'disabled' : ''}" data-lord-id="${lord.lord_id}" data-cost="${lord.cost}" data-diversity="${lord.diversity}" data-used="${lord.used}" data-turned="${lord.turned}" data-effect="${lord.effect}" data-keys="${lord.keys}">
+    return `<div id="lord-uid-${++LordManager.uniqueId}" class="lord lord-${lord.lord_id} slot-${lord.place} transition-position ${lord.turned  ? 'disabled' : ''}" data-lord-id="${lord.lord_id}" data-cost="${lord.cost}" data-diversity="${lord.diversity}" data-used="${lord.used}" data-turned="${lord.turned}" data-effect="${lord.effect}" data-keys="${lord.keys}">
       <span class="lord-desc"><span class="lord-name">${_(lord.name)}</span>${_(lord.desc)}</span>
     </div>`;
   }

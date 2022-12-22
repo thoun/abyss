@@ -40,6 +40,14 @@ $this->locations = array(
   "18" => array( "name" => clienttranslate('The Chamber of Allies'), "desc" => clienttranslate('3$ + the sum of your weakest affiliated Ally from each Race.')),
   "19" => array( "name" => clienttranslate('Nest of Giant Clams'), "desc" => clienttranslate('3$ for each of your affiliated Allies from the {shellfish} Race + 3$')),
   "20" => array( "name" => clienttranslate('The Coral Barrier'), "desc" => clienttranslate('20$ minus the number of affiliated Allies you have.')),
+
+  // kraken locations
+  "101" => array( "name" => clienttranslate('The Gambling Den'), "desc" => clienttranslate('2$ pour chacun de vos Seigneurs contrebandiers + 3$')),
+  "102" => array( "name" => clienttranslate('The Kraken’s Lair'), "desc" => clienttranslate('15$ - 3$ for each of your Nebulis.')),
+  "103" => array( "name" => clienttranslate('The Cetacean Graveyard'), "desc" => clienttranslate('Grants immediate access to the Loot deck.')),
+  "104" => array( "name" => clienttranslate('The Abandoned Convoy'), "desc" => clienttranslate('Grants immediate access to the Loot deck.')),
+  "105" => array( "name" => clienttranslate('The Megalodon'), "desc" => clienttranslate('Grants immediate access to the Loot deck.')),
+  "106" => array( "name" => clienttranslate('The Battlefield'), "desc" => clienttranslate('Grants immediate access to the Loot deck.')),
 );
 
 $this->lords = array(
@@ -183,6 +191,80 @@ $this->lords = array(
     "name" => clienttranslate("The Elder"),
     "desc" => clienttranslate("Draw 3 Locations, place one under your control and make the other two available."),
   ),
+  
+  // kraken lords
+  "101" => array(
+    "name" => clienttranslate("The Ferryman"),
+    "desc" => clienttranslate("During your turn, you can discard 1 Nebulis and replace it with 1 Pearl."),
+  ),
+  "102" => array(
+    "name" => clienttranslate("The Outlaw"),
+    "desc" => clienttranslate("When purchasing something, you can use 2 Nebulis."),
+  ),
+  "103" => array(
+    "name" => clienttranslate("The Counterfeiter"),
+    "desc" => clienttranslate("When purchasing something, you can use 1 Nebulis even if you still have Pearls."),
+  ),
+  "104" => array(
+    "name" => clienttranslate("The Fence"),
+    "desc" => clienttranslate("Give 1 of your Nebulis to each opponent."),
+  ),
+  "105" => array(
+    "name" => clienttranslate("The Fence"),
+    "desc" => clienttranslate("At the end of the game, you do not receive any Nebulis for the Krakens you still have in hand."),
+  ),
+  "106" => array(
+    "name" => clienttranslate("The Watcher"),
+    "desc" => clienttranslate("Take the corresponding Sentinel token and place it on a free area. Gain 1 Nebulis."),
+  ),
+  "107" => array(
+    "name" => clienttranslate("The Vigil"),
+    "desc" => clienttranslate("Take the corresponding Sentinel token and place it on a free area. Gain 1 Nebulis."),
+  ),
+  "108" => array(
+    "name" => clienttranslate("The Lookout"),
+    "desc" => clienttranslate("Take the corresponding Sentinel token and place it on a free area. Gain 1 Nebulis."),
+  ),
+  "109" => array(
+    "name" => clienttranslate("The Shareholder"),
+    "desc" => clienttranslate("When an opponent recruits a Lord, gain 1 Pearl."),
+  ),
+  "110" => array(
+    "name" => clienttranslate("The Inheritor"),
+    "desc" => clienttranslate("Gain 5 Pearls."),
+  ),
+  "111" => array(
+    "name" => clienttranslate("The Hypnotist"),
+    "desc" => clienttranslate("During each opponent's turn, you can purchse 2 Allies."),
+  ),
+  "112" => array(
+    "name" => clienttranslate("The Healer"),
+    "desc" => clienttranslate("Take the Ally of your choice from the discard."),
+  ),
+  "113" => array(
+    "name" => clienttranslate("The Highwayman"),
+    "desc" => clienttranslate("When an opponent gains 2 or more Pearls, take 1 Pearl from them."),
+  ),
+  "114" => array(
+    "name" => clienttranslate("The Executioner"),
+    "desc" => clienttranslate("Choose a Race of Allies. Each opponent discards one affiliated Ally from that Race."),
+  ),
+  "115" => array(
+    "name" => clienttranslate("The Recipient"),
+    "desc" => clienttranslate("During your turn, you can add a Lord to a free space of the Court."),
+  ),
+  "116" => array(
+    "name" => clienttranslate("The Liberator"),
+    "desc" => clienttranslate("Free one of your Lords which has been assigned to control a Location."),
+  ),
+  "117" => array(
+    "name" => clienttranslate("The Grower"),
+    "desc" => ""
+  ),
+  "118" => array(
+    "name" => clienttranslate("The Oyster Farmer"),
+    "desc" => ""
+  ),
 );
 
 $this->factions = array(
@@ -210,5 +292,11 @@ $this->factions = array(
     "ally_name" => clienttranslate( 'Squid' ),
     "lord_name" => clienttranslate( 'Politician' ),
     "colour" => "blue",
+  ),
+  // kraken expansion
+  10 => array(
+    "ally_name" => clienttranslate( 'Kraken' ),
+    "lord_name" => clienttranslate( 'Smuggler' ),
+    "colour" => "darkgray",
   ),
 );

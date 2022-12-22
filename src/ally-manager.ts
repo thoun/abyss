@@ -13,7 +13,7 @@ class AllyManager extends CardManager<AbyssAlly> {
         div.dataset.faction = `${ally.faction}`;
         div.dataset.value = `${ally.value}`;
 
-      this.game.connectTooltip(div, this.renderTooltip(ally), "ally");
+        this.game.connectTooltip(div, this.renderTooltip(ally), "ally");
       },
       setupFrontDiv: (ally, div) => {
         div.classList.add( `ally-${ally.faction}-${ally.value}`);
@@ -74,45 +74,5 @@ class AllyManager extends CardManager<AbyssAlly> {
     } else if (f == 4) {
       return 'Blue';
     }
-  }
-
-  placeAffiliated(allies: AbyssAlly[], playerId: number) {
-    let parent = document.getElementById(`player-panel-${playerId}-affiliated`);
-    for (var faction=0; faction < 5; faction++) {
-      var alliesFragment = "";
-      let factionHolder = dojo.create("div");
-      factionHolder.className = "affiliated-faction";
-      factionHolder.setAttribute("data-faction", faction);
-      for (var j in allies) {
-        var ally = allies[j];
-        if (ally.faction == faction) {
-          alliesFragment = this.render(ally) + alliesFragment;
-          
-          let newNode = dojo.place(this.render(ally), factionHolder, "first");
-          this.game.connectTooltip( newNode, this.renderTooltip(ally), "ally" );
-        }
-      }
-      dojo.place(factionHolder, parent);
-    }
-    return parent;
-  }
-
-  addAffiliated(player_id: number, ally: AbyssAlly) {
-    var node = dojo.query('#player-panel-' + player_id + ' .affiliated-faction[data-faction=' + ally.faction + ']')[0];
-    var refNode = node;
-    var pos = 'last';
-    // Put it before the first ally which is bigger
-    for (var i = 0; i < node.childNodes.length; i++) {
-      var n = node.childNodes[i];
-      var value = dojo.attr(n, 'data-value');
-      if (+value > +ally.value) {
-        refNode = n;
-        pos = 'before';
-        break;
-      }
-    }
-    let newNode = dojo.place(this.render(ally), refNode, pos);
-    this.game.connectTooltip( newNode, this.renderTooltip(ally), "ally" );
-    return newNode;
   }
 }

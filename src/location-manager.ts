@@ -3,8 +3,12 @@ class LocationManager extends CardManager<AbyssLocation> {
 
   constructor(public game: AbyssGame) {
     super(game, {
-      getId: location => location.location_id,
+      getId: location => `location-${location.location_id}`,
       setupDiv: (location, div) => {
+        const lordHolder = document.createElement('div');
+        lordHolder.classList.add('trapped-lords-holder');
+        div.prepend(lordHolder);
+
         div.classList.add(`location`, `location-${location.location_id}`, `board`);
         div.dataset.locationId = `${location.location_id}`;
       },
@@ -15,8 +19,10 @@ class LocationManager extends CardManager<AbyssLocation> {
         <div class="location-clicker"></div>
         <span class="location-name">${_(location.name)}</span>
         <span class="location-desc">${desc}</span>
-        <div class="trapped-lords-holder"></div>
+        <div class=""></div>
         `;
+
+        this.game.connectTooltip(div, this.renderTooltip(location), "location" );
       },
     });
   }
@@ -48,34 +54,6 @@ class LocationManager extends CardManager<AbyssLocation> {
       <span class="location-desc">${desc}</span>
       <div class="trapped-lords-holder"></div>
     </div>`;
-  }
-
-  placeLords(locationNode, lords: AbyssLord[]) {
-    for (let i in lords) {
-      let lord = lords[i];
-      let parent = dojo.query('.trapped-lords-holder', locationNode)[0];
-      this.game.lordManager.placeWithTooltip(lord, parent);
-    }
-  }
-
-  organisePlayerBoard(player_id) {
-    // playerboard .locations:
-    //     pairs go into .locations-row (padding-top: 50px)
-    //     two locations (note, locations no longer have the padding top!)
-    var locations = [];
-    dojo.query('#player-panel-' + player_id + ' .locations .location').forEach(node => {
-      locations.push(node);
-      node.parentNode.removeChild(node);
-    });
-    dojo.query('#player-panel-' + player_id + ' .locations .locations-row').forEach(node => dojo.destroy(node));
-    var locations_holder = dojo.query('#player-panel-' + player_id + ' .locations')[0];
-    var num_rows = Math.ceil(locations.length / 2);
-    for (var i = 0; i < num_rows; i++) {
-      var row = dojo.place('<div class="locations-row"></div>', locations_holder);
-      dojo.place(locations.shift(), row);
-      if (locations.length > 0)
-        dojo.place(locations.shift(), row);
-    }
   }
 
   renderTooltip(location: AbyssLocation) {

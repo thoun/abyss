@@ -11,14 +11,44 @@ trait DebugUtilTrait {
             return;
         }
 
+		$this->debugCouncilAllies();
+
 		$this->debugPickAllies(2343492);
 		$this->debugPickAllies(2343493);
+
+		$this->debugAddLocations(2343492);
+		$this->debugAddLord(2343492);
     }
 
 	function debugPickAllies(int $playerId, int $number = 12) {
 		for ($i=0; $i<$number; $i++) {
 			$ally = Ally::draw();
 			self::DbQuery( "UPDATE ally SET place = ".($playerId * -1)." WHERE ally_id = " . $ally["ally_id"] );
+		}
+	}
+
+	function debugCouncilAllies(int $number = 12) {
+		for ($i=0; $i<$number; $i++) {
+			$ally = Ally::draw();
+			self::DbQuery( "UPDATE ally SET place = 6, faction = ".$ally["faction"]." WHERE ally_id = " . $ally["ally_id"] );
+		}
+	}
+
+	function debugAddLord(int $playerId, $location = null, int $number = 5) {
+		for ($i=0; $i<$number; $i++) {
+			$lord = Abyss::getObject( "SELECT * FROM lord WHERE place = 0 ORDER BY RAND() LIMIT 1" );
+			self::DbQuery($location == null ? 
+				"UPDATE lord SET place = ".($playerId * -1)." WHERE lord_id = " . $lord["lord_id"] : 
+				"UPDATE lord SET place = ".($playerId * -1).", location = $location WHERE lord_id = " . $lord["lord_id"] 
+			);
+		}
+	}
+
+	function debugAddLocations(int $playerId, int $number = 3) {
+		for ($i=0; $i<$number; $i++) {
+			$location = Location::draw();
+			self::DbQuery( "UPDATE location SET place = ".($playerId * -1)." WHERE location_id = " . $location["location_id"] );
+			$this->debugAddLord($playerId, $location["location_id"], min($i, 3));
 		}
 	}
 
