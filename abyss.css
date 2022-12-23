@@ -420,6 +420,30 @@ html body #game-holder .slot-fake {
   background-position: 12.5% 100%;
 }
 
+.location[data-location-id="101"] {
+  background-position: 37.5% 100%;
+}
+
+.location[data-location-id="102"] {
+  background-position: 50% 100%;
+}
+
+.location[data-location-id="103"] {
+  background-position: 62.5% 100%;
+}
+
+.location[data-location-id="104"] {
+  background-position: 75% 100%;
+}
+
+.location[data-location-id="105"] {
+  background-position: 87.5% 100%;
+}
+
+.location[data-location-id="106"] {
+  background-position: 100% 100%;
+}
+
 .location .location-name {
   font-family: TribalGaramond;
   position: absolute;
@@ -736,6 +760,114 @@ html body #game-holder .slot-fake {
   background-position: 20% 100%;
 }
 
+.lord[data-lord-id="101"] {
+  background-image: url("img/lords-kraken.jpg");
+  background-size: 900% 200%;
+  background-position: 0% 0%;
+}
+
+.lord[data-lord-id="102"] {
+  background-image: url("img/lords-kraken.jpg");
+  background-size: 900% 200%;
+  background-position: 12.5% 0%;
+}
+
+.lord[data-lord-id="103"] {
+  background-image: url("img/lords-kraken.jpg");
+  background-size: 900% 200%;
+  background-position: 25% 0%;
+}
+
+.lord[data-lord-id="104"] {
+  background-image: url("img/lords-kraken.jpg");
+  background-size: 900% 200%;
+  background-position: 37.5% 0%;
+}
+
+.lord[data-lord-id="105"] {
+  background-image: url("img/lords-kraken.jpg");
+  background-size: 900% 200%;
+  background-position: 50% 0%;
+}
+
+.lord[data-lord-id="106"] {
+  background-image: url("img/lords-kraken.jpg");
+  background-size: 900% 200%;
+  background-position: 62.5% 0%;
+}
+
+.lord[data-lord-id="107"] {
+  background-image: url("img/lords-kraken.jpg");
+  background-size: 900% 200%;
+  background-position: 75% 0%;
+}
+
+.lord[data-lord-id="108"] {
+  background-image: url("img/lords-kraken.jpg");
+  background-size: 900% 200%;
+  background-position: 87.5% 0%;
+}
+
+.lord[data-lord-id="109"] {
+  background-image: url("img/lords-kraken.jpg");
+  background-size: 900% 200%;
+  background-position: 100% 0%;
+}
+
+.lord[data-lord-id="110"] {
+  background-image: url("img/lords-kraken.jpg");
+  background-size: 900% 200%;
+  background-position: 0% 100%;
+}
+
+.lord[data-lord-id="111"] {
+  background-image: url("img/lords-kraken.jpg");
+  background-size: 900% 200%;
+  background-position: 12.5% 100%;
+}
+
+.lord[data-lord-id="112"] {
+  background-image: url("img/lords-kraken.jpg");
+  background-size: 900% 200%;
+  background-position: 25% 100%;
+}
+
+.lord[data-lord-id="113"] {
+  background-image: url("img/lords-kraken.jpg");
+  background-size: 900% 200%;
+  background-position: 37.5% 100%;
+}
+
+.lord[data-lord-id="114"] {
+  background-image: url("img/lords-kraken.jpg");
+  background-size: 900% 200%;
+  background-position: 50% 100%;
+}
+
+.lord[data-lord-id="115"] {
+  background-image: url("img/lords-kraken.jpg");
+  background-size: 900% 200%;
+  background-position: 62.5% 100%;
+}
+
+.lord[data-lord-id="116"] {
+  background-image: url("img/lords-kraken.jpg");
+  background-size: 900% 200%;
+  background-position: 75% 100%;
+}
+
+.lord[data-lord-id="117"] {
+  background-image: url("img/lords-kraken.jpg");
+  background-size: 900% 200%;
+  background-position: 87.5% 100%;
+}
+
+.lord[data-lord-id="118"] {
+  background-image: url("img/lords-kraken.jpg");
+  background-size: 900% 200%;
+  background-position: 100% 100%;
+}
+
 .lord .lord-name {
   font-family: TribalGaramond;
   position: absolute;
@@ -1014,6 +1146,19 @@ html .lord .lord-desc {
 
 .ally-2-5 {
   background-position: 28.571% 100%;
+}
+
+.ally[data-faction="10"] {
+  background-position-y: 100%;
+}
+.ally[data-faction="10"][data-value="2"] {
+  background-position-x: 42.8571428571%;
+}
+.ally[data-faction="10"][data-value="3"] {
+  background-position-x: 57.1428571429%;
+}
+.ally[data-faction="10"][data-value="4"] {
+  background-position-x: 71.4285714286%;
 }
 
 .ally .ally-name {

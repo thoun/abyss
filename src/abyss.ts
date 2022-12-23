@@ -29,6 +29,10 @@ class Abyss implements AbyssGame {
     setup(gamedatas: AbyssGamedatas) {
         log( "Starting game setup" );
         
+        if (!gamedatas.krakenExpansion) {
+            (this as any).dontPreloadImage(`lords-kraken.jpg`);
+        }
+        
         this.gamedatas = gamedatas;
 
         log('gamedatas', gamedatas);

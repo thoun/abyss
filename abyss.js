@@ -1142,6 +1142,9 @@ var Abyss = /** @class */ (function () {
     Abyss.prototype.setup = function (gamedatas) {
         var _this = this;
         log("Starting game setup");
+        if (!gamedatas.krakenExpansion) {
+            this.dontPreloadImage("lords-kraken.jpg");
+        }
         this.gamedatas = gamedatas;
         log('gamedatas', gamedatas);
         this.allyManager = new AllyManager(this);
