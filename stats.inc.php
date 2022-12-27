@@ -83,9 +83,16 @@ $stats_type = array(
         "times_council" => array("id"=> 16,
             "name" => totranslate("Number of stacks taken from Council"),
             "type" => "int" ),
-        "pearls_spent_purchasing_allies" => array("id"=> 17,
+        "pearls_spent_purchasing_allies" => [
+            "id" => 17,
             "name" => totranslate("Pearls spent purchasing Allies"),
-            "type" => "int" ),
+            "type" => "int"
+        ],
+        "nebulis_spent_purchasing_allies" => [
+            "id" => 18,
+            "name" => totranslate("Nebulis spent purchasing Allies"),
+            "type" => "int"
+        ],
     )
 
 );

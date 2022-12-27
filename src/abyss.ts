@@ -15,6 +15,7 @@ const FACTION_MONSTER = 100;
 class Abyss implements AbyssGame {
     public allyManager: AllyManager;
     public lordManager: LordManager;
+    public lootManager: LootManager;
     public locationManager: LocationManager;
 
     private gamedatas: AbyssGamedatas;
@@ -39,6 +40,7 @@ class Abyss implements AbyssGame {
 
         this.allyManager = new AllyManager(this);
         this.lordManager = new LordManager(this);
+        this.lootManager = new LootManager(this);
         this.locationManager = new LocationManager(this);
 
         // Use zoom when not on FF
@@ -470,8 +472,20 @@ class Abyss implements AbyssGame {
         if( (this as any).isCurrentPlayerActive() ) {
             switch( stateName ) {
                 case 'purchase':
-                    var cost = args.cost;
-                    (this as any).addActionButton( 'button_purchase', _('Purchase') + ` (${cost} <i class="icon icon-pearl"></i>)`, 'onPurchase' );
+                    const purchageArgs = args as EnteringPurchaseArgs;
+                    var cost = purchageArgs.cost;
+                    (this as any).addActionButton('button_purchase', _('Purchase') + ` (${cost} <i class="icon icon-pearl"></i>)`, event => this.onPurchase(event, 0));
+                    if (!purchageArgs.canPayWithPearls) {
+                        document.getElementById('button_purchase').classList.add('disabled');
+                    }
+                    if (purchageArgs.withNebulis) {
+                        Object.keys(purchageArgs.withNebulis).forEach(i => {
+                            (this as any).addActionButton(`button_purchase_with${i}Nebulis`, _('Purchase') + ` (${ cost - Number(i) > 0 ? `${cost - Number(i)} <i class="icon icon-pearl"></i> ` : ''}${i} <i class="icon icon-nebulis"></i>)`, event => this.onPurchase(event, Number(i)));
+                            if (!purchageArgs.withNebulis[i]) {
+                                document.getElementById(`button_purchase_with${i}Nebulis`).classList.add('disabled');
+                            }
+                        });
+                    }
                     (this as any).addActionButton( 'button_pass', _('Pass'), 'onPass' );
                     break;
                 case 'chooseMonsterReward':
@@ -532,7 +546,7 @@ class Abyss implements AbyssGame {
                 case 'martialLaw':
                     const martialLawArgs = args as EnteringMartialLawArgs;
                     if (martialLawArgs?.diff > 0) {
-                        (this as any).addActionButton( 'button_discard', _('Discard selected allies'), () => this.onDiscard() );
+                        (this as any).addActionButton('button_discard', _('Discard selected allies'), () => this.onDiscard());
 
                         var ally_ids = [];
                         dojo.query("#player-hand .ally.selected").forEach(node => 
@@ -542,11 +556,15 @@ class Abyss implements AbyssGame {
                             document.getElementById('button_discard').classList.add('disabled');
                         }
 
-                        (this as any).addActionButton( 'button_payMartialLaw', _('Pay') + ` ${martialLawArgs.diff} <i class="icon icon-pearl"></i>`, () => this.payMartialLaw());
+                        (this as any).addActionButton('button_payMartialLaw', _('Pay') + ` ${martialLawArgs.diff} <i class="icon icon-pearl"></i>`, () => this.payMartialLaw());
                         if (!martialLawArgs.canPay) {
                             document.getElementById('button_payMartialLaw').classList.add('disabled');
                         }
                     }
+                    break;
+                case 'fillSanctuary':
+                    (this as any).addActionButton('button_continue', _('Continue searching'), () => this.searchSanctuary());
+                    (this as any).addActionButton('button_stop', _('Stop searching'), () => this.stopSanctuarySearch());
                     break;
             }
         }
@@ -903,7 +921,7 @@ class Abyss implements AbyssGame {
         dojo.stopEvent( evt );
         
         if( (this as any).checkAction( 'purchase', true ) ) {
-            this.onPurchase( evt );
+            this.onPurchase( evt, 0); // TODO BGA ?
             return;
         }
 
@@ -930,17 +948,16 @@ class Abyss implements AbyssGame {
         );
     }
 
-    onPurchase( evt ) {
+    onPurchase(evt, withNebulis: number) {
         dojo.stopEvent( evt );
 
-        if( ! (this as any).checkAction( 'purchase' ) ) {
-        return;
+        if(!(this as any).checkAction('purchase')) {
+            return;
         }
 
-        (this as any).ajaxcall( "/abyss/abyss/purchase.html", { lock: true }, this,
-        () => {},
-        () => {}
-        );
+        this.takeAction('purchase', {
+            withNebulis
+        });
     }
 
     onPass( evt ) {
@@ -1132,12 +1149,28 @@ class Abyss implements AbyssGame {
         );
     }
 
-    payMartialLaw() {
+    private payMartialLaw() {
         if(!(this as any).checkAction('payMartialLaw')) {
             return;
         }
 
         this.takeAction('payMartialLaw');
+    }
+
+    private searchSanctuary() {
+        if(!(this as any).checkAction('searchSanctuary')) {
+            return;
+        }
+
+        this.takeAction('searchSanctuary');
+    }
+
+    private stopSanctuarySearch() {
+        if(!(this as any).checkAction('stopSanctuarySearch')) {
+            return;
+        }
+
+        this.takeAction('stopSanctuarySearch');
     }
 
     public takeAction(action: string, data?: any) {
@@ -1172,6 +1205,7 @@ class Abyss implements AbyssGame {
             ['purchase', 1],
             ['exploreTake', 1000],
             ['setThreat', 1],
+            ['lootReward', 1],
             ['monsterReward', 1],
             ['monsterTokens', 1],
             ['monsterHand', 1],
@@ -1194,6 +1228,9 @@ class Abyss implements AbyssGame {
             ['refreshLords', 1],
             ['finalRound', 1],
             ['payMartialLaw', 1],
+            ['newLoot', 1],
+            ['discardLoots', 1],
+            ['searchSanctuaryAlly', 1],
             ['endGame_scoring', 5000 * num_players + 3000],
         ];
     
@@ -1334,11 +1371,15 @@ class Abyss implements AbyssGame {
         this.setDeckSize(dojo.query('#explore-track .slot-0'), notif.args.deck_size);
     }
 
-    notif_monsterReward( notif: Notif<NotifMonsterRewardArgs> ) {
+    notif_lootReward( notif: Notif<NotifMonsterRewardArgs> ) {
         var player_id = notif.args.player_id;
         this.incPearlCount(player_id, +notif.args.pearls);
         $('monstercount_p' + player_id).innerHTML = +($('monstercount_p' + player_id).innerHTML) + +notif.args.monsters;
         $('keycount_p' + player_id).innerHTML = +($('keycount_p' + player_id).innerHTML) + +notif.args.keys;
+    }
+
+    notif_monsterReward( notif: Notif<NotifMonsterRewardArgs>) {
+        this.notif_lootReward(notif);
         this.notif_setThreat({args: {threat: 0}} as Notif<NotifThreatArgs>);
     }
 
@@ -1503,10 +1544,14 @@ class Abyss implements AbyssGame {
         let theAlly = dojo.query('#explore-track .slot-' + notif.args.slot)[0];
 
         // Update handsize and pearls of purchasing player
-        this.incPearlCount(player_id, -notif.args.cost);
-        this.incPearlCount(notif.args.first_player_id, notif.args.cost);
+        this.incPearlCount(player_id, -notif.args.incPearls);
+        this.incPearlCount(notif.args.first_player_id, notif.args.incPearls);
+        if (this.gamedatas.krakenExpansion) {
+            this.incNebulisCount(player_id, -notif.args.incNebulis);
+            this.incNebulisCount(notif.args.first_player_id, notif.args.incNebulis);
+        }
 
-        if (player_id == (this as any).player_id) {
+        if (player_id == this.getPlayerId()) {
             this.getPlayerTable(Number(player_id)).addHandAlly(notif.args.ally, theAlly);
             dojo.destroy(theAlly);
             $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
@@ -1666,6 +1711,9 @@ class Abyss implements AbyssGame {
         if (notif.args.pearls) {
             this.incPearlCount(player_id, notif.args.pearls);
         }
+        if (notif.args.nebulis) {
+            this.incNebulisCount(player_id, notif.args.nebulis);
+        }
 
         if (notif.args.keys) {
             var keys = notif.args.keys;
@@ -1724,4 +1772,19 @@ class Abyss implements AbyssGame {
     notif_payMartialLaw(notif: Notif<NotifPayMartialLawArgs>) {
         this.incPearlCount(notif.args.playerId, -notif.args.spentPearls);
     }
+
+    notif_newLoot(notif: Notif<NotifNewLootArgs>) {
+        // TODO GBA
+    }
+
+    notif_discardLoots(notif: Notif<NotifDiscardLootsArgs>) {
+        // TODO GBA
+    }
+
+    notif_searchSanctuaryAlly(notif: Notif<NotifSearchSanctuaryAllyArgs>) {
+        this.getPlayerTable(notif.args.playerId).addHandAlly(notif.args.ally, document.getElementById('explore-track-deck'));
+
+        this.setDeckSize(dojo.query('#explore-track .slot-0'), notif.args.deck_size);
+    }
+
 }

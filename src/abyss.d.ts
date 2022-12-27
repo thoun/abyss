@@ -39,6 +39,11 @@ interface AbyssMonster {
     place: number;
 }
 
+interface AbyssLoot {
+    id: number;
+    value: number;
+}
+
 interface AbyssPlayer extends Player {
     hand: AbyssAlly[];
     affiliated: AbyssAlly[];
@@ -83,6 +88,7 @@ interface AbyssGamedatas {
 interface AbyssGame extends Game {
     allyManager: AllyManager;
     lordManager: LordManager;
+    lootManager: LootManager;
     locationManager: LocationManager;
 
     connectTooltip(node: any, html: string | Function, offsetType: string): void;
@@ -110,6 +116,8 @@ interface EnteringPurchaseArgs {
     passed_players: number[];
     first_player: number;
     cost: number;
+    canPayWithPearls: boolean;
+    withNebulis?: { [nebulis: number]: boolean };
 }
 
 interface EnteringMartialLawArgs {
@@ -203,7 +211,8 @@ interface NotifExploreTakeArgs {
 interface NotifPurchaseArgs {
     player_id: number;
     slot;
-    cost: number;
+    incPearls: number;
+    incNebulis: number;
     first_player_id: number;
     ally: AbyssAlly;
 }
@@ -258,4 +267,22 @@ interface NotifDiffArgs {
 interface NotifPayMartialLawArgs {
     playerId: number;
     spentPearls: number;
+}
+
+interface NotifNewLootArgs {
+    playerId: number;
+    locationId: number;
+    newLoot: AbyssLoot;
+}
+
+interface NotifDiscardLootsArgs {
+    playerId: number;
+    locationId: number;
+    loots: AbyssLoot[];
+}
+
+interface NotifSearchSanctuaryAllyArgs {
+    playerId: number;
+    ally: AbyssAlly;
+    deck_size: number;
 }

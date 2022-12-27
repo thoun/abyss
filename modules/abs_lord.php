@@ -230,15 +230,11 @@ class Lord
     Abyss::DbQuery( "UPDATE lord SET used = 0 WHERE 1" );
   }
 
-  public static function injectText( $lords ) {
-    $result = array();
-    foreach ($lords as $l) {
-      $result[] = self::injectTextSingle( $l );
-    }
-    return $result;
+  public static function injectText(array $lords) {
+    return array_map(fn($lord) => self::injectTextSingle($lord), $lords);
   }
 
-  public static function injectTextSingle( $lord ) {
+  public static function injectTextSingle($lord) {
     if (isset($lord)) {
       $lord = self::typedLord($lord);
       $lord["name"] = self::$game->lords[$lord["lord_id"]]["name"];

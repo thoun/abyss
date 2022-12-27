@@ -58,6 +58,11 @@ trait UtilTrait {
         return array_keys($this->loadPlayersBasicInfos());
     }
 
+    function getOpponentsIds(int $playerId) {
+        $playersIds = $this->getPlayersIds();
+        return array_values(array_filter($playersIds, fn($pId) => $pId != $playerId));
+    }
+
     function getPlayerName(int $playerId) {
         return self::getUniqueValueFromDB("SELECT player_name FROM player WHERE player_id = $playerId");
     }
@@ -73,6 +78,10 @@ trait UtilTrait {
 
     function getPlayerPearls(int $player_id) {
         return intval(self::getUniqueValueFromDB( "SELECT player_pearls FROM player WHERE player_id = $player_id"));
+    }
+
+    function getPlayerNebulis(int $player_id) {
+        return intval(self::getUniqueValueFromDB( "SELECT player_nebulis FROM player WHERE player_id = $player_id"));
     }
 
     function getPlayerKeys(int $player_id) {
@@ -105,6 +114,24 @@ trait UtilTrait {
             $message = clienttranslate('${player_name} gains 1 Pearl for reaching the end of the exploration track');
         } else if ($source == "recruit") {
             $message = clienttranslate('${player_name} gains 2 Pearls for causing the Lord track to refill');
+        }
+        self::notifyAllPlayers( "diff", $message, $params );
+    }
+
+    function incPlayerNebulis(int $player_id, int $diff, string $source) {
+        self::DbQuery( "UPDATE player SET player_nebulis = player_nebulis + $diff WHERE player_id = $player_id" );
+        $players = self::loadPlayersBasicInfos();
+        $message = '';
+        $params = array(
+                'player_id' => $player_id,
+                'player_name' => $players[$player_id]["player_name"],
+                'nebulis' => $diff,
+                'num_nebulis' => $diff, // for log
+                'kraken_value' => $diff + 1, // for log
+                'source' => $source
+        );
+        if ($source == "recruit-kraken") {
+            $message = clienttranslate('${player_name} gains ${num_nebulis} Nebulis for recruiting with a Kraken of value ${kraken_value}');
         }
         self::notifyAllPlayers( "diff", $message, $params );
     }
@@ -144,7 +171,7 @@ trait UtilTrait {
     public function updatePlayerScore(int $player_id, bool $final_scoring, bool $log = true, bool $update = true) {
         $affiliated = Ally::getPlayerAffiliated( $player_id );
         $lords = Lord::getPlayerHand( $player_id );
-        $locations = Location::getPlayerHand( $player_id );
+        $locations = Location::getPlayerHand($player_id, true);
         $players = self::loadPlayersBasicInfos();
 
         // Strongest affiliated Ally from each Race
@@ -200,6 +227,9 @@ trait UtilTrait {
 
         // Locations
         $location_points = 0;
+
+        $playerNebulis = $this->isKrakenExpansion() ? $this->getPlayerNebulis($player_id) : 0;
+
         foreach ($locations as $l) {
             if ($l["location_id"] == 9) {
                 if ($final_scoring) {
@@ -208,7 +238,7 @@ trait UtilTrait {
                     $max = 0;
                     $imitate_location = null;
                     foreach ($enemy_locations as $el) {
-                        $els = Location::score( $el["location_id"], $lords, $affiliated );
+                        $els = Location::score($el, $lords, $affiliated, $playerNebulis);
                         if ($els > $max) {
                             $max = $els;
                             $imitate_location = $el;
@@ -228,7 +258,7 @@ trait UtilTrait {
                     $location_points += $max;
                 }
             } else {
-                $lscore = Location::score( $l["location_id"], $lords, $affiliated );
+                $lscore = Location::score($l, $lords, $affiliated, $playerNebulis);
                 $location_points += $lscore;
                 if ($final_scoring && $log) {
                     self::notifyAllPlayers( "message", '${player_name} scores ${num} points from ${location_name}', array(
@@ -273,5 +303,116 @@ trait UtilTrait {
         }
 
         return $breakdown;
+    }
+
+    function canPayWithNebulis(int $playerId, int $pearlCost, int $nebulisCost) {
+        if ($nebulisCost == 0) {
+            return true;
+        }
+
+        $maxNebulis = Lord::playerHas(102, $playerId) ? 2 : 1;
+        if ($nebulisCost > $maxNebulis) {
+            return false;
+        }
+
+        $playerPearls = $this->getPlayerPearls($playerId);
+        if ($playerPearls - $pearlCost > 0 && !Lord::playerHas(103, $playerId)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    function applySearchSanctuary(int $playerId, int $locationId) {
+        $newLoot = LootManager::draw($locationId);
+
+        self::notifyAllPlayers("newLoot", clienttranslate('${player_name} draw a new Loot card (value : ${value})'), [
+            'playerId' => $playerId,
+            'player_name' => self::getActivePlayerName(),
+            'locationId' => $locationId,
+            'newLoot' => $newLoot,
+            'value' => $newLoot->value, // for logs
+        ]);
+
+        if (in_array($newLoot->value, [3, 4, 5])) {
+            $pearls = 0;
+            $keys = 0;
+            $monsters = [];
+            $message = "";
+            if ($newLoot->value == 5) {
+                $monster = Monster::draw($playerId);
+                if (isset($monster)) {
+                    $monsters[] = $monster;
+                    $message .= '<i class="icon icon-monster"></i>';
+                }
+            } else if ($newLoot->value == 4) {
+                $pearls += 2;
+                $message .= '<i class="icon icon-pearl"></i><i class="icon icon-pearl"></i>';
+            } else if ($newLoot->value == 3) {
+                $keys++;
+                $message .= '<i class="icon icon-key"></i>';
+            }
+
+            if (($keys + $pearls) > 0) {
+                self::DbQuery("UPDATE player SET player_pearls = player_pearls + $pearls, player_keys = player_keys + $keys WHERE player_id = $playerId");
+            }
+
+            self::notifyAllPlayers("lootReward", clienttranslate('${player_name} earns ${rewards} with drawn loot'), [
+                'keys' => $keys,
+                'pearls' => $pearls,
+                'monsters' => count($monsters),
+                'player_id' => $playerId,
+                'player_name' => self::getActivePlayerName(),
+                'rewards' => $message,
+            ]);
+        }
+
+        if ($newLoot->value == 6) {
+            $ally = null;
+            $monster = true;
+            do {
+                $ally = Ally::typedAlly(Abyss::getObject("SELECT * FROM ally WHERE place = 0 ORDER BY RAND() LIMIT 1"));
+                $monster = $ally['faction'] === NULL;
+
+                $log = null;
+                $card_name = [];
+                if ($monster) {
+                    Ally::discard($ally['ally_id']);
+
+                    if (self::getGameStateValue( 'threat_level' ) < 5) {
+                        // Increase the threat track
+                        $threat = intval(self::incGameStateValue('threat_level', 1));
+                        self::notifyAllPlayers("setThreat", '', [
+                            'threat' => $threat,
+                        ]);
+                    }
+
+                    $log = clienttranslate('${player_name} draws a Monster, move the Threat token up one space on the Threat track then discard the Monster');;
+                } else {
+                    self::DbQuery( "UPDATE ally SET place = ".($playerId * -1)." WHERE ally_id = " . $ally["ally_id"] );
+                    $log = clienttranslate('${player_name} draws ${card_name} and add it to his hand');
+                    $card_name = [
+                        'log' => '<span style="color:'.$this->factions[$ally["faction"]]["colour"].'">${value} ${faction}</span>',
+                        'args' => [
+                            'value' => $ally["value"],
+                            'faction' => $this->factions[$ally["faction"]]["ally_name"],
+                            'i18n' => ['faction']
+                        ],
+                    ];
+                }
+
+                self::notifyAllPlayers("searchSanctuaryAlly", $log, [
+                    'playerId' => $playerId,
+                    'player_name' => self::getActivePlayerName(),
+                    'ally' => $ally,
+                    'deck_size' => Ally::getDeckSize(),
+                    'card_name' => $card_name,
+                ]);
+
+            } while ($monster);
+        }
+
+
+        return $newLoot;
     }
 }

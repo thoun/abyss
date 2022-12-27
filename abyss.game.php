@@ -22,6 +22,7 @@ require_once('modules/abs_lord.php');
 require_once('modules/abs_ally.php');
 require_once('modules/abs_monster.php');
 require_once('modules/abs_location.php');
+require_once('modules/abs_loot.php');
 
 require_once('modules/php/constants.inc.php');
 require_once('modules/php/utils.php');
@@ -81,6 +82,7 @@ class Abyss extends Table {
             "previous_state" => 21,
 
             MARTIAL_LAW_ACTIVATED => 22,
+            LAST_LOCATION => 23,
 
             // game options
             KRAKEN_EXPANSION => KRAKEN_EXPANSION,
@@ -126,7 +128,7 @@ class Abyss extends Table {
 
         // TODO TEMP
         if ($this->getBgaEnvironment() == 'studio') {
-		    $this->setGameStateInitialValue(KRAKEN_EXPANSION, 1);
+		    $this->setGameStateInitialValue(KRAKEN_EXPANSION, 2);
         }
 
         $krakenExpansion = $this->isKrakenExpansion();
@@ -154,11 +156,18 @@ class Abyss extends Table {
 		self::initStat( 'player', "times_council", 0 );
 		self::initStat( 'player', "pearls_spent_purchasing_allies", 0 );
 
+        if ($krakenExpansion) {
+            self::initStat( 'player', "nebulis_spent_purchasing_allies", 0 );
+        }
+
         // Setup decks
 		Lord::setup($krakenExpansion);
 		Ally::setup($krakenExpansion);
 		Location::setup($krakenExpansion);
 		Monster::setup();
+        if ($krakenExpansion) {
+            LootManager::setup();
+        }
 
         // TODO TEMP
         $this->debugSetup();
@@ -193,7 +202,7 @@ class Abyss extends Table {
         }
         $sql .= " FROM player ";
         $result['players'] = self::getCollectionFromDb( $sql );
-		foreach ($result['players'] as &$player) {
+		foreach ($result['players'] as $playerId => &$player) {
             $player['keys'] = intval($player['keys']);
             $player['pearls'] = intval($player['pearls']);
             if ($krakenExpansion) {
@@ -204,7 +213,7 @@ class Abyss extends Table {
 			$player['num_monsters'] = Monster::getPlayerHandSize( $player['id'] );
 			$player['affiliated'] = Ally::getPlayerAffiliated( $player['id'] );
 			$player['lords'] = Lord::getPlayerHand( $player['id'] );
-			$player['locations'] = Location::getPlayerHand( $player['id'] );
+			$player['locations'] = Location::getPlayerHand($playerId, true);
 
 			if ($player['id'] == $current_player_id) {
 				$player['hand'] = Ally::getPlayerHand( $player['id'] );

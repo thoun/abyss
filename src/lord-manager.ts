@@ -83,18 +83,19 @@ class LordManager extends CardManager<AbyssLord> {
     let costString = _('Cost');
     let costNumber: number | string = lord.cost;
     let trueCost = costNumber;
+    const playerId = this.game.getPlayerId();
     
     // Only show true costs for lords in the row
     
     // I have the Treasurer (25) : cost - 2
-    if (dojo.query('#player-panel-'+(this.game as any).player_id+' .free-lords .lord-25:not(.disabled)').length > 0) {
+    if (dojo.query('#player-panel-'+playerId+' .free-lords .lord-25:not(.disabled)').length > 0) {
       trueCost -= 2;
     }
     
     // I don't have the protector (14) ...
-    if (dojo.query('#player-panel-'+(this.game as any).player_id+' .free-lords .lord-14:not(.disabled)').length == 0) {
+    if (dojo.query('#player-panel-'+playerId+' .free-lords .lord-14:not(.disabled)').length == 0) {
       // Another player has the Recruiter (1) : cost + 2
-      if (dojo.query('.player-panel:not(#player-panel-'+(this.game as any).player_id+') .free-lords .lord-1:not(.disabled)').length > 0) {
+      if (dojo.query('.player-panel:not(#player-panel-'+playerId+') .free-lords .lord-1:not(.disabled)').length > 0) {
         trueCost = +trueCost + 2;
       }
     }

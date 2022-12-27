@@ -356,6 +356,10 @@ trait ActionTrait {
             throw new BgaVisibleSystemException( "You cannot affiliate that Ally (it does not have the lowest value)." );
         }
 
+        if ($found['faction'] == 10) {
+            throw new BgaVisibleSystemException( "You cannot affiliate a Kraken." );
+        }
+
         Ally::affiliate( $player_id, $found["ally_id"]);
 
         // Notify all
@@ -434,9 +438,9 @@ trait ActionTrait {
         $this->gamestate->nextState( "next" );
     }
     
-    function purchase( ) {
+    function purchase(int $withNebulis = 0) {
         // Check that this is the player's turn and that it is a "possible action" at this game state (see states.inc.php)
-        self::checkAction( 'purchase' );
+        self::checkAction('purchase');
 
         $player_id = intval(self::getActivePlayerId());
 
@@ -444,18 +448,36 @@ trait ActionTrait {
         // Have you already purchased a card?
         $first_player_id = intval(self::getGameStateValue('first_player_id'));
         $purchase_cost = intval(self::getGameStateValue('purchase_cost'));
-        $player_pearls = self::getPlayerPearls( $player_id );
-        $has_purchased = self::getUniqueValueFromDB( "SELECT player_has_purchased FROM player WHERE player_id = " . $player_id );
-        if ($player_pearls < $purchase_cost) {
+        $player_pearls = self::getPlayerPearls($player_id);
+        $player_nebulis = $withNebulis ? self::getPlayerNebulis($player_id) : 0;
+
+        $pearlCost = $purchase_cost - $withNebulis;
+        $nebulisCost = $withNebulis;
+
+        $has_purchased = intval(self::getUniqueValueFromDB( "SELECT player_has_purchased FROM player WHERE player_id = " . $player_id ));
+        $maxPurchase = Lord::playerHas(111, $player_id) ? 2 : 1;
+
+        if ($player_pearls < $pearlCost) {
             throw new BgaVisibleSystemException( "You don't have enough Pearls. You must pass." );
         }
-        if ($has_purchased) {
+        if ($player_nebulis < $nebulisCost) {
+            throw new BgaVisibleSystemException( "You don't have enough Nebulis. You must pass." );
+        }
+        if ($has_purchased >= $maxPurchase) {
             throw new BgaVisibleSystemException( "You have already purchased a card. You must pass." );
         }
 
+        if (!$this->canPayWithNebulis($player_id, $pearlCost, $nebulisCost)) {
+            throw new BgaVisibleSystemException( "You can't pay with Nebulis if you still have Pearls" );
+        }
+
         // Remove the pearls.
-        self::DbQuery( "UPDATE player SET player_has_purchased = 1, player_pearls = player_pearls - ".$purchase_cost." WHERE player_id = " . $player_id );
-        self::DbQuery( "UPDATE player SET player_pearls = player_pearls + ".$purchase_cost." WHERE player_id = " . $first_player_id );
+        self::DbQuery( "UPDATE player SET player_has_purchased = 1, player_pearls = player_pearls - ".$pearlCost." WHERE player_id = " . $player_id );
+        self::DbQuery( "UPDATE player SET player_pearls = player_pearls + ".$pearlCost." WHERE player_id = " . $first_player_id );
+        if ($withNebulis) {
+            self::DbQuery( "UPDATE player SET player_nebulis = player_nebulis - ".$nebulisCost." WHERE player_id = " . $player_id );
+            self::DbQuery( "UPDATE player SET player_nebulis = player_nebulis + ".$nebulisCost." WHERE player_id = " . $first_player_id );
+        }
         self::incGameStateValue( 'purchase_cost', 1 );
 
         // Add the card to your hand
@@ -465,14 +487,20 @@ trait ActionTrait {
 
         // Notify that the card has gone to that player
         $players = self::loadPlayersBasicInfos();
-        self::notifyAllPlayers( "purchase", clienttranslate('${player_name} purchases ${card_name} for ${cost} Pearl(s)'), array(
+        $message = $withNebulis ?
+            clienttranslate('${player_name} purchases ${card_name} for ${cost} Pearl(s) and ${nebulisCost} Nebulis') :
+            clienttranslate('${player_name} purchases ${card_name} for ${cost} Pearl(s)');
+        self::notifyAllPlayers( "purchase", $message, array(
                 'ally' => $ally,
                 'slot' => $ally["place"],
-                'cost' => $purchase_cost,
+                'cost' => $pearlCost, // for logs
+                'nebulisCost' => $nebulisCost, // for logs
+                'incPearls' => $pearlCost,
+                'incNebulis' => $nebulisCost,
                 'player_id' => $player_id,
                 'player_name' => $players[$player_id]["player_name"],
                 'first_player_id' => $first_player_id,
-                'card_name' => array(
+                'card_name' => array( // for logs
                     'log' => '<span style="color:'.$this->factions[$ally["faction"]]["colour"].'">${value} ${faction}</span>',
                     'args' => array(
                         'value' => $ally["value"],
@@ -482,7 +510,12 @@ trait ActionTrait {
                 ),
         ));
         
-        self::incStat( $purchase_cost, "pearls_spent_purchasing_allies", $player_id );
+        if ($pearlCost > 0) {
+            self::incStat($pearlCost, "pearls_spent_purchasing_allies", $player_id);
+        }
+        if ($nebulisCost > 0) {
+            self::incStat($nebulisCost, "nebulis_spent_purchasing_allies", $player_id);
+        }
 
         // Go back to the first player's explore action...
         $this->gamestate->nextState( "purchase" );
@@ -525,6 +558,18 @@ trait ActionTrait {
         if ($shortfall > $pearls)
             throw new BgaUserException( self::_("You do not have enough Pearls to make up the shortfall.") );
 
+
+        // TODO GBA
+        /*
+        A la fin d’une Exploration, si un Allié
+kraken reste sur la piste d’Exploration, c’est le
+joueur actif qui décide dans quelle pile du Conseil
+il est placé. Au moment où vous utilisez un Allié
+kraken, vous choisissez le Peuple qu’il remplace.
+Peu importe que ce Peuple soit déjà présent ou
+non parmi les autres Alliés que vous jouez.
+*/
+
         // Are there any superfluous cards?
         if ($shortfall < 0) {
             $surplus = -1 * $shortfall;
@@ -549,6 +594,12 @@ trait ActionTrait {
             $shortfall = 0;
         }
 
+        $krakenAllies = $this->array_filter($allies, fn($ally) => $ally['faction'] == 10);
+        foreach ($krakenAllies as $ally) {
+            Ally::discard($ally['ally_id']);
+            $this->incPlayerNebulis($player_id, $ally['value'] - 1, "recruit-kraken");
+        }
+
         // Add the lord to your board!
         Lord::giveToPlayer( $lord_id, $player_id );
 
@@ -567,6 +618,13 @@ trait ActionTrait {
                 "lord_name" => $this->lords[$lord_id]["name"],
                 'num_allies' => count($allies),
         ));
+
+        $opponentsIds = $this->getOpponentsIds($player_id);
+        foreach($opponentsIds as $opponentId) {
+            if (Lord::playerHas(109, $opponentId)) {
+                $this->incPlayerPearls($opponentId, 1, "lord_109");
+            }
+        }
 
         $this->gamestate->nextState( "pay" );
     }
@@ -1136,9 +1194,12 @@ trait ActionTrait {
         self::updatePlayerScore( $player_id, false );
 
         if ($location["location_id"] == 10) {
-            $this->gamestate->nextState( "locationEffectBlackSmokers" );
+            $this->gamestate->nextState("locationEffectBlackSmokers");
+        } else if (in_array($location_id, [103, 104, 105, 106])) {
+            $this->setGameStateValue(LAST_LOCATION, $location["location_id"]);
+            $this->gamestate->nextState("fillSanctuary");
         } else {
-            $this->gamestate->nextState( "chooseLocation" );
+            $this->gamestate->nextState("chooseLocation");
         }
     }
 
@@ -1198,6 +1259,8 @@ trait ActionTrait {
     }
 
     function payMartialLaw() {
+        self::checkAction('payMartialLaw');
+
         $playerId = self::getActivePlayerId();
 
         $args = $this->argMartialLaw();
@@ -1214,6 +1277,46 @@ trait ActionTrait {
             'spentPearls' => $diff,
             'playerId' => $playerId,
             'diff' => $diff, // for log
+            'player_name' => self::getActivePlayerName(),
+        ]);
+
+        $this->gamestate->nextState('next');
+    }
+
+    function searchSanctuary() {
+        self::checkAction('searchSanctuary');
+
+        $playerId = intval($this->getActivePlayerId());
+        $locationId = intval($this->getGameStateValue(LAST_LOCATION));
+
+        self::notifyAllPlayers("log", clienttranslate('${player_name} chooses to continue searching'), [
+            'player_name' => self::getActivePlayerName(),
+        ]);
+
+        $previousLoots = LootManager::getLootOnLocation($locationId);
+
+        $newLoot = $this->applySearchSanctuary($playerId, $locationId);
+
+        $duplicateLoot = $this->array_find($previousLoots, fn($loot) => $loot->value == $newLoot->value);
+
+        if ($duplicateLoot != null) {
+            self::notifyAllPlayers("discardLoots", clienttranslate('${player_name} draw a loot of the same value as a previous one and must discard them and stop searching'), [
+                'playerId' => $playerId,
+                'player_name' => self::getActivePlayerName(),
+                'locationId' => $locationId,
+                'loots' => [$duplicateLoot, $newLoot],
+            ]);
+
+            $this->gamestate->nextState('next');
+        } else {
+            $this->gamestate->nextState('stay');
+        }
+    }
+
+    function stopSanctuarySearch() {
+        self::checkAction('stopSanctuarySearch');
+
+        self::notifyAllPlayers("log", clienttranslate('${player_name} chooses to stop searching'), [
             'player_name' => self::getActivePlayerName(),
         ]);
 

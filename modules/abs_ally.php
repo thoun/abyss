@@ -144,6 +144,6 @@ class Ally {
   }
 
   public static function discard(int $ally_id) {
-    Abyss::DbQuery( "UPDATE ally SET place = 10 WHERE ally_id = $ally_id" );
+    Abyss::DbQuery( "UPDATE ally SET place = 10, just_spent = false WHERE ally_id = $ally_id" );
   }
 }

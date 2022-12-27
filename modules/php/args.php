@@ -35,13 +35,43 @@ trait ArgsTrait {
 			)
 		);
 	}
+
+	function getWithNebulis(int $playerId, int $pearls, int $cost) {
+		$withNebulis = null;
+		
+		$pearls = self::getPlayerPearls($playerId);
+
+		if ($this->isKrakenExpansion()) {
+			$withNebulis = [];
+
+			$nebulis = self::getPlayerNebulis($playerId);
+			$maxNebulis = Lord::playerHas(102, $playerId) ? 2 : 1;
+
+			for ($i = 1; $i <= $maxNebulis; $i++) {
+				$withNebulis[$i] = $this->canPayWithNebulis($playerId, $cost - $i, $i);
+			}
+		}
+
+		return $withNebulis;
+	}
 	
 	function argPurchase() {
+		$playerId = self::getActivePlayerId();
+
 		$passed_players = self::getObjectListFromDB( "SELECT player_id id FROM player WHERE player_has_purchased", true );
+
+		$cost = intval(self::getGameStateValue('purchase_cost'));
+		
+		$pearls = self::getPlayerPearls($playerId);
+
+		$withNebulis = $this->getWithNebulis($playerId, $pearls, $cost);
+
 		return [
 			'passed_players' => array_map(fn($pId) => intval($pId), $passed_players), 
 			'first_player' => intval(self::getGameStateValue( "first_player_id")),
-			'cost' => intval(self::getGameStateValue( 'purchase_cost' )),
+			'cost' => $cost,
+			'canPayWithPearls' => $pearls >= $cost,
+			'withNebulis' => $withNebulis,
 		];
 	}
 
@@ -154,10 +184,20 @@ trait ArgsTrait {
 	}
 
 	function argRecruitPay() {
+		$playerId = self::getActivePlayerId();
+		
 		$lord_id = intval(self::getGameStateValue( 'selected_lord' ));
+
+		$cost = self::getLordCost(Lord::get($lord_id), self::getCurrentPlayerId());
+		
+		$pearls = self::getPlayerPearls($playerId);
+
+		$withNebulis = $this->getWithNebulis($playerId, $pearls, $cost);
+
 		return [
 			'lord_id' => $lord_id, 
-			'cost' => self::getLordCost(Lord::get($lord_id), self::getCurrentPlayerId()),
+			'cost' => $cost,
+			'withNebulis' => $withNebulis,
 		];
 	}
 

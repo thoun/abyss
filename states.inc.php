@@ -179,15 +179,44 @@ $machinestates = array(
  		"transitions" => array( "control" => ST_PLAYER_CONTROL, "next" => ST_PLAYER_UNUSED_LORDS )
  	),
 
- 	ST_PLAYER_CONTROL => array(
+ 	ST_PLAYER_CONTROL => [
  		"name" => "control", // Also in $state_ids
   		"description" => clienttranslate('${actplayer} must choose a Location to control'),
  		"descriptionmyturn" => clienttranslate('${you} must choose a face-up Location to control or draw some from the deck'),
  		"type" => "activeplayer",
   		"args" => "argControlPostDraw",
-  		"possibleactions" => array( "chooseLocation", "drawLocations"/*, "lordEffect"*/ ),
- 			"transitions" => array( "chooseLocation" => ST_PRE_CONTROL, "drawLocations" => ST_PLAYER_CONTROL_POST_DRAW, "locationEffectBlackSmokers" => ST_PLAYER_LOCATION_EFFECT_BLACK_SMOKERS, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PLAYER_MARTIAL_LAW, "loopback" => ST_PLAYER_CONTROL )
- 	),
+  		"possibleactions" => [
+			"chooseLocation", 
+			"drawLocations",
+		],
+ 		"transitions" => [
+			"chooseLocation" => ST_PRE_CONTROL, 
+			"drawLocations" => ST_PLAYER_CONTROL_POST_DRAW, 
+			"locationEffectBlackSmokers" => ST_PLAYER_LOCATION_EFFECT_BLACK_SMOKERS, 
+			"fillSanctuary" => ST_PLAYER_FILL_SANCTUARY,
+			"lord_17" => ST_PLAYER_LORD17, 
+			"lord_21" => ST_PLAYER_LORD21, 
+			"lord_12" => ST_PLAYER_LORD12, 
+			"zombiePass" => ST_PLAYER_MARTIAL_LAW, 
+			"loopback" => ST_PLAYER_CONTROL,
+		],
+	],
+
+	ST_PLAYER_FILL_SANCTUARY => [
+		"name" => "fillSanctuary",
+		"description" => clienttranslate('${actplayer} must choose to continue or stop searching'),
+		"descriptionmyturn" => clienttranslate('${you} must choose to continue or stop searching'),
+		"type" => "activeplayer",
+		"action" => "stFillSanctuary",
+		"possibleactions" => [
+		    "searchSanctuary", 
+		    "stopSanctuarySearch",
+	    ],
+		"transitions" => [
+			"stay" => ST_PLAYER_FILL_SANCTUARY,
+		    "next" => ST_PRE_CONTROL,
+	    ],
+   ],
 
  	ST_PLAYER_MARTIAL_LAW => [
  		"name" => "martialLaw",
@@ -239,6 +268,7 @@ $machinestates = array(
  			"descriptionmyturn" => clienttranslate('${you} must choose an Ally to affiliate'),
  			"type" => "activeplayer",
   		"args" => "argAffiliate",
+  		"action" => "stAffiliate",
   		"possibleactions" => array( "affiliate", "lordEffect" ),
  			"transitions" => array( "affiliate" => ST_PLAYER_LORD_EFFECT, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_AFFILIATE )
  	),

@@ -44,6 +44,22 @@ trait StateTrait {
             $max_score = max($max_score, $breakdowns[$pid]["score"]);
         }
 
+        // TODO GBA
+        /*
+        Important : en fin de partie, chaque Nebulis en votre possession vous
+fera perdre 1 Point d’Influence !
+Le joueur qui en possède le plus (le plus corrompu, donc) aura un malus
+supplémentaire de 5 Points d’Influence.
+La figurine Kraken permet d’identifier, au cours de la partie, le joueur le plus
+corrompu. Celle-ci va au premier joueur qui reçoit des Nebulis. Dès qu’un
+adversaire atteint ou dépasse le total de Nebulis du joueur le plus corrompu,
+il reçoit le Kraken (dans le cas où plusieurs adversaires seraient à égalité, le
+joueur possédant la figurine Kraken choisit à qui il la donne).
+Si le joueur qui possède la figurine Kraken se défausse de sa dernière Nebulis
+et qu’aucun adversaire n’en possède, alors le Kraken est replacé à côté de la
+coupelle de Nebulis.
+*/
+
         // Fetch highest players
         $winning_pearls = NULL;
         $tied_players = 0;
@@ -171,20 +187,24 @@ trait StateTrait {
                 return;
             }
 
-            $player_pearls = self::getPlayerPearls( $player_id );
+            $playerPearls = self::getPlayerPearls( $player_id );
+            $playerNebulis = $this->isKrakenExpansion() ? $this->getPlayerNebulis($player_id) : 0;
             $player_obj = self::getObjectFromDB( "SELECT player_id id, player_autopass, player_has_purchased FROM player WHERE player_id = " . $player_id );
-            $has_purchased = $player_obj["player_has_purchased"];
+            $has_purchased = intval($player_obj["player_has_purchased"]);
+            $maxPurchase = Lord::playerHas(111, $player_id) ? 2 : 1;
+
             $autopass = $player_obj["player_autopass"];
             if ($autopass) {
                 $values = explode(";", $autopass);
                 if (count($values) >= 5) {
-                    if ($values[$ally["faction"]] >= $ally["value"]) {
+                    $faction = intval($ally["faction"]);
+                    if (in_array($faction, [0,1,2,3,4]) && $values[$faction] >= $ally["value"]) {
                         # The player wishes to autopass this ally
                         continue;
                     }
                 }
             }
-            if ($player_pearls >= $purchase_cost && ! $has_purchased) {
+            if (($playerPearls + $playerNebulis) >= $purchase_cost && $has_purchased < $maxPurchase) {
                 // They have enough money and haven't purchased yet!
                 $this->gamestate->changeActivePlayer( $player_id );
                 $this->gamestate->nextState( 'purchase' );
@@ -346,6 +366,15 @@ trait StateTrait {
         // ...
     }
 
+    function stAffiliate() {
+        $allies = array_values(Ally::getJustSpent());
+
+        // we can't affiliate if we payed only with Krakens
+        if ($this->array_every($allies, fn($ally) => $ally['faction'] == 10)) {
+            $this->gamestate->nextState('affiliate');
+        }
+    }
+
     function stLordEffect() {
         $lord_id = self::getGameStateValue( 'selected_lord' );
         $lord = Lord::get( $lord_id );
@@ -429,7 +458,7 @@ trait StateTrait {
                         // The Illusionist - Swap one of your locations for an available one
                         // 1. Do you have a Location?
                         // 2. Is there at least one available Location?
-                        if (count(Location::getPlayerHand( $player_id )) > 0) {
+                        if (count(Location::getPlayerHand($player_id, false)) > 0) {
                             if (count(Location::getAvailable()) > 0) {
                                 $transition = "lord_19";
                             }
@@ -493,6 +522,10 @@ trait StateTrait {
                             $transition = "lord_ambassador";
                         }
                         break;
+                    case 110:
+                        // The Inheritor - Gain 5 Pearls.
+                        $this->incPlayerPearls( $player_id, 5, "lord_110" );
+                        break;
                     default;
                         throw new BgaVisibleSystemException( "Not implemented." );
                 }
@@ -547,6 +580,14 @@ trait StateTrait {
 
         if (!boolval($this->getGameStateValue(MARTIAL_LAW_ACTIVATED)) || $args['diff'] <= 0) {
             $this->gamestate->nextState('next');
+        }
+    }
+    
+    function stFillSanctuary() {
+        $locationId = intval($this->getGameStateValue(LAST_LOCATION));
+        if (count(LootManager::getLootOnLocation($locationId)) == 0) {
+            $playerId = self::getActivePlayerId();
+            $this->applySearchSanctuary($playerId, $locationId);
         }
     }
 }
