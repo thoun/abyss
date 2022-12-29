@@ -563,6 +563,7 @@ html .lord .lord-desc {
 i.icon {
   background-image: url(img/icons.png);
   display: inline-block;
+  vertical-align: middle;
 }
 
 i.icon-laurel {
@@ -1026,4 +1027,32 @@ html a.bgabutton.affiliate-button:hover {
 .wavetext :nth-child( 20n + 19 ) {
   animation-delay : 
     calc(-1s * 2 * 0.3 / 40 );
+}
+
+.loot-stock {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  left: 50px;
+}
+
+.card.loot {
+  position: relative;
+  width: 85px;
+  height: 127px;
+  transition: left 0.5s, top 0.5s;
+
+  .card-side {
+    border-radius: 8px;
+    background-image: url('img/loots.jpg');
+    box-shadow: 0 0 3px 2px black;
+    background-size: auto 100%;
+
+    @for $index from 3 through 7 {
+      &[data-value="#{$index}"] {
+          background-position-x: #{($index - 2) * 100% / 5};
+      }
+    }
+  }
 }

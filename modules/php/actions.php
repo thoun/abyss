@@ -1300,11 +1300,14 @@ non parmi les autres Alliés que vous jouez.
         $duplicateLoot = $this->array_find($previousLoots, fn($loot) => $loot->value == $newLoot->value);
 
         if ($duplicateLoot != null) {
-            self::notifyAllPlayers("discardLoots", clienttranslate('${player_name} draw a loot of the same value as a previous one and must discard them and stop searching'), [
+            LootManager::discard($locationId, $duplicateLoot->value);
+
+            self::notifyAllPlayers("discardLoots", clienttranslate('${player_name} draw a loot of the same value as a previous one (${value}) and must discard them and stop searching'), [
                 'playerId' => $playerId,
                 'player_name' => self::getActivePlayerName(),
                 'locationId' => $locationId,
                 'loots' => [$duplicateLoot, $newLoot],
+                'value' => $duplicateLoot->value,
             ]);
 
             $this->gamestate->nextState('next');

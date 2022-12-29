@@ -30,7 +30,8 @@ interface AbyssLord {
 interface AbyssLocation {
     location_id: number;
     name: number;
-    desc;
+    desc: string;
+    loots: AbyssLoot[];
 }
 
 interface AbyssMonster {

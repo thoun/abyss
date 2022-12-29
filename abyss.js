@@ -297,6 +297,15 @@ var CardStock = /** @class */ (function () {
         }
     };
     /**
+     * Remove a set of card from the stock.
+     *
+     * @param cards the cards to remove
+     */
+    CardStock.prototype.removeCards = function (cards) {
+        var _this = this;
+        cards.forEach(function (card) { return _this.removeCard(card); });
+    };
+    /**
      * Remove all cards from the stock.
      */
     CardStock.prototype.removeAll = function () {
@@ -430,6 +439,22 @@ var CardStock = /** @class */ (function () {
         else {
             return Promise.resolve(false);
         }
+    };
+    /**
+     * Set the card to its front (visible) or back (not visible) side.
+     *
+     * @param card the card informations
+     */
+    CardStock.prototype.setCardVisible = function (card, visible, settings) {
+        this.manager.setCardVisible(card, visible, settings);
+    };
+    /**
+     * Flips the card.
+     *
+     * @param card the card informations
+     */
+    CardStock.prototype.flipCard = function (card, settings) {
+        this.manager.flipCard(card, settings);
     };
     return CardStock;
 }());
@@ -607,6 +632,42 @@ var SlotStock = /** @class */ (function (_super) {
     };
     return SlotStock;
 }(LineStock));
+/**
+ * A stock with manually placed cards
+ */
+var ManualPositionStock = /** @class */ (function (_super) {
+    __extends(ManualPositionStock, _super);
+    /**
+     * @param manager the card manager
+     * @param element the stock element (should be an empty HTML Element)
+     */
+    function ManualPositionStock(manager, element, settings, updateDisplay) {
+        var _this = _super.call(this, manager, element, settings) || this;
+        _this.manager = manager;
+        _this.element = element;
+        _this.updateDisplay = updateDisplay;
+        element.classList.add('manual-position-stock');
+        return _this;
+    }
+    /**
+     * Add a card to the stock.
+     *
+     * @param card the card to add
+     * @param animation a `CardAnimation` object
+     * @param settings a `AddCardSettings` object
+     * @returns the promise when the animation is done (true if it was animated, false if it wasn't)
+     */
+    ManualPositionStock.prototype.addCard = function (card, animation, settings) {
+        var promise = _super.prototype.addCard.call(this, card, animation, settings);
+        this.updateDisplay(this.element, this.getCards(), card, this);
+        return promise;
+    };
+    ManualPositionStock.prototype.cardRemoved = function (card) {
+        _super.prototype.cardRemoved.call(this, card);
+        this.updateDisplay(this.element, this.getCards(), card, this);
+    };
+    return ManualPositionStock;
+}(CardStock));
 var HiddenDeck = /** @class */ (function (_super) {
     __extends(HiddenDeck, _super);
     function HiddenDeck(manager, element, settings) {
@@ -756,6 +817,45 @@ var CardManager = /** @class */ (function () {
      */
     CardManager.prototype.getCardStock = function (card) {
         return this.stocks.find(function (stock) { return stock.contains(card); });
+    };
+    /**
+     * Set the card to its front (visible) or back (not visible) side.
+     *
+     * @param card the card informations
+     */
+    CardManager.prototype.setCardVisible = function (card, visible, settings) {
+        var _this = this;
+        var _a, _b, _c, _d, _e, _f, _g;
+        var element = this.getCardElement(card);
+        if (!element) {
+            return;
+        }
+        element.dataset.side = visible ? 'front' : 'back';
+        if ((_a = settings === null || settings === void 0 ? void 0 : settings.updateFront) !== null && _a !== void 0 ? _a : true) {
+            (_c = (_b = this.settings).setupFrontDiv) === null || _c === void 0 ? void 0 : _c.call(_b, card, element.getElementsByClassName('front')[0]);
+        }
+        if ((_d = settings === null || settings === void 0 ? void 0 : settings.updateBack) !== null && _d !== void 0 ? _d : false) {
+            (_f = (_e = this.settings).setupBackDiv) === null || _f === void 0 ? void 0 : _f.call(_e, card, element.getElementsByClassName('back')[0]);
+        }
+        if ((_g = settings === null || settings === void 0 ? void 0 : settings.updateData) !== null && _g !== void 0 ? _g : true) {
+            // card data has changed
+            var stock = this.getCardStock(card);
+            var cards = stock.getCards();
+            var cardIndex = cards.findIndex(function (c) { return _this.getId(c) === _this.getId(card); });
+            if (cardIndex !== -1) {
+                stock.cards.splice(cardIndex, 1, card);
+            }
+        }
+    };
+    /**
+     * Flips the card.
+     *
+     * @param card the card informations
+     */
+    CardManager.prototype.flipCard = function (card, settings) {
+        var element = this.getCardElement(card);
+        var currentlyVisible = element.dataset.side === 'front';
+        this.setCardVisible(card, !currentlyVisible, settings);
     };
     return CardManager;
 }());
@@ -959,9 +1059,35 @@ var LordManager = /** @class */ (function (_super) {
     LordManager.uniqueId = 0;
     return LordManager;
 }(CardManager));
+var CompressedLineStock = /** @class */ (function (_super) {
+    __extends(CompressedLineStock, _super);
+    function CompressedLineStock(manager, element) {
+        var _this = _super.call(this, manager, element, undefined, function (element, cards) { return _this.manualPosition(element, cards); }) || this;
+        _this.manager = manager;
+        _this.element = element;
+        return _this;
+    }
+    CompressedLineStock.prototype.manualPosition = function (element, cards) {
+        var _this = this;
+        var MARGIN = 5;
+        var CARD_WIDTH = 85;
+        var cardDistance = CARD_WIDTH + MARGIN;
+        var containerWidth = element.clientWidth;
+        var uncompressedWidth = (cards.length * CARD_WIDTH) + ((cards.length - 1) * MARGIN);
+        if (uncompressedWidth > containerWidth) {
+            cardDistance = Math.floor(CARD_WIDTH * containerWidth / ((cards.length + 2) * CARD_WIDTH));
+        }
+        cards.forEach(function (card, index) {
+            var cardDiv = _this.getCardElement(card);
+            var cardLeft = cardDistance * index;
+            cardDiv.style.left = "".concat(cardLeft, "px");
+        });
+    };
+    return CompressedLineStock;
+}(ManualPositionStock));
 var LocationManager = /** @class */ (function (_super) {
     __extends(LocationManager, _super);
-    function LocationManager(game) {
+    function LocationManager(game, lootManager) {
         var _this = _super.call(this, game, {
             getId: function (location) { return "location-".concat(location.location_id); },
             setupDiv: function (location, div) {
@@ -972,13 +1098,24 @@ var LocationManager = /** @class */ (function (_super) {
                 div.dataset.locationId = "".concat(location.location_id);
             },
             setupFrontDiv: function (location, div) {
+                var _a;
                 var desc = _this.makeDesc(location, true);
                 div.classList.add("location-".concat(location.location_id));
                 div.innerHTML = "\n        <div class=\"location-clicker\"></div>\n        <span class=\"location-name\">".concat(_(location.name), "</span>\n        <span class=\"location-desc\">").concat(desc, "</span>\n        <div class=\"\"></div>\n        ");
                 _this.game.connectTooltip(div, _this.renderTooltip(location), "location");
+                if ([103, 104, 105, 106].includes(location.location_id)) {
+                    div.insertAdjacentHTML('beforeend', "<div id=\"loot-stock-".concat(location.location_id, "\" class=\"loot-stock\"></div>"));
+                    // TODO GBA replace by compress stock
+                    _this.lootStocks[location.location_id] = new CompressedLineStock(lootManager, document.getElementById("loot-stock-".concat(location.location_id)));
+                    if ((_a = location.loots) === null || _a === void 0 ? void 0 : _a.length) {
+                        _this.lootStocks[location.location_id].addCards(location.loots);
+                    }
+                }
             },
         }) || this;
         _this.game = game;
+        _this.lootManager = lootManager;
+        _this.lootStocks = [];
         return _this;
     }
     LocationManager.prototype.makeDesc = function (location, laurel) {
@@ -1031,6 +1168,12 @@ var LocationManager = /** @class */ (function (_super) {
                 }
             }
         }
+    };
+    LocationManager.prototype.addLoot = function (locationId, loot) {
+        this.lootStocks[locationId].addCard(loot); // TODO GBA add from element 
+    };
+    LocationManager.prototype.discardLoots = function (locationId, loots) {
+        this.lootStocks[locationId].removeCards(loots);
     };
     LocationManager.uniqueId = 0;
     return LocationManager;
@@ -1186,7 +1329,7 @@ var Abyss = /** @class */ (function () {
         this.allyManager = new AllyManager(this);
         this.lordManager = new LordManager(this);
         this.lootManager = new LootManager(this);
-        this.locationManager = new LocationManager(this);
+        this.locationManager = new LocationManager(this, this.lootManager);
         // Use zoom when not on FF
         this.useZoom = false; //navigator.userAgent.toLowerCase().indexOf('firefox') <= -1;
         var self = this;
@@ -2696,10 +2839,10 @@ var Abyss = /** @class */ (function () {
         this.incPearlCount(notif.args.playerId, -notif.args.spentPearls);
     };
     Abyss.prototype.notif_newLoot = function (notif) {
-        // TODO GBA
+        this.locationManager.addLoot(notif.args.locationId, notif.args.newLoot);
     };
     Abyss.prototype.notif_discardLoots = function (notif) {
-        // TODO GBA
+        this.locationManager.discardLoots(notif.args.locationId, notif.args.loots);
     };
     Abyss.prototype.notif_searchSanctuaryAlly = function (notif) {
         this.getPlayerTable(notif.args.playerId).addHandAlly(notif.args.ally, document.getElementById('explore-track-deck'));

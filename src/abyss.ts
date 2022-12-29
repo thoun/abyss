@@ -41,7 +41,7 @@ class Abyss implements AbyssGame {
         this.allyManager = new AllyManager(this);
         this.lordManager = new LordManager(this);
         this.lootManager = new LootManager(this);
-        this.locationManager = new LocationManager(this);
+        this.locationManager = new LocationManager(this, this.lootManager);
 
         // Use zoom when not on FF
         this.useZoom = false; //navigator.userAgent.toLowerCase().indexOf('firefox') <= -1;
@@ -1774,11 +1774,11 @@ class Abyss implements AbyssGame {
     }
 
     notif_newLoot(notif: Notif<NotifNewLootArgs>) {
-        // TODO GBA
+        this.locationManager.addLoot(notif.args.locationId, notif.args.newLoot);
     }
 
     notif_discardLoots(notif: Notif<NotifDiscardLootsArgs>) {
-        // TODO GBA
+        this.locationManager.discardLoots(notif.args.locationId, notif.args.loots);
     }
 
     notif_searchSanctuaryAlly(notif: Notif<NotifSearchSanctuaryAllyArgs>) {
