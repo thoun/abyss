@@ -207,7 +207,7 @@ class Lord
   }
 
   public static function getPlayerHand(int $player_id ) {
-    return self::injectText(Abyss::getCollection( "SELECT * FROM lord WHERE place = -" . $player_id . "" ));
+    return array_values(self::injectText(Abyss::getCollection( "SELECT * FROM lord WHERE place = -" . $player_id . "" )));
   }
 
   public static function getKeys(int $player_id ) {

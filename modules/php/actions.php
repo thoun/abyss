@@ -1034,15 +1034,53 @@ il est placé.
             }
         }
     }
+
+    function applyDirectLordEffect(int $playerId, int $lordId) {
+        if ($lordId == 101) {
+            $playerNebulis = self::getPlayerNebulis($playerId);
+
+            if ($playerNebulis < 1) {
+                throw new BgaVisibleSystemException("You don't have enough Nebulis.");
+            }
+
+            $this->incPlayerPearls($playerId, 1, "lord_101");
+            $this->incPlayerNebulis($playerId, -1, '');
+
+            return true;
+        }
+
+        if ($lordId == 115) {
+            if (count(Lord::getSlots()) == 6) {
+                throw new BgaUserException( self::_("There are no free space on the court.") );
+            }
+            if (Lord::getDeckSize() == 0) {
+                throw new BgaUserException( self::_("There are no Lords left in the deck.") );
+            }
+
+            $lord = Lord::draw();
+            self::notifyAllPlayers( "plot", clienttranslate('${player_name} uses The Recipient to reveal a new Lord'), array(
+                    'lord' => $lord,
+                    'player_id' => $playerId,
+                    'player_name' => self::getActivePlayerName(),
+                    'pearls' => 0,
+                    'deck_size' => Lord::getDeckSize()
+            ) );
+            return true;
+        }
+
+        return false;
+    }
     
     function lordEffect(int $lord_id ) {
         self::checkAction( 'lordEffect' );
 
-        $player_id = self::getCurrentPlayerId();
+        $playerId = self::getCurrentPlayerId();
         $lord = Lord::get( $lord_id );
 
+        $nextState = "lord_$lord_id";
+
         // Must be an unused, unturned, free Lord, owned by the player with a TURN effect...
-        if ($lord["place"] != -1 * $player_id)
+        if ($lord["place"] != -1 * $playerId)
             throw new BgaUserException( self::_("You do not own that Lord.") );
         if ($lord["used"])
             throw new BgaUserException( self::_("You have already used that Lord.") );
@@ -1057,7 +1095,7 @@ il est placé.
         if ($lord_id == 21 && Lord::getDeckSize() == 0) {
             // Opportunist - can't use if no Lords in the deck
             throw new BgaUserException( self::_("There are no Lords left in the deck.") );
-        } else if ($lord_id == 12 && Ally::getPlayerHandSize( $player_id ) == 0) {
+        } else if ($lord_id == 12 && Ally::getPlayerHandSize($playerId) == 0) {
             // Slaver - can't use if no cards in hand
             throw new BgaUserException( self::_("You have no Ally cards in your hand.") );
         } else if ($lord_id == 17 && max(Ally::getCouncilSlots()) == 0) {
@@ -1065,11 +1103,18 @@ il est placé.
             throw new BgaUserException( self::_("There are no Council stacks to discard.") );
         }
 
-        $state = $this->gamestate->state();
+        $directLordEffect = $this->applyDirectLordEffect($playerId, $lord_id);
 
-        self::setGameStateValue( "previous_state", $this->state_ids[$state["name"]] );
+        if ($directLordEffect) {
+            Lord::use($lord_id);
+            self::notifyPlayer( $playerId, "useLord", '', [
+                'lord_id' => $lord_id,
+            ]);
+            $nextState = "loopback";
+        }
 
-        $this->gamestate->nextState( "lord_$lord[lord_id]" );
+        self::setGameStateValue("previous_state", $this->gamestate->state_id());
+        $this->gamestate->nextState($nextState);
     }
 
     function drawLocations(int $num ) {

@@ -978,8 +978,9 @@ var LordManager = /** @class */ (function (_super) {
             '<span style="color: #999900">' + _('Farmer') + '</span>',
             '<span style="color: green">' + _('Merchant') + '</span>',
             '<span style="color: blue">' + _('Politician') + '</span>',
-            '<span style="color: gray">' + _('Ambassador') + '</span>'
+            '<span style="color: gray">' + _('Ambassador') + '</span>',
         ];
+        guilds[10] = '<span style="color: gray">' + _('Smuggler') + '</span>';
         var factionSection = "";
         if (lord.faction != null) {
             factionSection = '<span style="font-size: smaller">' + guilds[lord.faction] + "</span><br>";
@@ -1461,7 +1462,7 @@ var Abyss = /** @class */ (function () {
         // Hide this one, because it doesn't line up due to Zoom
         //(this as any).addTooltip( 'explore-track-deck', '', _('Explore'), 1 );
         this.addTooltipToClass('pearl-holder', _('Pearls'), '');
-        // TODO GBA (this as any).addTooltipToClass( 'nebulis-holder', _( 'Nebulis' ), '' );
+        this.addTooltipToClass('nebulis-holder', _('Nebulis'), '');
         this.addTooltipToClass('key-holder', _('Key tokens (+ Keys from free Lords)'), '');
         this.addTooltipToClass('ally-holder', _('Ally cards in hand'), '');
         this.addTooltipToClass('monster-holder', _('Monster tokens'), '');
@@ -2280,24 +2281,40 @@ var Abyss = /** @class */ (function () {
         }
     };
     Abyss.prototype.onClickPlayerFreeLords = function (evt) {
-        if (dojo.hasClass(evt.target, 'lord')) {
+        if (dojo.hasClass(evt.target, 'lord') || evt.target.closest('.lord')) {
+            var elem = dojo.hasClass(evt.target, 'lord') ? evt.target : evt.target.closest('.lord');
+            var lordId = Number(elem.dataset.lordId);
             if (this.checkAction('selectLord', true)) {
                 dojo.stopEvent(evt);
-                var lord_id = dojo.attr(evt.target, "data-lord-id");
-                this.ajaxcall("/abyss/abyss/selectLord.html", { lock: true, lord_id: lord_id }, this, function () { }, function () { });
+                this.onClickPlayerFreeLord({ lord_id: lordId });
             }
             else if (this.checkAction('lordEffect', true)) {
                 dojo.stopEvent(evt);
-                var lord_id = dojo.attr(evt.target, "data-lord-id");
-                this.ajaxcall("/abyss/abyss/lordEffect.html", { lock: true, lord_id: lord_id }, this, function () { }, function () { });
+                this.onClickPlayerFreeLord({ lord_id: lordId });
             }
             else if (this.checkAction('chooseLocation', true)) {
                 dojo.stopEvent(evt);
-                // Only allow this on your own Lords
-                var panel = dojo.query(evt.target).closest('.player-panel')[0];
-                if (panel.id == "player-panel-" + this.player_id) {
-                    dojo.toggleClass(evt.target, "selected");
-                }
+                this.onClickPlayerFreeLord({ lord_id: lordId });
+            }
+        }
+    };
+    Abyss.prototype.onClickPlayerFreeLord = function (lord) {
+        if (this.checkAction('selectLord', true)) {
+            this.takeAction('selectLord', {
+                lord_id: lord.lord_id
+            });
+        }
+        else if (this.checkAction('lordEffect', true)) {
+            this.takeAction('lordEffect', {
+                lord_id: lord.lord_id
+            });
+        }
+        else if (this.checkAction('chooseLocation', true)) {
+            var target = this.lordManager.getCardElement(lord);
+            // Only allow this on your own Lords
+            var panel = target.closest('.player-panel');
+            if (panel.id == "player-panel-" + this.getPlayerId()) {
+                dojo.toggleClass(target, "selected");
             }
         }
     };
@@ -2457,14 +2474,12 @@ var Abyss = /** @class */ (function () {
         setTimeout(this.setScoringRowWinner.bind(this, winnerIds), currentTime);
     };
     Abyss.prototype.notif_useLord = function (notif) {
-        dojo.query(".lord.lord-" + notif.args.lord_id).forEach(function (node) {
-            dojo.setAttr(node, "data-used", "1");
-        });
+        var lordCard = this.lordManager.getCardElement({ lord_id: notif.args.lord_id });
+        lordCard.dataset.used = '1';
+        lordCard.classList.remove('unused');
     };
     Abyss.prototype.notif_refreshLords = function () {
-        dojo.query(".lord").forEach(function (node) {
-            dojo.setAttr(node, "data-used", "0");
-        });
+        dojo.query(".lord").forEach(function (node) { return dojo.setAttr(node, "data-used", "0"); });
     };
     Abyss.prototype.notif_score = function (notif) {
         var score = notif.args.score;

@@ -38,23 +38,6 @@ class Abyss extends Table {
     use ArgsTrait;
     use DebugUtilTrait;
 
-	public $state_ids = array(
-		"plotAtCourt" => ST_PLAYER_PLOT_AT_COURT,
-		"action" => ST_PLAYER_ACTION,
-		"secondStack" => ST_PLAYER_SECOND_STACK,
-		"explore" => ST_PLAYER_EXPLORE,
-		"explore2" => ST_PLAYER_EXPLORE2,
-		"explore3" => ST_PLAYER_EXPLORE3,
-		"control" => ST_PLAYER_CONTROL,
-		"chooseMonsterReward" => ST_PLAYER_CHOOSE_MONSTER_REWARD,
-		"recruitPay" => ST_PLAYER_RECRUIT_PAY,
-		"affiliate" => ST_PLAYER_AFFILIATE,
-		"cleanupDiscard" => ST_PLAYER_CLEANUP_DISCARD,
-		"controlPostDraw" => ST_PLAYER_CONTROL_POST_DRAW,
-		"unusedLords" => ST_PLAYER_UNUSED_LORDS,
-		"postpurchaseDiscard" => ST_POST_PURCHASE,
-	);
-
 	function __construct() {
         // Your global variables labels:
         //  Here, you can assign labels to global variables you are using for this game.

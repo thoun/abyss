@@ -193,15 +193,15 @@ $this->lords = array(
   ),
   
   // kraken lords
-  "101" => array( // TODOTEST
+  "101" => array(
     "name" => clienttranslate("The Ferryman"),
     "desc" => clienttranslate("During your turn, you can discard 1 Nebulis and replace it with 1 Pearl."),
   ),
-  "102" => array( // TODOTEST
+  "102" => array(
     "name" => clienttranslate("The Outlaw"),
     "desc" => clienttranslate("When purchasing something, you can use 2 Nebulis."),
   ),
-  "103" => array( // TODOTEST
+  "103" => array(
     "name" => clienttranslate("The Counterfeiter"),
     "desc" => clienttranslate("When purchasing something, you can use 1 Nebulis even if you still have Pearls."),
   ),
@@ -235,7 +235,7 @@ $this->lords = array(
   ),
   "111" => array( // TODOTEST
     "name" => clienttranslate("The Hypnotist"),
-    "desc" => clienttranslate("During each opponent's turn, you can purchse 2 Allies."),
+    "desc" => clienttranslate("During each opponent's turn, you can purchase 2 Allies."),
   ),
   "112" => array( // TODO
     "name" => clienttranslate("The Healer"),
@@ -249,7 +249,7 @@ $this->lords = array(
     "name" => clienttranslate("The Executioner"),
     "desc" => clienttranslate("Choose a Race of Allies. Each opponent discards one affiliated Ally from that Race."),
   ),
-  "115" => array( // TODO
+  "115" => array(
     "name" => clienttranslate("The Recipient"),
     "desc" => clienttranslate("During your turn, you can add a Lord to a free space of the Court."),
   ),

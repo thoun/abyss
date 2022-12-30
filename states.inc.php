@@ -69,7 +69,7 @@ $machinestates = array(
  	),
 
  	ST_PLAYER_PLOT_AT_COURT => array(
- 			"name" => "plotAtCourt", // Also in $state_ids
+ 			"name" => "plotAtCourt",
  			"description" => clienttranslate('${actplayer} may spend a Pearl to bring a new Lord to Court'),
  			"descriptionmyturn" => clienttranslate('${you} may spend a Pearl to bring a new Lord to Court'),
  			"type" => "activeplayer",
@@ -80,7 +80,7 @@ $machinestates = array(
  	),
 
  	ST_PLAYER_ACTION => array(
- 			"name" => "action", // Also in $state_ids
+ 			"name" => "action",
  			"description" => clienttranslate('${actplayer} must explore, request support or recruit a Lord'),
  			"descriptionmyturn" => clienttranslate('${you} must explore, request support or recruit a Lord'),
  			"type" => "activeplayer",
@@ -91,7 +91,7 @@ $machinestates = array(
  	),
 
  	ST_PLAYER_SECOND_STACK => array(
- 			"name" => "secondStack", // Also in $state_ids
+ 			"name" => "secondStack",
  			"description" => clienttranslate('${actplayer} must take a second stack from the Council'),
  			"descriptionmyturn" => clienttranslate('${you} must take a second stack from the Council'),
  			"type" => "activeplayer",
@@ -124,7 +124,7 @@ $machinestates = array(
  	),
 
 	 ST_PLAYER_POST_PURCHASE_DISCARD => array(
-      "name" => "postpurchaseDiscard", // Also in $state_ids
+      "name" => "postpurchaseDiscard",
       "description" => clienttranslate('${actplayer} must discard down to 6 Allies'),
        "descriptionmyturn" => clienttranslate('${you} must discard down to 6 Allies'),
        "type" => "activeplayer",
@@ -141,7 +141,7 @@ $machinestates = array(
  	),
 
  	ST_PLAYER_EXPLORE => array(
- 			"name" => "explore", // Also in $state_ids
+ 			"name" => "explore",
  			"description" => clienttranslate('${actplayer} must take the last card or explore'),
  			"descriptionmyturn" => clienttranslate('${you} must take the last card or explore'),
  			"type" => "activeplayer",
@@ -151,7 +151,7 @@ $machinestates = array(
  	),
 
  	ST_PLAYER_EXPLORE2 => array(
- 			"name" => "explore2", // Also in $state_ids
+ 			"name" => "explore2",
  			"description" => clienttranslate('${actplayer} must explore'),
  			"descriptionmyturn" => clienttranslate('${you} must explore'),
  			"type" => "activeplayer",
@@ -162,7 +162,7 @@ $machinestates = array(
  	),
 
  	ST_PLAYER_EXPLORE3 => array(
- 			"name" => "explore3", // Also in $state_ids
+ 			"name" => "explore3",
  			"description" => clienttranslate('${actplayer} must take the last card'),
  			"descriptionmyturn" => clienttranslate('${you} must take the last card'),
  			"type" => "activeplayer",
@@ -180,7 +180,7 @@ $machinestates = array(
  	),
 
  	ST_PLAYER_CONTROL => [
- 		"name" => "control", // Also in $state_ids
+ 		"name" => "control",
   		"description" => clienttranslate('${actplayer} must choose a Location to control'),
  		"descriptionmyturn" => clienttranslate('${you} must choose a face-up Location to control or draw some from the deck'),
  		"type" => "activeplayer",
@@ -242,7 +242,7 @@ $machinestates = array(
  	),
 
  	ST_PLAYER_CHOOSE_MONSTER_REWARD => array(
- 			"name" => "chooseMonsterReward", // Also in $state_ids
+ 			"name" => "chooseMonsterReward",
   		"description" => clienttranslate('${actplayer} must choose a reward'),
  			"descriptionmyturn" => clienttranslate('${you} must choose a reward'),
  			"type" => "activeplayer",
@@ -253,7 +253,7 @@ $machinestates = array(
  	),
 
  	ST_PLAYER_RECRUIT_PAY => array(
- 			"name" => "recruitPay", // Also in $state_ids
+ 			"name" => "recruitPay",
   		"description" => clienttranslate('${actplayer} must pay for the chosen Lord'),
  			"descriptionmyturn" => clienttranslate('${you} must pay for the chosen Lord'),
  			"type" => "activeplayer",
@@ -263,7 +263,7 @@ $machinestates = array(
  	),
 
  	ST_PLAYER_AFFILIATE => array(
- 			"name" => "affiliate", // Also in $state_ids
+ 			"name" => "affiliate",
   		"description" => clienttranslate('${actplayer} must choose an Ally to affiliate'),
  			"descriptionmyturn" => clienttranslate('${you} must choose an Ally to affiliate'),
  			"type" => "activeplayer",
@@ -287,7 +287,7 @@ $machinestates = array(
  	),
 
  	ST_PLAYER_CLEANUP_DISCARD => array(
- 			"name" => "cleanupDiscard", // Also in $state_ids
+ 			"name" => "cleanupDiscard",
   		"description" => clienttranslate('${actplayer} must discard down to 6 Allies'),
  			"descriptionmyturn" => clienttranslate('${you} must discard down to 6 Allies'),
  			"type" => "activeplayer",
@@ -297,7 +297,7 @@ $machinestates = array(
  	),
 
  	ST_PLAYER_CONTROL_POST_DRAW => array(
- 			"name" => "controlPostDraw", // Also in $state_ids
+ 			"name" => "controlPostDraw",
   		"description" => clienttranslate('${actplayer} must choose a Location to control'),
  			"descriptionmyturn" => clienttranslate('${you} must choose a Location to control'),
  			"type" => "activeplayer",
@@ -323,8 +323,18 @@ $machinestates = array(
 		"descriptionmyturn" => clienttranslate('${you} may use the abilities of your unused Lords'),
 		"type" => "activeplayer",
 		"action" => "stUnusedLords",
-		"possibleactions" => array( "lordEffect", "pass" ),
-		"transitions" => array( "pass" => ST_PLAYER_CLEANUP_DISCARD, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_UNUSED_LORDS )
+		"possibleactions" => [
+			"lordEffect", 
+			"pass",
+		],
+		"transitions" => [
+			"pass" => ST_PLAYER_CLEANUP_DISCARD, 
+			"lord_17" => ST_PLAYER_LORD17, 
+			"lord_21" => ST_PLAYER_LORD21, 
+			"lord_12" => ST_PLAYER_LORD12, 
+			"zombiePass" => ST_PRE_CONTROL, 
+			"loopback" => ST_PLAYER_UNUSED_LORDS
+		],
  	),
 
  	/* Lord effect (1xx) */

@@ -44,14 +44,15 @@ class LordManager extends CardManager<AbyssLord> {
       }
       descSection += _(lord.desc);
     }
-    let guilds = [
+    const guilds = [
       '<span style="color: purple">' + _('Mage') + '</span>',
       '<span style="color: red">' + _('Soldier') + '</span>',
       '<span style="color: #999900">' + _('Farmer') + '</span>',
       '<span style="color: green">' + _('Merchant') + '</span>',
       '<span style="color: blue">' + _('Politician') + '</span>',
-      '<span style="color: gray">' + _('Ambassador') + '</span>'
+      '<span style="color: gray">' + _('Ambassador') + '</span>',
     ];
+    guilds[10] = '<span style="color: gray">' + _('Smuggler') + '</span>';
     let factionSection = "";
     if (lord.faction != null) {
       factionSection = '<span style="font-size: smaller">' + guilds[lord.faction] + "</span><br>";

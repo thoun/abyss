@@ -182,7 +182,7 @@ class Abyss implements AbyssGame {
         // Hide this one, because it doesn't line up due to Zoom
         //(this as any).addTooltip( 'explore-track-deck', '', _('Explore'), 1 );
         (this as any).addTooltipToClass( 'pearl-holder', _( 'Pearls' ), '' );
-        // TODO GBA (this as any).addTooltipToClass( 'nebulis-holder', _( 'Nebulis' ), '' );
+        (this as any).addTooltipToClass( 'nebulis-holder', _( 'Nebulis' ), '' );
         (this as any).addTooltipToClass( 'key-holder', _( 'Key tokens (+ Keys from free Lords)' ), '' );
         (this as any).addTooltipToClass( 'ally-holder', _( 'Ally cards in hand' ), '' );
         (this as any).addTooltipToClass( 'monster-holder', _( 'Monster tokens' ), '' );
@@ -1112,34 +1112,42 @@ class Abyss implements AbyssGame {
     }
 
     onClickPlayerFreeLords( evt ) {
-        if (dojo.hasClass(evt.target, 'lord')) {
-        if( (this as any).checkAction( 'selectLord', true ) ) {
-            dojo.stopEvent( evt );
+        if (dojo.hasClass(evt.target, 'lord') || evt.target.closest('.lord')) {
+            const elem = dojo.hasClass(evt.target, 'lord') ? evt.target : evt.target.closest('.lord');
+            const lordId = Number(elem.dataset.lordId);
+            if( (this as any).checkAction( 'selectLord', true ) ) {
+                dojo.stopEvent( evt );
 
-            var lord_id = dojo.attr(evt.target, "data-lord-id");
+                this.onClickPlayerFreeLord({ lord_id: lordId } as AbyssLord);
+            } else if( (this as any).checkAction( 'lordEffect', true ) ) {
+                dojo.stopEvent( evt );
 
-            (this as any).ajaxcall( "/abyss/abyss/selectLord.html", { lock: true, lord_id: lord_id }, this,
-            () => {},
-            () => {}
-            );
-        } else if( (this as any).checkAction( 'lordEffect', true ) ) {
-            dojo.stopEvent( evt );
+                this.onClickPlayerFreeLord({ lord_id: lordId } as AbyssLord);
+            } else if( (this as any).checkAction( 'chooseLocation', true ) ) {
+                dojo.stopEvent( evt );
 
-            var lord_id = dojo.attr(evt.target, "data-lord-id");
-
-            (this as any).ajaxcall( "/abyss/abyss/lordEffect.html", { lock: true, lord_id: lord_id }, this,
-            () => {},
-            () => {}
-            );
-        } else if( (this as any).checkAction( 'chooseLocation', true ) ) {
-            dojo.stopEvent( evt );
-
-            // Only allow this on your own Lords
-            var panel = dojo.query(evt.target).closest('.player-panel')[0];
-            if (panel.id == "player-panel-" + (this as any).player_id) {
-            dojo.toggleClass(evt.target, "selected");
+                this.onClickPlayerFreeLord({ lord_id: lordId } as AbyssLord);
             }
         }
+    }
+
+    onClickPlayerFreeLord(lord: AbyssLord) {
+        if( (this as any).checkAction( 'selectLord', true ) ) {
+            this.takeAction('selectLord', {
+                lord_id: lord.lord_id
+            });
+        } else if( (this as any).checkAction( 'lordEffect', true ) ) {
+            this.takeAction('lordEffect', {
+                lord_id: lord.lord_id
+            });
+        } else if( (this as any).checkAction( 'chooseLocation', true ) ) {
+            const target = this.lordManager.getCardElement(lord);
+
+            // Only allow this on your own Lords
+            var panel = target.closest('.player-panel');
+            if (panel.id == "player-panel-" + this.getPlayerId()) {
+                dojo.toggleClass(target, "selected");
+            }
         }
     }
     
@@ -1327,15 +1335,13 @@ class Abyss implements AbyssGame {
     }
 
     notif_useLord( notif: Notif<NotifUseLordArgs> ) {
-        dojo.query(".lord.lord-" + notif.args.lord_id).forEach(node => {
-            dojo.setAttr(node, "data-used", "1");
-        });
+        const lordCard = this.lordManager.getCardElement({ lord_id: notif.args.lord_id } as AbyssLord);
+        lordCard.dataset.used = '1';
+        lordCard.classList.remove('unused');
     }
 
     notif_refreshLords() {
-        dojo.query(".lord").forEach(node => {
-            dojo.setAttr(node, "data-used", "0");
-        });
+        dojo.query(".lord").forEach(node => dojo.setAttr(node, "data-used", "0"));
     }
 
     notif_score( notif: Notif<NotifScoreArgs> ) {
