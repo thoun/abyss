@@ -44,13 +44,13 @@ class AllyManager extends CardManager<AbyssAlly> {
   }
 
   renderTooltip(ally: AbyssAlly) {
-    if (ally.faction >= 0) {
+    if (ally.faction >= 0 && ally.faction != 100) {
       return `<div class="abs-tooltip-ally">
         ${this.allyNameText(ally)}
         <br>
         <span style="font-size: smaller"><b>${_("Value")}: </b> ${_(ally.value)}</span>
       </div>`;
-    } else {
+    } else { // TODO GBA
       return `<div class="abs-tooltip-ally">
         ${_("Monster")}
       </div>`;

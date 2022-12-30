@@ -901,10 +901,10 @@ var AllyManager = /** @class */ (function (_super) {
         return allies[+ally.faction];
     };
     AllyManager.prototype.renderTooltip = function (ally) {
-        if (ally.faction >= 0) {
+        if (ally.faction >= 0 && ally.faction != 100) {
             return "<div class=\"abs-tooltip-ally\">\n        ".concat(this.allyNameText(ally), "\n        <br>\n        <span style=\"font-size: smaller\"><b>").concat(_("Value"), ": </b> ").concat(_(ally.value), "</span>\n      </div>");
         }
-        else {
+        else { // TODO GBA
             return "<div class=\"abs-tooltip-ally\">\n        ".concat(_("Monster"), "\n      </div>");
         }
     };

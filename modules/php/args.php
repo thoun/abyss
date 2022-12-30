@@ -18,7 +18,7 @@ trait ArgsTrait {
 		$pearls = self::getPlayerPearls( $player_id );
 		
 		$lords = Lord::getSlots();
-		$affordableLords = array();
+		$affordableLords = [];
 		
 		foreach ($lords as $lord) {
 			$canAffordLord = self::canAffordLord($player_id, $hand, $pearls, $lord);

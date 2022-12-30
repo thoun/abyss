@@ -225,15 +225,15 @@ $this->lords = array(
     "name" => clienttranslate("The Lookout"),
     "desc" => clienttranslate("Take the corresponding Sentinel token and place it on a free area. Gain 1 Nebulis."),
   ),
-  "109" => array( // TODOTEST
+  "109" => array(
     "name" => clienttranslate("The Shareholder"),
     "desc" => clienttranslate("When an opponent recruits a Lord, gain 1 Pearl."),
   ),
-  "110" => array( // TODOTEST
+  "110" => array(
     "name" => clienttranslate("The Inheritor"),
     "desc" => clienttranslate("Gain 5 Pearls."),
   ),
-  "111" => array( // TODOTEST
+  "111" => array(
     "name" => clienttranslate("The Hypnotist"),
     "desc" => clienttranslate("During each opponent's turn, you can purchase 2 Allies."),
   ),
@@ -257,11 +257,11 @@ $this->lords = array(
     "name" => clienttranslate("The Liberator"),
     "desc" => clienttranslate("Free one of your Lords which has been assigned to control a Location."),
   ),
-  "117" => array( // TODOTEST
+  "117" => array(
     "name" => clienttranslate("The Grower"),
     "desc" => ""
   ),
-  "118" => array( // TODOTEST
+  "118" => array(
     "name" => clienttranslate("The Oyster Farmer"),
     "desc" => ""
   ),

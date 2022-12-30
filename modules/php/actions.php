@@ -299,17 +299,22 @@ trait ActionTrait {
         $cost = self::getLordCost( $lord, $player_id );
         $requiredDiversity = $lord["diversity"];
         
-        $diversity = array();
+        $krakens = 0;
+        $diversity = [];
         foreach ($hand as $ally) {
             if (! isset($diversity[$ally["faction"]])) {
                 $diversity[$ally["faction"]] = 0;
             }
             $diversity[$ally["faction"]] += $ally["value"];
+
+            if ($ally["faction"] == 10) {
+                $krakens++;
+            }
         }
         //throw new BgaUserException( self::_(join(", ", array_keys($diversity)) . " : " . join(", ", array_values($diversity))) );
         $potentialFound = true;
         
-        if (count($diversity) < $requiredDiversity) {
+        if ((count($diversity) + $krakens) < $requiredDiversity) {
             // Total diversity of hand...
             $potentialFound = false;
         } else if (isset($lord["faction"]) && ! $hasDiplomat && ! isset($diversity[$lord["faction"]])) {
@@ -317,7 +322,7 @@ trait ActionTrait {
             $potentialFound = false;
         } else {
             // Can you get the required value?
-            $cost -= self::getPlayerPearls( $player_id );
+            $cost -= (self::getPlayerPearls( $player_id ) + ($this->isKrakenExpansion() ? self::getPlayerNebulis($player_id) : 0));
             if ($hasDiplomat || ! isset($lord["faction"]) || $requiredDiversity == 5) {
                 // Using any $requiredDiversity different groups, can you get the value required?
                 $values = array_values($diversity);
@@ -483,7 +488,7 @@ trait ActionTrait {
         }
 
         // Remove the pearls.
-        self::DbQuery( "UPDATE player SET player_has_purchased = 1, player_pearls = player_pearls - ".$pearlCost." WHERE player_id = " . $player_id );
+        self::DbQuery( "UPDATE player SET player_has_purchased = player_has_purchased + 1, player_pearls = player_pearls - ".$pearlCost." WHERE player_id = " . $player_id );
         self::DbQuery( "UPDATE player SET player_pearls = player_pearls + ".$pearlCost." WHERE player_id = " . $first_player_id );
         if ($withNebulis) {
             self::DbQuery( "UPDATE player SET player_nebulis = player_nebulis - ".$nebulisCost." WHERE player_id = " . $player_id );
