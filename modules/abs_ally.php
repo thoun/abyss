@@ -106,18 +106,25 @@ class Ally {
     $value = 0;
     $factions = array();
     $includesRequired = ! isset($required);
+    $krakens = 0;
     foreach ($hand as $a) {
       $value += $a["value"];
-      $factions[$a["faction"]] = 1;
+      if ($a["faction"] == 10) {
+        // we do not count krakens in diversity
+        $krakens++;
+      } else {
+        $factions[$a["faction"]] = 1;
+      }
       if ($a["faction"] == $required) {
         $includesRequired = true;
       }
     }
-    return array(
+    return [
       "value" => $value,
       "diversity" => count($factions),
-      "includesRequired" => $includesRequired
-    );
+      "includesRequired" => $includesRequired,
+      "krakens" => $krakens,
+    ];
   }
 
   public static function removeCardsFromHand(int $player_id, array $ally_ids) {

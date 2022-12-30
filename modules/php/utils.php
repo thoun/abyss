@@ -342,7 +342,7 @@ trait UtilTrait {
             return false;
         }
 
-        return true;
+        return $nebulisCost <= $this->getPlayerNebulis($playerId);
     }
 
     function applySearchSanctuary(int $playerId, int $locationId) {

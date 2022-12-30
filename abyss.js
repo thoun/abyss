@@ -1629,12 +1629,6 @@ var Abyss = /** @class */ (function () {
     Abyss.prototype.onEnteringRecruitPay = function (args) {
         // highlight the given lord
         dojo.query("#lords-track .lord[data-lord-id=" + args.lord_id + "]").addClass("selected");
-        if (this.isCurrentPlayerActive()) {
-            var lord = dojo.query("#lords-track .lord.selected")[0];
-            var cost = +args.cost;
-            $('button_recruit').innerHTML = _('Recruit') + ' (' + cost + ' <i class="icon icon-pearl"></i>)';
-            dojo.setAttr($('button_recruit'), "data-base-cost", cost);
-        }
     };
     Abyss.prototype.onEnterinLord7 = function () {
         // Put a red border around the player monster tokens (who aren't me)
@@ -1744,14 +1738,14 @@ var Abyss = /** @class */ (function () {
             switch (stateName) {
                 case 'purchase':
                     var purchageArgs_1 = args;
-                    var cost = purchageArgs_1.cost;
-                    this.addActionButton('button_purchase', _('Purchase') + " (".concat(cost, " <i class=\"icon icon-pearl\"></i>)"), function (event) { return _this.onPurchase(event, 0); });
+                    var cost_1 = purchageArgs_1.cost;
+                    this.addActionButton('button_purchase', _('Purchase') + " (".concat(cost_1, " <i class=\"icon icon-pearl\"></i>)"), function (event) { return _this.onPurchase(event, 0); });
                     if (!purchageArgs_1.canPayWithPearls) {
                         document.getElementById('button_purchase').classList.add('disabled');
                     }
                     if (purchageArgs_1.withNebulis) {
                         Object.keys(purchageArgs_1.withNebulis).forEach(function (i) {
-                            _this.addActionButton("button_purchase_with".concat(i, "Nebulis"), _('Purchase') + " (".concat(cost - Number(i) > 0 ? "".concat(cost - Number(i), " <i class=\"icon icon-pearl\"></i> ") : '').concat(i, " <i class=\"icon icon-nebulis\"></i>)"), function (event) { return _this.onPurchase(event, Number(i)); });
+                            _this.addActionButton("button_purchase_with".concat(i, "Nebulis"), _('Purchase') + " (".concat(cost_1 - Number(i) > 0 ? "".concat(cost_1 - Number(i), " <i class=\"icon icon-pearl\"></i> ") : '').concat(i, " <i class=\"icon icon-nebulis\"></i>)"), function (event) { return _this.onPurchase(event, Number(i)); });
                             if (!purchageArgs_1.withNebulis[i]) {
                                 document.getElementById("button_purchase_with".concat(i, "Nebulis")).classList.add('disabled');
                             }
@@ -1769,8 +1763,22 @@ var Abyss = /** @class */ (function () {
                     }
                     break;
                 case 'recruitPay':
-                    this.addActionButton('button_recruit', _('Recruit'), 'onRecruit');
-                    this.addActionButton('button_pass', _('Cancel'), 'onPass');
+                    var recruitArgs_1 = args;
+                    this.addActionButton('button_recruit', _('Recruit'), function () { return _this.onRecruit(0); });
+                    var recruitButton = document.getElementById('button_recruit');
+                    recruitButton.innerHTML = _('Recruit') + ' (' + recruitArgs_1.cost + ' <i class="icon icon-pearl"></i>)';
+                    recruitButton.classList.toggle('disabled', recruitArgs_1.cost > recruitArgs_1.pearls);
+                    recruitButton.dataset.baseCost = '' + recruitArgs_1.cost;
+                    recruitButton.dataset.pearls = '' + recruitArgs_1.pearls;
+                    recruitButton.dataset.nebulis = '' + recruitArgs_1.nebulis;
+                    if (recruitArgs_1.withNebulis) {
+                        Object.keys(recruitArgs_1.withNebulis).forEach(function (i) {
+                            _this.addActionButton("button_recruit_with".concat(i, "Nebulis"), _('Recruit') + " (".concat(args.cost - Number(i) > 0 ? "".concat(args.cost - Number(i), " <i class=\"icon icon-pearl\"></i> ") : '').concat(i, " <i class=\"icon icon-nebulis\"></i>)"), function () { return _this.onRecruit(Number(i)); });
+                            var button = document.getElementById("button_recruit_with".concat(i, "Nebulis"));
+                            button.classList.toggle('disabled', recruitArgs_1.nebulis < Number(i) || (recruitArgs_1.cost - Number(i)) > recruitArgs_1.pearls);
+                        });
+                    }
+                    this.addActionButton('button_pass', _('Cancel'), function (event) { return _this.onPass(event); });
                     break;
                 case 'affiliate':
                     for (var i in args.allies) {
@@ -2034,7 +2042,7 @@ var Abyss = /** @class */ (function () {
         });
         this.ajaxcall("/abyss/abyss/discard.html", { lock: true, ally_ids: ally_ids.join(';') }, this, function () { }, function () { });
     };
-    Abyss.prototype.onRecruit = function () {
+    Abyss.prototype.onRecruit = function (withNebulis) {
         if (!this.checkAction('pay')) {
             return;
         }
@@ -2042,7 +2050,10 @@ var Abyss = /** @class */ (function () {
         dojo.query("#player-hand .ally.selected").forEach(function (node) {
             ally_ids.push(+dojo.attr(node, 'data-ally-id'));
         });
-        this.ajaxcall("/abyss/abyss/pay.html", { lock: true, ally_ids: ally_ids.join(';') }, this, function () { }, function () { });
+        this.takeAction('pay', {
+            ally_ids: ally_ids.join(';'),
+            withNebulis: withNebulis,
+        });
     };
     Abyss.prototype.onChooseAffiliate = function (evt) {
         if (!this.checkAction('affiliate')) {
@@ -2180,48 +2191,74 @@ var Abyss = /** @class */ (function () {
         this.ajaxcall("/abyss/abyss/chooseReward.html", { lock: true, option: option }, this, function () { }, function () { });
     };
     Abyss.prototype.onClickPlayerHand = function (evt) {
-        if (dojo.hasClass(evt.target, 'ally')) {
+        if (dojo.hasClass(evt.target, 'ally') || evt.target.closest('.ally')) {
+            var elem = dojo.hasClass(evt.target, 'ally') ? evt.target : evt.target.closest('.ally');
+            var allyId = Number(elem.dataset.allyId);
             if (this.checkAction('pay', true)) {
                 dojo.stopEvent(evt);
-                dojo.toggleClass(evt.target, 'selected');
-                var lord = dojo.query("#lords-track .lord.selected")[0];
-                var cost = +dojo.attr($('button_recruit'), 'data-base-cost');
-                var diversity = +dojo.attr(lord, 'data-diversity');
-                // Value selected
-                var value = 0;
-                dojo.query("#player-hand .ally.selected").forEach(function (node) {
-                    value += +dojo.attr(node, 'data-value');
-                });
-                var shortfall = cost - value;
-                if (shortfall < 0) {
-                    shortfall = 0;
-                }
-                // Update "Recruit" button
-                $('button_recruit').innerHTML = _('Recruit') + ' (' + shortfall + ' <i class="icon icon-pearl"></i>)';
+                this.onClickPlayerHandAlly({ ally_id: allyId });
             }
             else if (this.checkAction('discard', true)) {
                 dojo.stopEvent(evt);
-                // Multi-discard: select, otherwise just discard this one
-                dojo.toggleClass(evt.target, 'selected');
-                if (this.gamedatas.gamestate.name === 'martialLaw') {
-                    var ally_ids = [];
-                    dojo.query("#player-hand .ally.selected").forEach(function (node) {
-                        return ally_ids.push(+dojo.attr(node, 'data-ally-id'));
-                    });
-                    document.getElementById('button_discard').classList.toggle('disabled', !ally_ids.length);
-                }
-                // Discard this card directly?
-                // var ally_id = dojo.attr(evt.target, 'data-ally-id');
-                // (this as any).ajaxcall( "/abyss/abyss/discard.html", { lock: true, ally_ids: ally_id }, this,
-                //   function( result ) {},
-                //   function( is_error) {}
-                // );
+                this.onClickPlayerHandAlly({ ally_id: allyId });
             }
             else if (this.checkAction('selectAlly', true)) {
                 dojo.stopEvent(evt);
-                var ally_id = dojo.attr(evt.target, 'data-ally-id');
-                this.ajaxcall("/abyss/abyss/selectAlly.html", { lock: true, ally_id: ally_id }, this, function () { }, function () { });
+                this.onClickPlayerHandAlly({ ally_id: allyId });
             }
+        }
+    };
+    Abyss.prototype.onClickPlayerHandAlly = function (ally) {
+        if (this.checkAction('pay', true)) {
+            this.allyManager.getCardElement(ally).classList.toggle('selected');
+            var recruitButton = document.getElementById('button_recruit');
+            var lord = dojo.query("#lords-track .lord.selected")[0];
+            var baseCost = Number(recruitButton.dataset.baseCost);
+            var pearls_1 = Number(recruitButton.dataset.pearls);
+            var nebulis_1 = Number(recruitButton.dataset.nebulis);
+            var diversity = +dojo.attr(lord, 'data-diversity');
+            // Value selected
+            var value_1 = 0;
+            dojo.query("#player-hand .ally.selected").forEach(function (node) {
+                value_1 += +dojo.attr(node, 'data-value');
+            });
+            var shortfall_1 = baseCost - value_1;
+            if (shortfall_1 < 0) {
+                shortfall_1 = 0;
+            }
+            // Update "Recruit" button
+            recruitButton.innerHTML = _('Recruit') + ' (' + shortfall_1 + ' <i class="icon icon-pearl"></i>)';
+            recruitButton.classList.toggle('disabled', shortfall_1 > pearls_1);
+            [1, 2].forEach(function (i) {
+                var button = document.getElementById("button_recruit_with".concat(i, "Nebulis"));
+                if (button) {
+                    var cost = shortfall_1;
+                    button.innerHTML = _('Recruit') + " (".concat(cost - i > 0 ? "".concat(cost - i, " <i class=\"icon icon-pearl\"></i> ") : '').concat(i, " <i class=\"icon icon-nebulis\"></i>)");
+                    button.classList.toggle('disabled', nebulis_1 < i || (cost - i) > pearls_1 || shortfall_1 < i);
+                }
+            });
+        }
+        else if (this.checkAction('discard', true)) {
+            // Multi-discard: select, otherwise just discard this one
+            this.allyManager.getCardElement(ally).classList.toggle('selected');
+            if (this.gamedatas.gamestate.name === 'martialLaw') {
+                var ally_ids = [];
+                dojo.query("#player-hand .ally.selected").forEach(function (node) {
+                    return ally_ids.push(+dojo.attr(node, 'data-ally-id'));
+                });
+                document.getElementById('button_discard').classList.toggle('disabled', !ally_ids.length);
+            }
+            // Discard this card directly?
+            // var ally_id = dojo.attr(evt.target, 'data-ally-id');
+            // (this as any).ajaxcall( "/abyss/abyss/discard.html", { lock: true, ally_ids: ally_id }, this,
+            //   function( result ) {},
+            //   function( is_error) {}
+            // );
+        }
+        else if (this.checkAction('selectAlly', true)) {
+            this.takeAction('selectAlly', {
+                ally_id: ally.ally_id
+            });
         }
     };
     Abyss.prototype.onClickMonsterIcon = function (evt) {
@@ -2726,7 +2763,6 @@ var Abyss = /** @class */ (function () {
     Abyss.prototype.notif_recruit = function (notif) {
         var lord = notif.args.lord;
         var player_id = +notif.args.player_id;
-        var spent_pearls = +notif.args.spent_pearls;
         var spent_lords = notif.args.spent_lords;
         var spent_allies = notif.args.spent_allies;
         // Remove lord from the track
@@ -2737,8 +2773,11 @@ var Abyss = /** @class */ (function () {
         if (spent_allies) {
             $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) - spent_allies.length;
         }
-        if (spent_pearls) {
-            this.incPearlCount(player_id, -spent_pearls);
+        if (notif.args.incPearls) {
+            this.incPearlCount(player_id, -notif.args.incPearls);
+        }
+        if (this.gamedatas.krakenExpansion && notif.args.incNebulis) {
+            this.incNebulisCount(player_id, -notif.args.incNebulis);
         }
         // If it's me, then actually get rid of the allies
         if (spent_allies && player_id == this.getPlayerId()) {

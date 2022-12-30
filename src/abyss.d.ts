@@ -98,9 +98,14 @@ interface AbyssGame extends Game {
     organisePanelMessages(): void;
 }
 
+type WithNebulis = { [nebulis: number]: boolean };
+
 interface EnteringRecruitPayArgs {
     lord_id: number;
     cost: number;
+    pearls: number;
+    nebulis?: number;
+	withNebulis?: WithNebulis;
 }
 
 interface EnteringControlPostDrawArgs {
@@ -119,7 +124,7 @@ interface EnteringPurchaseArgs {
     first_player: number;
     cost: number;
     canPayWithPearls: boolean;
-    withNebulis?: { [nebulis: number]: boolean };
+    withNebulis?: WithNebulis;
 }
 
 interface EnteringMartialLawArgs {
@@ -244,7 +249,8 @@ interface NotifRequestSupportCardsArgs {
 interface NotifRecruitArgs {
     lord: AbyssLord;
     player_id: number;
-    spent_pearls: number;
+    incPearls: number;
+    incNebulis: number;
     spent_lords: AbyssLord[];
     spent_allies: AbyssAlly[];
 }

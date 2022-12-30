@@ -13,15 +13,15 @@ trait DebugUtilTrait {
 
 		//$this->debugCouncilAllies();
 
-		//$this->debugPickAllies(2343492);
+		$this->debugPickAllies(2343492);
 		//$this->debugPickAllies(2343493);
 
 		//$this->debugAddLocations(2343492);
 		//$this->debugAddLord(2343492);
 
-		//$this->DbQuery("UPDATE player SET player_nebulis = 3");
-		$this->DbQuery("UPDATE player SET player_keys = 3");
-		$this->DbQuery("UPDATE location SET place = 1 WHERE location_id = 103");
+		$this->DbQuery("UPDATE player SET player_nebulis = 3");
+		//$this->DbQuery("UPDATE player SET player_keys = 3");
+		//$this->DbQuery("UPDATE location SET place = 1 WHERE location_id = 103");
     }
 
 	function debugPickAllies(int $playerId, int $number = 12) {
@@ -54,6 +54,13 @@ trait DebugUtilTrait {
 			self::DbQuery( "UPDATE location SET place = ".($playerId * -1)." WHERE location_id = " . $location["location_id"] );
 			$this->debugAddLord($playerId, $location["location_id"], min($i, 3));
 		}
+	}
+
+	function debugSetPlayerPearls(int $playerId, int $number) {
+		$this->DbQuery("UPDATE player SET player_pearls = $number WHERE player_id = $playerId");
+	}
+	function debugSetPlayerNebulis(int $playerId, int $number) {
+		$this->DbQuery("UPDATE player SET player_nebulis = $number WHERE player_id = $playerId");
 	}
 
     public function debugReplacePlayersIds() {

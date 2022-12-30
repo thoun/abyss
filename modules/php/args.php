@@ -36,15 +36,12 @@ trait ArgsTrait {
 		);
 	}
 
-	function getWithNebulis(int $playerId, int $pearls, int $cost) {
+	function getWithNebulis(int $playerId, int $cost) {
 		$withNebulis = null;
-		
-		$pearls = self::getPlayerPearls($playerId);
 
 		if ($this->isKrakenExpansion()) {
 			$withNebulis = [];
 
-			$nebulis = self::getPlayerNebulis($playerId);
 			$maxNebulis = Lord::playerHas(102, $playerId) ? 2 : 1;
 
 			for ($i = 1; $i <= $maxNebulis; $i++) {
@@ -64,7 +61,7 @@ trait ArgsTrait {
 		
 		$pearls = self::getPlayerPearls($playerId);
 
-		$withNebulis = $this->getWithNebulis($playerId, $pearls, $cost);
+		$withNebulis = $this->getWithNebulis($playerId, $cost);
 
 		return [
 			'passed_players' => array_map(fn($pId) => intval($pId), $passed_players), 
@@ -191,12 +188,15 @@ trait ArgsTrait {
 		$cost = self::getLordCost(Lord::get($lord_id), self::getCurrentPlayerId());
 		
 		$pearls = self::getPlayerPearls($playerId);
+		$nebulis = $this->isKrakenExpansion() ? $this->getPlayerNebulis($playerId) : null;
 
-		$withNebulis = $this->getWithNebulis($playerId, $pearls, $cost);
+		$withNebulis = $this->getWithNebulis($playerId, $cost);
 
 		return [
 			'lord_id' => $lord_id, 
 			'cost' => $cost,
+			'pearls' => $pearls,
+			'nebulis' => $nebulis,
 			'withNebulis' => $withNebulis,
 		];
 	}

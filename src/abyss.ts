@@ -351,13 +351,6 @@ class Abyss implements AbyssGame {
     private onEnteringRecruitPay(args: EnteringRecruitPayArgs) {
         // highlight the given lord
         dojo.query("#lords-track .lord[data-lord-id=" + args.lord_id + "]").addClass("selected");
-
-        if ((this as any).isCurrentPlayerActive()) {
-            var lord = dojo.query("#lords-track .lord.selected")[0];
-            var cost = +args.cost;
-            $('button_recruit').innerHTML = _('Recruit') + ' ('+cost+' <i class="icon icon-pearl"></i>)';
-            dojo.setAttr($('button_recruit'), "data-base-cost", cost);
-        }
     }
 
     private onEnterinLord7() {
@@ -473,7 +466,7 @@ class Abyss implements AbyssGame {
             switch( stateName ) {
                 case 'purchase':
                     const purchageArgs = args as EnteringPurchaseArgs;
-                    var cost = purchageArgs.cost;
+                    const cost = purchageArgs.cost;
                     (this as any).addActionButton('button_purchase', _('Purchase') + ` (${cost} <i class="icon icon-pearl"></i>)`, event => this.onPurchase(event, 0));
                     if (!purchageArgs.canPayWithPearls) {
                         document.getElementById('button_purchase').classList.add('disabled');
@@ -498,8 +491,25 @@ class Abyss implements AbyssGame {
                     }
                     break;
                 case 'recruitPay':
-                    (this as any).addActionButton( 'button_recruit', _('Recruit'), 'onRecruit' );
-                    (this as any).addActionButton( 'button_pass', _('Cancel'), 'onPass' );
+                    const recruitArgs = args as EnteringRecruitPayArgs;
+                    (this as any).addActionButton( 'button_recruit', _('Recruit'), () => this.onRecruit(0));
+
+                    const recruitButton = document.getElementById('button_recruit');
+                    recruitButton.innerHTML = _('Recruit') + ' ('+recruitArgs.cost+' <i class="icon icon-pearl"></i>)';
+                    recruitButton.classList.toggle('disabled', recruitArgs.cost > recruitArgs.pearls);
+                    recruitButton.dataset.baseCost = '' + recruitArgs.cost;
+                    recruitButton.dataset.pearls = '' + recruitArgs.pearls;
+                    recruitButton.dataset.nebulis = '' + recruitArgs.nebulis;
+
+                    if (recruitArgs.withNebulis) {
+                        Object.keys(recruitArgs.withNebulis).forEach(i => {
+                            (this as any).addActionButton(`button_recruit_with${i}Nebulis`, _('Recruit') + ` (${ args.cost - Number(i) > 0 ? `${args.cost - Number(i)} <i class="icon icon-pearl"></i> ` : ''}${i} <i class="icon icon-nebulis"></i>)`, () => this.onRecruit(Number(i)));
+                            const button = document.getElementById(`button_recruit_with${i}Nebulis`);
+                            button.classList.toggle('disabled', recruitArgs.nebulis < Number(i) || (recruitArgs.cost - Number(i)) > recruitArgs.pearls);
+                        });
+                    }
+
+                    (this as any).addActionButton( 'button_pass', _('Cancel'), event => this.onPass(event));
                     break;
                 case 'affiliate':
                     for (var i in args.allies) {
@@ -785,9 +795,9 @@ class Abyss implements AbyssGame {
         );
     }
 
-    onRecruit() {
-        if(!(this as any).checkAction( 'pay' )) {
-        return;
+    onRecruit(withNebulis: number) {
+        if (!(this as any).checkAction('pay')) {
+            return;
         }
 
         var ally_ids = [];
@@ -795,10 +805,10 @@ class Abyss implements AbyssGame {
             ally_ids.push(+dojo.attr(node, 'data-ally-id'));
         });
 
-        (this as any).ajaxcall( "/abyss/abyss/pay.html", { lock: true, ally_ids: ally_ids.join(';') }, this,
-        () => {},
-        () => {}
-        );
+        this.takeAction('pay', {
+            ally_ids: ally_ids.join(';'),
+            withNebulis,
+        });
     }
 
     onChooseAffiliate(evt) {
@@ -1002,31 +1012,57 @@ class Abyss implements AbyssGame {
     }
 
     onClickPlayerHand( evt ) {
-        if (dojo.hasClass(evt.target, 'ally')) {
+        if (dojo.hasClass(evt.target, 'ally') || evt.target.closest('.ally')) {
+            const elem = dojo.hasClass(evt.target, 'ally') ? evt.target : evt.target.closest('.ally');
+            const allyId = Number(elem.dataset.allyId);
+            if( (this as any).checkAction( 'pay', true ) ) {
+                dojo.stopEvent( evt );
+                this.onClickPlayerHandAlly({ ally_id: allyId } as AbyssAlly);
+            } else if( (this as any).checkAction( 'discard', true ) ) {
+                dojo.stopEvent( evt );
+                this.onClickPlayerHandAlly({ ally_id: allyId } as AbyssAlly);
+            } else if( (this as any).checkAction( 'selectAlly', true ) ) {
+                dojo.stopEvent( evt );
+                this.onClickPlayerHandAlly({ ally_id: allyId } as AbyssAlly);
+            }
+        }
+    }
+
+    onClickPlayerHandAlly(ally: AbyssAlly) {
         if( (this as any).checkAction( 'pay', true ) ) {
-            dojo.stopEvent( evt );
+            this.allyManager.getCardElement(ally).classList.toggle('selected');
 
-            dojo.toggleClass(evt.target, 'selected');
-
+            const recruitButton = document.getElementById('button_recruit');
             var lord = dojo.query("#lords-track .lord.selected")[0];
-            var cost = +dojo.attr($('button_recruit'), 'data-base-cost');
+            const baseCost = Number(recruitButton.dataset.baseCost);
+            const pearls = Number(recruitButton.dataset.pearls);
+            const nebulis = Number(recruitButton.dataset.nebulis);
             var diversity = +dojo.attr(lord, 'data-diversity');
 
             // Value selected
-            var value = 0;
+            let value = 0;
             dojo.query("#player-hand .ally.selected").forEach(node => {
                 value += +dojo.attr(node, 'data-value');
             });
-            var shortfall = cost - value;
+            let shortfall = baseCost - value;
             if (shortfall < 0) { shortfall = 0; }
 
             // Update "Recruit" button
-            $('button_recruit').innerHTML = _('Recruit') + ' ('+shortfall+' <i class="icon icon-pearl"></i>)';
-        } else if( (this as any).checkAction( 'discard', true ) ) {
-            dojo.stopEvent( evt );
+            recruitButton.innerHTML = _('Recruit') + ' ('+shortfall+' <i class="icon icon-pearl"></i>)';
+            recruitButton.classList.toggle('disabled', shortfall > pearls);
 
+            [1, 2].forEach(i => {
+                const button = document.getElementById(`button_recruit_with${i}Nebulis`);
+                if (button) {
+                    const cost = shortfall;
+                    button.innerHTML = _('Recruit') + ` (${ cost - i > 0 ? `${cost - i} <i class="icon icon-pearl"></i> ` : ''}${i} <i class="icon icon-nebulis"></i>)`;
+                    button.classList.toggle('disabled', nebulis < i || (cost - i) > pearls || shortfall < i);
+                }
+            });
+
+        } else if( (this as any).checkAction( 'discard', true ) ) {
             // Multi-discard: select, otherwise just discard this one
-            dojo.toggleClass(evt.target, 'selected');
+            this.allyManager.getCardElement(ally).classList.toggle('selected');
 
             if (this.gamedatas.gamestate.name === 'martialLaw') {
                 var ally_ids = [];
@@ -1043,14 +1079,9 @@ class Abyss implements AbyssGame {
             //   function( is_error) {}
             // );
         } else if( (this as any).checkAction( 'selectAlly', true ) ) {
-            dojo.stopEvent( evt );
-
-            var ally_id = dojo.attr(evt.target, 'data-ally-id');
-            (this as any).ajaxcall( "/abyss/abyss/selectAlly.html", { lock: true, ally_id: ally_id }, this,
-            () => {},
-            () => {}
-            );
-        }
+            this.takeAction('selectAlly', { 
+                ally_id: ally.ally_id 
+            });
         }
     }
 
@@ -1645,7 +1676,6 @@ class Abyss implements AbyssGame {
     notif_recruit( notif: Notif<NotifRecruitArgs> ) {
         var lord = notif.args.lord;
         var player_id = +notif.args.player_id;
-        var spent_pearls = +notif.args.spent_pearls;
         var spent_lords = notif.args.spent_lords;
         var spent_allies = notif.args.spent_allies;
 
@@ -1658,8 +1688,11 @@ class Abyss implements AbyssGame {
         if (spent_allies) {
             $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) - spent_allies.length;
         }
-        if (spent_pearls) {
-            this.incPearlCount(player_id, -spent_pearls);
+        if (notif.args.incPearls) {
+            this.incPearlCount(player_id, -notif.args.incPearls);
+        }
+        if (this.gamedatas.krakenExpansion && notif.args.incNebulis) {
+            this.incNebulisCount(player_id, -notif.args.incNebulis);
         }
 
         // If it's me, then actually get rid of the allies

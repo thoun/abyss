@@ -544,7 +544,7 @@ trait ActionTrait {
         }
     }
     
-    function pay(array $ally_ids) {
+    function pay(array $ally_ids, int $withNebulis = 0) {
         // Check that this is the player's turn and that it is a "possible action" at this game state (see states.inc.php)
         self::checkAction( 'pay' );
 
@@ -559,15 +559,32 @@ trait ActionTrait {
         // Do they satisfy diversity requirements?
         $r = Ally::getDiversityAndValue( $allies, $lord['faction'] );
         $shortfall = self::getLordCost($lord, $player_id) - $r['value'];
-        $pearls = self::getPlayerPearls( $player_id );
         $hasDiplomat = Lord::playerHas( 24 , $player_id );
 
-        if (!$hasDiplomat && !$r['includesRequired'])
+        if (!$hasDiplomat && !$r['includesRequired']) {
             throw new BgaUserException( self::_("You must include an Ally of the Lord's faction.") );
-        if ($r['diversity'] != $lord['diversity'])
+        }
+        if (($r['diversity'] + $r['krakens']) < $lord['diversity'] || $r['diversity'] > $lord['diversity']) {
             throw new BgaUserException( sprintf(self::_("You must use exactly %d different faction(s)."), $lord['diversity']) );
-        if ($shortfall > $pearls)
-            throw new BgaUserException( self::_("You do not have enough Pearls to make up the shortfall.") );
+        }
+
+        $purchase_cost = $shortfall;
+        $player_pearls = self::getPlayerPearls($player_id);
+        $player_nebulis = $withNebulis ? self::getPlayerNebulis($player_id) : 0;
+
+        $pearlCost = $purchase_cost - $withNebulis;
+        $nebulisCost = $withNebulis;
+
+        if ($player_pearls < $pearlCost) {
+            throw new BgaVisibleSystemException( "You do not have enough Pearls to make up the shortfall." );
+        }
+        if ($player_nebulis < $nebulisCost) {
+            throw new BgaVisibleSystemException( "You do not have enough Nebulis to make up the shortfall." );
+        }
+
+        if (!$this->canPayWithNebulis($player_id, $pearlCost, $nebulisCost)) {
+            throw new BgaVisibleSystemException( "You can't pay with Nebulis if you still have Pearls" );
+        }
 
 
         // TODO GBA
@@ -575,15 +592,12 @@ trait ActionTrait {
         A la fin d’une Exploration, si un Allié
 kraken reste sur la piste d’Exploration, c’est le
 joueur actif qui décide dans quelle pile du Conseil
-il est placé. Au moment où vous utilisez un Allié
-kraken, vous choisissez le Peuple qu’il remplace.
-Peu importe que ce Peuple soit déjà présent ou
-non parmi les autres Alliés que vous jouez.
+il est placé.
 */
 
         // Are there any superfluous cards?
         if ($shortfall < 0) {
-            $surplus = -1 * $shortfall;
+            $surplus = -$shortfall;
             // Do any cards have a value lower than the surplus?
             // Also, of a faction which is already represented
             foreach ($allies as $k => $ally) {
@@ -591,7 +605,7 @@ non parmi les autres Alliés que vous jouez.
                     // Is this faction represented elsewhere?
                     foreach ($allies as $k2 => $ally2) {
                         if ($k == $k2) continue;
-                        if ($ally2['faction'] == $ally['faction'])
+                        if ($ally2['faction'] == $ally['faction'] && $ally['faction'] != 10)
                             throw new BgaUserException( self::_("You cannot use superfluous cards to purchase a Lord.") );
                     }
                 }
@@ -599,13 +613,14 @@ non parmi les autres Alliés que vous jouez.
         }
 
         // Pay pearls (if shortfall positive)
-        if ($shortfall > 0) {
-            self::DbQuery( "UPDATE player SET player_pearls = player_pearls - $shortfall WHERE player_id = " . $player_id );
-        } else {
-            $shortfall = 0;
+        if ($pearlCost > 0) {
+            self::DbQuery( "UPDATE player SET player_pearls = player_pearls - $pearlCost WHERE player_id = " . $player_id );
+        }
+        if ($nebulisCost > 0) {
+            self::DbQuery( "UPDATE player SET player_pearls = player_nebulis - $nebulisCost WHERE player_id = " . $player_id );
         }
 
-        $krakenAllies = $this->array_filter($allies, fn($ally) => $ally['faction'] == 10);
+        $krakenAllies = array_filter($allies, fn($ally) => $ally['faction'] == 10);
         foreach ($krakenAllies as $ally) {
             Ally::discard($ally['ally_id']);
             $this->incPlayerNebulis($player_id, $ally['value'] - 1, "recruit-kraken");
@@ -614,15 +629,24 @@ non parmi les autres Alliés que vous jouez.
         // Add the lord to your board!
         Lord::giveToPlayer( $lord_id, $player_id );
 
-        $message = clienttranslate('${player_name} recruits ${lord_name} with ${num_allies} Allies and ${spent_pearls} Pearl(s)');
-        if ($shortfall == 0) {
-            $message = clienttranslate('${player_name} recruits ${lord_name} with ${num_allies} Allies');
+        $message = '';
+        if ($pearlCost > 0) {
+            $message = $nebulisCost > 0 ? 
+                clienttranslate('${player_name} recruits ${lord_name} with ${num_allies} Allies, ${spent_pearls} Pearl(s) and ${spent_nebulis} Nebulis') :
+                clienttranslate('${player_name} recruits ${lord_name} with ${num_allies} Allies and ${spent_pearls} Pearl(s)');
+        } else {
+            $message = $nebulisCost > 0 ? 
+                clienttranslate('${player_name} recruits ${lord_name} with ${num_allies} Allies and ${spent_nebulis} Nebulis') :
+                clienttranslate('${player_name} recruits ${lord_name} with ${num_allies} Allies');
         }
 
         self::notifyAllPlayers( "recruit", $message, array(
                 'lord' => $lord,
                 'spent_allies' => array_values($allies),
-                'spent_pearls' => $shortfall,
+                'spent_pearls' => $pearlCost,
+                'spent_nebulis' => $nebulisCost,
+                'incPearls' => $pearlCost,
+                'incNebulis' => $nebulisCost,
                 'player_id' => $player_id,
                 'player_name' => self::getActivePlayerName(),
                 "i18n" => array('lord_name'),
