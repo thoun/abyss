@@ -139,6 +139,10 @@ class LocationManager extends CardManager<AbyssLocation> {
     this.lootStocks[locationId].addCard(loot); // TODO GBA add from element 
   }
 
+  public highlightLootsToDiscard(locationId: number, loots: AbyssLoot[]) {
+    loots.forEach(loot => this.lootManager.getCardElement(loot)?.classList.add('selected'));
+  }
+
   public discardLoots(locationId: number, loots: AbyssLoot[]) {
     this.lootStocks[locationId].removeCards(loots);
   }

@@ -1172,6 +1172,10 @@ var LocationManager = /** @class */ (function (_super) {
     LocationManager.prototype.addLoot = function (locationId, loot) {
         this.lootStocks[locationId].addCard(loot); // TODO GBA add from element 
     };
+    LocationManager.prototype.highlightLootsToDiscard = function (locationId, loots) {
+        var _this = this;
+        loots.forEach(function (loot) { var _a; return (_a = _this.lootManager.getCardElement(loot)) === null || _a === void 0 ? void 0 : _a.classList.add('selected'); });
+    };
     LocationManager.prototype.discardLoots = function (locationId, loots) {
         this.lootStocks[locationId].removeCards(loots);
     };
@@ -2356,9 +2360,10 @@ var Abyss = /** @class */ (function () {
             ['refreshLords', 1],
             ['finalRound', 1],
             ['payMartialLaw', 1],
-            ['newLoot', 1],
+            ['newLoot', 500],
+            ['highlightLootsToDiscard', 1000],
             ['discardLoots', 1],
-            ['searchSanctuaryAlly', 1],
+            ['searchSanctuaryAlly', 500],
             ['endGame_scoring', 5000 * num_players + 3000],
         ];
         notifs.forEach(function (notif) {
@@ -2840,6 +2845,9 @@ var Abyss = /** @class */ (function () {
     };
     Abyss.prototype.notif_newLoot = function (notif) {
         this.locationManager.addLoot(notif.args.locationId, notif.args.newLoot);
+    };
+    Abyss.prototype.notif_highlightLootsToDiscard = function (notif) {
+        this.locationManager.highlightLootsToDiscard(notif.args.locationId, notif.args.loots);
     };
     Abyss.prototype.notif_discardLoots = function (notif) {
         this.locationManager.discardLoots(notif.args.locationId, notif.args.loots);

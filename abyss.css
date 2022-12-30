@@ -1805,9 +1805,13 @@ html a.bgabutton.affiliate-button:hover {
 .loot-stock {
   position: absolute;
   right: 0;
-  top: 0;
+  top: -15px;
   bottom: 0;
   left: 50px;
+}
+
+.card.location .card-side {
+  overflow: unset;
 }
 
 .card.loot {
@@ -1836,4 +1840,7 @@ html a.bgabutton.affiliate-button:hover {
 }
 .card.loot .card-side[data-value="7"] {
   background-position-x: 100%;
+}
+.card.loot.selected .card-side {
+  box-shadow: 0 0 5px 5px red;
 }

@@ -153,16 +153,27 @@ trait ActionTrait {
         }
     }
     
-    function recruit(int $lord_id ) {
+    function recruit(int $lord_id) {
         // Check that this is the player's turn and that it is a "possible action" at this game state (see states.inc.php)
         self::checkAction( 'recruit' );
 
         $player_id = intval(self::getActivePlayerId());
 
         // Confirm the chosen lord is in the display...
-        $lord = Lord::getInTrack( $lord_id );
+        $lord = Lord::getInTrack($lord_id);
         if ($lord == null) {
             throw new BgaVisibleSystemException( "That Lord is not available." );
+        }
+
+        if ($this->isKrakenExpansion()) {
+            $guarded = $this->guardedBySentinel('lord', $lord_id);
+            if ($guarded !== null) {
+                if ($guarded[0] == $player_id) {
+                    $this->discardSentinel($guarded[1]);
+                } else {
+                    throw new BgaVisibleSystemException( "That Lord is not available (reserved by a sentinel)." );
+                } 
+            }
         }
 
         $state = $this->gamestate->state();
@@ -635,6 +646,17 @@ non parmi les autres Alliés que vous jouez.
 
         $player_id = intval(self::getActivePlayerId());
 
+        if ($this->isKrakenExpansion()) {
+            $guarded = $this->guardedBySentinel('council', $faction);
+            if ($guarded !== null) {
+                if ($guarded[0] == $player_id) {
+                    $this->discardSentinel($guarded[1]);
+                } else {
+                    throw new BgaVisibleSystemException( "That stack is not available (reserved by a sentinel)." );
+                } 
+            }
+        }
+
         $state = $this->gamestate->state();
         if ($state['name'] == 'lord17') {
             // You can discard a stack
@@ -1065,6 +1087,17 @@ non parmi les autres Alliés que vous jouez.
             throw new BgaVisibleSystemException( "Location not found." );
         }
 
+        if ($this->isKrakenExpansion()) {
+            $guarded = $this->guardedBySentinel('location', $location_id);
+            if ($guarded !== null) {
+                if ($guarded[0] == $player_id) {
+                    $this->discardSentinel($guarded[1]);
+                } else {
+                    throw new BgaVisibleSystemException( "That Location is not available (reserved by a sentinel)." );
+                } 
+            }
+        }
+
         $state = $this->gamestate->state();
         $trapped_lords = array();
         if ($state["name"] == "lord19") {
@@ -1302,9 +1335,15 @@ non parmi les autres Alliés que vous jouez.
         if ($duplicateLoot != null) {
             LootManager::discard($locationId, $duplicateLoot->value);
 
-            self::notifyAllPlayers("discardLoots", clienttranslate('${player_name} draw a loot of the same value as a previous one (${value}) and must discard them and stop searching'), [
+            self::notifyAllPlayers("highlightLootsToDiscard", clienttranslate('${player_name} draw a loot of the same value as a previous one (${value}) and must discard them and stop searching'), [
                 'playerId' => $playerId,
                 'player_name' => self::getActivePlayerName(),
+                'locationId' => $locationId,
+                'loots' => [$duplicateLoot, $newLoot],
+                'value' => $duplicateLoot->value,
+            ]);
+            self::notifyAllPlayers("discardLoots", '', [
+                'playerId' => $playerId,
                 'locationId' => $locationId,
                 'loots' => [$duplicateLoot, $newLoot],
                 'value' => $duplicateLoot->value,

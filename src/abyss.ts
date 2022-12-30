@@ -1228,9 +1228,10 @@ class Abyss implements AbyssGame {
             ['refreshLords', 1],
             ['finalRound', 1],
             ['payMartialLaw', 1],
-            ['newLoot', 1],
+            ['newLoot', 500],
+            ['highlightLootsToDiscard', 1000],
             ['discardLoots', 1],
-            ['searchSanctuaryAlly', 1],
+            ['searchSanctuaryAlly', 500],
             ['endGame_scoring', 5000 * num_players + 3000],
         ];
     
@@ -1775,6 +1776,10 @@ class Abyss implements AbyssGame {
 
     notif_newLoot(notif: Notif<NotifNewLootArgs>) {
         this.locationManager.addLoot(notif.args.locationId, notif.args.newLoot);
+    }
+
+    notif_highlightLootsToDiscard(notif: Notif<NotifDiscardLootsArgs>) {
+        this.locationManager.highlightLootsToDiscard(notif.args.locationId, notif.args.loots);
     }
 
     notif_discardLoots(notif: Notif<NotifDiscardLootsArgs>) {

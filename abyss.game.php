@@ -240,6 +240,10 @@ class Abyss extends Table {
 
 		$result['krakenExpansion'] = $krakenExpansion;
 
+        if ($krakenExpansion) {
+            $result['sentinels'] = $this->getSentinels();
+        }
+
         return $result;
     }
 

@@ -54,6 +54,28 @@ trait UtilTrait {
         return true;
     }
 
+    function setGlobalVariable(string $name, /*object|array*/ $obj) {
+        /*if ($obj == null) {
+            throw new \Error('Global Variable null');
+        }*/
+        $jsonObj = json_encode($obj);
+        $this->DbQuery("INSERT INTO `global_variables`(`name`, `value`)  VALUES ('$name', '$jsonObj') ON DUPLICATE KEY UPDATE `value` = '$jsonObj'");
+    }
+
+    function getGlobalVariable(string $name, $asArray = null) {
+        $json_obj = $this->getUniqueValueFromDB("SELECT `value` FROM `global_variables` where `name` = '$name'");
+        if ($json_obj) {
+            $object = json_decode($json_obj, $asArray);
+            return $object;
+        } else {
+            return null;
+        }
+    }
+
+    function deleteGlobalVariable(string $name) {
+        $this->DbQuery("DELETE FROM `global_variables` where `name` = '$name'");
+    }
+
     function getPlayersIds() {
         return array_keys($this->loadPlayersBasicInfos());
     }
@@ -414,5 +436,49 @@ trait UtilTrait {
 
 
         return $newLoot;
+    }
+
+    function getSentinels() {
+        $sentinels = $this->getGlobalVariable(SENTINELS, true) ?? [
+            106 => ['', 0, null],
+            107 => ['', 0, null],
+            108 => ['', 0, null],
+        ];
+
+        return $sentinels;
+    }
+
+    // return [playerId, sentinelId] if guarded, else null
+    function guardedBySentinel(string $location /* lord, council, location */, int $locationArg /* lord id, faction, location id*/) {
+        $sentinels = $this->getSentinels();
+
+        $sentinelKey = $this->array_find_key($sentinels, fn($sentinel) => $sentinel[0] == $location && $sentinel[1] == $locationArg);
+
+        if ($sentinelKey !== null) {
+            $sentinel = $sentinels[$sentinelKey];
+            return [$sentinel[2], $sentinelKey];
+        } else {
+            return null;
+        }
+    }
+
+    function setSentinel(int $playerId, int $lordId, string $location /* lord, council, location */, int $locationArg /* lord id, faction, location id*/) {
+        $sentinels = $this->getSentinels();
+
+        if ($this->array_some($sentinels, fn($sentinel) => $sentinel[0] == $location && $sentinel[1] == $locationArg)) {
+            throw new BgaVisibleSystemException("A sentinel is already placed here");
+        }
+
+        $sentinels[$lordId] = [$location, $locationArg, $playerId];
+
+        $this->setGlobalVariable(SENTINELS, $sentinels);
+    }
+
+    function discardSentinel(int $lordId) {
+        $sentinels = $this->getSentinels();
+        
+        $sentinels[$lordId] = ['', 0, null];
+
+        $this->setGlobalVariable(SENTINELS, $sentinels);
     }
 }

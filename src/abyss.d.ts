@@ -84,6 +84,7 @@ interface AbyssGamedatas {
     location_deck: number;
 
     krakenExpansion: boolean;
+    sentinels?: any[][];
 }
 
 interface AbyssGame extends Game {
