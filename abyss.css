@@ -959,6 +959,7 @@ html .lord .lord-desc {
 }
 
 .ally {
+  position: relative;
   width: 58px;
   height: 86px;
   background-image: url(img/allies.jpg);

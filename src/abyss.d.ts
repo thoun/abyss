@@ -141,6 +141,10 @@ interface EnteringMartialLawArgs {
     diff: number;
 }
 
+interface EnteringLord112Args {
+    allies: AbyssAlly[];
+}
+
 interface EnteringLord116Args {
     lords: AbyssLord[];
 }

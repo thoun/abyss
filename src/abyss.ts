@@ -345,6 +345,9 @@ class Abyss implements AbyssGame {
             case 'purchase': case 'explore': case 'explore2': case 'explore3':
                 this.onEnteringPurchaseExplore(args.args);
                 break;
+            case 'lord112':
+                this.onEnteringLord112(args.args);
+                break;
             case 'lord116':
                 this.onEnteringLord116(args.args);
                 break;
@@ -364,6 +367,16 @@ class Abyss implements AbyssGame {
                     dojo.query("#cp_board_p" + player_id + " .icon.icon-monster").addClass("clickable");
                 }
             }
+        }
+    }
+
+    private onEnteringLord112(args: EnteringLord112Args) {
+        if ((this as any).isCurrentPlayerActive()) {
+            dojo.place('<div id="ally-discard"></div>', 'game-extra');
+            dojo.style($('game-extra'), "display", "block");
+            const stock = new LineStock<AbyssAlly>(this.allyManager, document.getElementById(`ally-discard`));
+            stock.addCards(args.allies);
+            stock.onCardClick = ally => this.takeAllyFromDiscard(ally.ally_id);
         }
     }
 
@@ -1263,6 +1276,16 @@ class Abyss implements AbyssGame {
         this.takeAction('stopSanctuarySearch');
     }
 
+    private takeAllyFromDiscard(id: number) {
+        if(!(this as any).checkAction('takeAllyFromDiscard')) {
+            return;
+        }
+
+        this.takeAction('takeAllyFromDiscard', {
+            id,
+        });
+    }
+
     private freeLord(id: number) {
         if(!(this as any).checkAction('freeLord')) {
             return;
@@ -1322,7 +1345,8 @@ class Abyss implements AbyssGame {
 
         const notifs = [
             ['explore', 1],
-            ['purchase', 1],
+            ['takeAllyFromDiscard', 500],
+            ['purchase', 500],
             ['exploreTake', 1000],
             ['setThreat', 1],
             ['lootReward', 1],
@@ -1655,6 +1679,18 @@ class Abyss implements AbyssGame {
                 }
             }
         }
+        
+        this.organisePanelMessages();
+    }
+
+    notif_takeAllyFromDiscard( notif: Notif<NotifPurchaseArgs> ) {
+        let player_id = notif.args.player_id;
+
+        if (player_id == this.getPlayerId()) {
+            this.getPlayerTable(Number(player_id)).addHandAlly(notif.args.ally, $('game-extra'));
+
+        }
+        $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
         
         this.organisePanelMessages();
     }

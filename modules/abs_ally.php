@@ -81,6 +81,10 @@ class Ally {
     return intval(Abyss::getValue("SELECT COUNT(*) FROM ally WHERE place = 0"));
   }
 
+  public static function getDiscardSize() {
+    return intval(Abyss::getValue("SELECT COUNT(*) FROM ally WHERE place = 10"));
+  }
+
   public static function shuffleDiscard() {
     Abyss::DbQuery( "UPDATE ally SET place = 0 WHERE place = 10" );
     return self::getDeckSize();
@@ -104,6 +108,10 @@ class Ally {
 
   public static function getJustSpent() {
     return self::typedAllies(Abyss::getCollection( "SELECT * FROM ally WHERE just_spent"));
+  }
+
+  public static function getDiscard() {
+    return self::typedAllies(Abyss::getCollection( "SELECT * FROM ally WHERE place = 10"));
   }
 
   public static function getDiversityAndValue(array $hand, $required ) {

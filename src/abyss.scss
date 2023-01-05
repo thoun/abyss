@@ -411,6 +411,7 @@ html .lord .lord-desc {
 #game-board #council-track .slot-4 {--rotation: rotate(39deg); top: 249px; left: 627px;}
 
 .ally {
+  position: relative;
   width: 58px;
   height: 86px;
   background-image: url(img/allies.jpg);

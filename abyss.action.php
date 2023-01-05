@@ -254,4 +254,14 @@
         self::ajaxResponse();
     }
 
+    public function takeAllyFromDiscard() {
+        self::setAjaxMode();
+
+        $id = self::getArg("id", AT_posint, true);
+
+        $this->game->takeAllyFromDiscard($id);
+
+        self::ajaxResponse();
+    }
+
 }

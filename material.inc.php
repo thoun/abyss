@@ -237,7 +237,7 @@ $this->lords = array(
     "name" => clienttranslate("The Hypnotist"),
     "desc" => clienttranslate("During each opponent's turn, you can purchase 2 Allies."),
   ),
-  "112" => array( // TODO
+  "112" => array(
     "name" => clienttranslate("The Healer"),
     "desc" => clienttranslate("Take the Ally of your choice from the discard."),
   ),

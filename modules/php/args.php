@@ -255,6 +255,12 @@ trait ArgsTrait {
 		];
 	}
 
+	function argLord112() {
+		return [
+			'allies' => Ally::getDiscard(),
+		];
+	}
+
 	function argLord114() {
 		$faction = intval($this->getGameStateValue(SELECTED_FACTION));
 

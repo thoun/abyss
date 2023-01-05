@@ -1502,4 +1502,36 @@ il est placé.
         $this->gamestate->nextState('next');
 
     }
+
+    function takeAllyFromDiscard(int $id) {
+        self::checkAction('takeAllyFromDiscard');
+
+        $ally = Ally::get($id);
+
+        if ($ally['place'] != 10) {
+            throw new BgaVisibleSystemException("This ally is not in the discard");
+        }
+
+        $playerId = intval($this->getActivePlayerId());
+
+        self::DbQuery( "UPDATE ally SET place = ".($playerId * -1)." WHERE ally_id = " . $ally["ally_id"] );
+
+        // Notify that the card has gone to that player
+        self::notifyAllPlayers('takeAllyFromDiscard', clienttranslate('${player_name} takes ${card_name} from the discard'), array(
+                'ally' => $ally,
+                'player_id' => $playerId,
+                'player_name' => $this->getPlayerName($playerId),
+                'card_name' => array( // for logs
+                    'log' => '<span style="color:'.$this->factions[$ally["faction"]]["colour"].'">${value} ${faction}</span>',
+                    'args' => array(
+                        'value' => $ally["value"],
+                        'faction' => $this->factions[$ally["faction"]]["ally_name"],
+                        'i18n' => ['faction']
+                    )
+                ),
+        ));
+
+        $this->gamestate->nextState('next');
+
+    }
 }

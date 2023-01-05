@@ -510,6 +510,11 @@ trait StateTrait {
                         // The Inheritor - Gain 5 Pearls.
                         $this->incPlayerPearls( $player_id, 5, "lord_110" );
                         break;
+                    case 112:
+                        if (Ally::getDiscardSize() > 0) {
+                            $transition = "lord_112";
+                        }
+                        break;
                     case 114:
                         $opponentsIds = $this->getOpponentsIds($player_id);
                         $affiliated = $this->array_some($opponentsIds, fn($opponentId) => count(Ally::getPlayerAffiliated($opponentId)) > 0);

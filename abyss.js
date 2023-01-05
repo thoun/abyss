@@ -1650,6 +1650,9 @@ var Abyss = /** @class */ (function () {
             case 'explore3':
                 this.onEnteringPurchaseExplore(args.args);
                 break;
+            case 'lord112':
+                this.onEnteringLord112(args.args);
+                break;
             case 'lord116':
                 this.onEnteringLord116(args.args);
                 break;
@@ -1667,6 +1670,16 @@ var Abyss = /** @class */ (function () {
                     dojo.query("#cp_board_p" + player_id + " .icon.icon-monster").addClass("clickable");
                 }
             }
+        }
+    };
+    Abyss.prototype.onEnteringLord112 = function (args) {
+        var _this = this;
+        if (this.isCurrentPlayerActive()) {
+            dojo.place('<div id="ally-discard"></div>', 'game-extra');
+            dojo.style($('game-extra'), "display", "block");
+            var stock = new LineStock(this.allyManager, document.getElementById("ally-discard"));
+            stock.addCards(args.allies);
+            stock.onCardClick = function (ally) { return _this.takeAllyFromDiscard(ally.ally_id); };
         }
     };
     Abyss.prototype.onEnteringLord116 = function (args) {
@@ -2442,6 +2455,14 @@ var Abyss = /** @class */ (function () {
         }
         this.takeAction('stopSanctuarySearch');
     };
+    Abyss.prototype.takeAllyFromDiscard = function (id) {
+        if (!this.checkAction('takeAllyFromDiscard')) {
+            return;
+        }
+        this.takeAction('takeAllyFromDiscard', {
+            id: id,
+        });
+    };
     Abyss.prototype.freeLord = function (id) {
         if (!this.checkAction('freeLord')) {
             return;
@@ -2491,7 +2512,8 @@ var Abyss = /** @class */ (function () {
         var num_players = Object.keys(this.gamedatas.players).length;
         var notifs = [
             ['explore', 1],
-            ['purchase', 1],
+            ['takeAllyFromDiscard', 500],
+            ['purchase', 500],
             ['exploreTake', 1000],
             ['setThreat', 1],
             ['lootReward', 1],
@@ -2785,6 +2807,14 @@ var Abyss = /** @class */ (function () {
         for (var i = 1; i <= 5; i++) {
             _loop_7();
         }
+        this.organisePanelMessages();
+    };
+    Abyss.prototype.notif_takeAllyFromDiscard = function (notif) {
+        var player_id = notif.args.player_id;
+        if (player_id == this.getPlayerId()) {
+            this.getPlayerTable(Number(player_id)).addHandAlly(notif.args.ally, $('game-extra'));
+        }
+        $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
         this.organisePanelMessages();
     };
     Abyss.prototype.notif_purchase = function (notif) {
