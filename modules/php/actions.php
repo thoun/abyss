@@ -1544,4 +1544,48 @@ il est placé.
 
         $this->gamestate->setPlayerNonMultiactive($this->getCurrentPlayerId(), 'next');
     }
+
+    function goToPlaceSentinel() {
+        self::checkAction('goToPlaceSentinel');
+
+        $this->setGameStateValue(AFTER_PLACE_SENTINEL, 2);
+        $this->gamestate->nextState('placeSentinel');
+    }
+
+    function placeSentinel(int $location, int $locationArg) {
+        self::checkAction('placeSentinel');
+
+        if (!in_array($location, [1, 2, 3])) {
+            throw new BgaVisibleSystemException("Invalid location");
+        }
+
+        $args = $this->argPlaceSentinel();
+        if ($location == 1 && $this->array_some($args['possibleLords'], fn($lord) => $lord['lord_id'] == $locationArg)) {
+            throw new BgaVisibleSystemException("Invalid Lord");
+        }
+        if ($location == 2 && $this->array_some($args['possibleCouncil'], fn($stack) => $stack == $locationArg)) {
+            throw new BgaVisibleSystemException("Invalid Council stack");
+        }
+        if ($location == 3 && $this->array_some($args['possibleLocations'], fn($location) => $location['location_id'] == $locationArg)) {
+            throw new BgaVisibleSystemException("Invalid Location");
+        }
+
+        $playerId = intval($this->getActivePlayerId());
+
+        $sentinel = $this->mustPlaceSentinel($playerId);
+
+        $LOCATIONS = [
+            1 => 'lord',
+            2 => 'council',
+            3 => 'location',
+        ];
+
+        $this->setSentinel($playerId, $sentinel->lordId, $LOCATIONS[$location], $locationArg);
+
+        if ($this->mustPlaceSentinel($playerId) != null) {
+            $this->gamestate->nextState('nextSentinel');
+        } else {
+            $this->gamestate->nextState('next'.$this->getGameStateValue(AFTER_PLACE_SENTINEL));
+        }
+    }
 }

@@ -16,8 +16,6 @@ class Lord
 	const FACTION_GREEN = 3;
 	const FACTION_BLUE = 4;
 
-	const FACTION_SMUGGLER = 10;
-
 	const EFFECT_NONE = 0;
 	const EFFECT_ONCE = 1;
 	const EFFECT_PASSIVE = 2;
@@ -75,14 +73,14 @@ class Lord
 
     if ($krakenExpansion) {
       $sql .= ",
-        (101, 5, 1,  7, 1, ".self::FACTION_SMUGGLER.", ".self::EFFECT_TURN."),
-        (102, 6, 1,  7, 4, ".self::FACTION_SMUGGLER.", ".self::EFFECT_PASSIVE."),
-        (103, 5, 1,  7, 4, ".self::FACTION_SMUGGLER.", ".self::EFFECT_PASSIVE."),
-        (104, 8, 0,  7, 1, ".self::FACTION_SMUGGLER.", ".self::EFFECT_ONCE."),
-        (105, 7, 1,  7, 1, ".self::FACTION_SMUGGLER.", ".self::EFFECT_PASSIVE."),
-        (106, 4, 0,  5, 2, ".self::FACTION_SMUGGLER.", ".self::EFFECT_ONCE."),
-        (107, 4, 0,  5, 2, ".self::FACTION_SMUGGLER.", ".self::EFFECT_ONCE."),  
-        (108, 4, 0,  5, 2, ".self::FACTION_SMUGGLER.", ".self::EFFECT_ONCE."),
+        (101, 5, 1,  7, 1, NULL, ".self::EFFECT_TURN."),
+        (102, 6, 1,  7, 4, NULL, ".self::EFFECT_PASSIVE."),
+        (103, 5, 1,  7, 4, NULL, ".self::EFFECT_PASSIVE."),
+        (104, 8, 0,  7, 1, NULL, ".self::EFFECT_ONCE."),
+        (105, 7, 1,  7, 1, NULL, ".self::EFFECT_PASSIVE."),
+        (106, 4, 0,  5, 2, NULL, ".self::EFFECT_PASSIVE."),
+        (107, 4, 0,  5, 2, NULL, ".self::EFFECT_PASSIVE."),  
+        (108, 4, 0,  5, 2, NULL, ".self::EFFECT_PASSIVE."),
 
         (109, 5, 1,  9, 2, ".self::FACTION_GREEN.", ".self::EFFECT_ONCE."),
         (110, 7, 0, 10, 2, ".self::FACTION_GREEN.", ".self::EFFECT_ONCE."),
@@ -114,7 +112,7 @@ class Lord
     $dbResult['diversity'] = intval($dbResult['diversity']);
     $dbResult['used'] = boolval($dbResult['used']);
     $dbResult['turned'] = boolval($dbResult['turned']);
-    $dbResult['faction'] = intval($dbResult['faction']);
+    $dbResult['faction'] = $dbResult['faction'] == null ? null : intval($dbResult['faction']);
     $dbResult['keys'] = $dbResult['keys'] == null ? null : intval($dbResult['keys']);
     $dbResult['place'] = intval($dbResult['place']);
     $dbResult['location'] = $dbResult['location'] == null ? null : intval($dbResult['location']);

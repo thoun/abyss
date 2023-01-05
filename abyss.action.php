@@ -274,4 +274,23 @@
         self::ajaxResponse();
     }
 
+    public function goToPlaceSentinel() {
+        self::setAjaxMode();
+
+        $this->game->goToPlaceSentinel();
+
+        self::ajaxResponse();
+    }
+
+    public function placeSentinel() {
+        self::setAjaxMode();
+
+        $location = self::getArg("location", AT_posint, true);
+        $locationArg = self::getArg("locationArg", AT_posint, true);
+
+        $this->game->placeSentinel($location, $locationArg);
+
+        self::ajaxResponse();
+    }
+
 }

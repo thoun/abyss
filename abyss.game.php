@@ -68,6 +68,7 @@ class Abyss extends Table {
             LAST_LOCATION => 23,
             KRAKEN => 24,
             SELECTED_FACTION => 25,
+            AFTER_PLACE_SENTINEL => 26,
 
             // game options
             KRAKEN_EXPANSION => KRAKEN_EXPANSION,

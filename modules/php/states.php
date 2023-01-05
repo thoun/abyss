@@ -547,7 +547,11 @@ trait StateTrait {
                 $transition = "lord_5";
             } else if ($lord['lord_id'] == 11) {
                 self::incPlayerPearls( $player_id, 1, "lord_11" );
-            }
+            } else if (in_array($lord['lord_id'], [106, 107, 108])) {
+                self::incPlayerNebulis($player_id, 1, "lord_$lord_id" );
+                $this->setGameStateValue(AFTER_PLACE_SENTINEL, 1);
+                $transition = "lord_sentinel";
+            } 
         }
 
         self::updatePlayerScore( $player_id, false );

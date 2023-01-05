@@ -556,7 +556,15 @@ class Abyss implements AbyssGame {
                     break;
                 case 'plotAtCourt':
                     (this as any).addActionButton( 'button_plot', _('Plot') + ` (1 <i class="icon icon-pearl"></i>)`, 'onPlot' );
+                    if (args.canPlaceSentinel) {
+                        (this as any).addActionButton( 'button_place_sentinel', _('Place sentinel'), () => this.goToPlaceSentinel());
+                    }
                     (this as any).addActionButton( 'button_pass', _('Pass'), 'onPass' );
+                    break;
+                case 'action':
+                    if (args.canPlaceSentinel) {
+                        (this as any).addActionButton( 'button_place_sentinel', _('Place sentinel'), () => this.goToPlaceSentinel());
+                    }
                     break;
                 case 'lord23': case 'lord26': case 'locationEffectBlackSmokers': case 'lord19': case 'lord22': case 'lord19b': case 'unusedLords':
                     (this as any).addActionButton( 'button_pass', _('Pass'), 'onPass' );
@@ -1336,6 +1344,14 @@ class Abyss implements AbyssGame {
         this.takeAction('giveKraken', {
             playerId,
         });
+    }
+
+    private goToPlaceSentinel() {
+        if(!(this as any).checkAction('goToPlaceSentinel')) {
+            return;
+        }
+
+        this.takeAction('goToPlaceSentinel');
     }
 
     public takeAction(action: string, data?: any) {

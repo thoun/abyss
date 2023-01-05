@@ -532,6 +532,12 @@ trait UtilTrait {
         $this->setGlobalVariable(SENTINELS, $sentinels);
     }
 
+    function mustPlaceSentinel(int $playerId) {
+        $sentinels = $this->getSentinels();
+
+        return $this->array_find($sentinels, fn($sentinel) => $sentinel->location == 'player' && $sentinel->playerId == $playerId);
+    }
+
     function setKrakenPlayer(int $playerId) { // 0 means no-one
         if (intval($this->getGlobalVariable(KRAKEN)) == $playerId) {
             return;

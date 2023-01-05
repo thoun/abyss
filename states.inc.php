@@ -76,7 +76,8 @@ $machinestates = array(
 			"args" => "argAffordableLords",
 			"action" => "stPlotAtCourt",
  			"possibleactions" => array( "plot", "pass", "explore", "requestSupport", "recruit", "lordEffect" ),
- 			"transitions" => array( "plot" => ST_PLAYER_PLOT_AT_COURT, "pass" => ST_PLAYER_ACTION, "explore" => ST_PRE_PURCHASE, "requestSupport" => ST_PRE_CONTROL, "requestSupport2" => ST_PLAYER_SECOND_STACK, "recruit" => ST_PLAYER_RECRUIT_PAY, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PLAYER_ACTION, "loopback" => ST_PLAYER_PLOT_AT_COURT )
+ 			"transitions" => array( "plot" => ST_PLAYER_PLOT_AT_COURT, "pass" => ST_PLAYER_ACTION, "explore" => ST_PRE_PURCHASE, "requestSupport" => ST_PRE_CONTROL, "requestSupport2" => ST_PLAYER_SECOND_STACK, "recruit" => ST_PLAYER_RECRUIT_PAY, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PLAYER_ACTION, "loopback" => ST_PLAYER_PLOT_AT_COURT
+			, "placeSentinel" => ST_PLAYER_PLACE_SENTINEL, )
  	),
 
  	ST_PLAYER_ACTION => array(
@@ -87,7 +88,8 @@ $machinestates = array(
 			"args" => "argAffordableLords",
 			"action" => "stAction",
  			"possibleactions" => array( "explore", "requestSupport", "recruit", "lordEffect" ),
- 			"transitions" => array( "explore" => ST_PRE_PURCHASE, "requestSupport" => ST_PRE_CONTROL, "requestSupport2" => ST_PLAYER_SECOND_STACK, "recruit" => ST_PLAYER_RECRUIT_PAY, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_ACTION )
+ 			"transitions" => array( "explore" => ST_PRE_PURCHASE, "requestSupport" => ST_PRE_CONTROL, "requestSupport2" => ST_PLAYER_SECOND_STACK, "recruit" => ST_PLAYER_RECRUIT_PAY, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_ACTION 
+			 , "placeSentinel" => ST_PLAYER_PLACE_SENTINEL, )
  	),
 
  	ST_PLAYER_SECOND_STACK => array(
@@ -298,6 +300,7 @@ $machinestates = array(
 			"lord_114" => ST_PLAYER_LORD114, 
 			"lord_116" => ST_PLAYER_LORD116, 
 			"lord_ambassador" => ST_PLAYER_CONTROL_POST_DRAW, 
+			"lord_sentinel" => ST_PLAYER_PLACE_SENTINEL,
 			"zombiePass" => ST_PRE_CONTROL, 
 			"loopback" => ST_PLAYER_LORD_EFFECT,
 		],
@@ -334,7 +337,7 @@ $machinestates = array(
 		"transitions" => array( "chooseLocation" => ST_PRE_CONTROL, "pass" => ST_PRE_CONTROL, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_LOCATION_EFFECT_BLACK_SMOKERS )
  	),
 
- 	ST_PLAYER_UNUSED_LORDS => array(
+ 	ST_PLAYER_UNUSED_LORDS => [
 		"name" => "unusedLords",
 		"description" => clienttranslate('${actplayer} may use the abilities of their unused Lords'),
 		"descriptionmyturn" => clienttranslate('${you} may use the abilities of your unused Lords'),
@@ -353,7 +356,7 @@ $machinestates = array(
 			"zombiePass" => ST_PRE_CONTROL, 
 			"loopback" => ST_PLAYER_UNUSED_LORDS
 		],
- 	),
+	],
 
  	ST_MULTIPLAYER_GIVE_KRAKEN => [
  		"name" => "giveKraken",
@@ -367,6 +370,22 @@ $machinestates = array(
 		],
  		"transitions" => [
 			"next" => ST_PLAYER_UNUSED_LORDS,
+		],
+	],
+
+	ST_PLAYER_PLACE_SENTINEL => [
+		"name" => "placeSentinel",
+		"description" => clienttranslate('${actplayer} must place the sentinel'),
+		"descriptionmyturn" => clienttranslate('${you} must place the sentinel'),
+		"type" => "activeplayer",
+		"args" => "argPlaceSentinel",
+		"possibleactions" => [
+			"placeSentinel",
+		],
+		"transitions" => [
+			"nextSentinel" => ST_PLAYER_PLACE_SENTINEL,
+			"next1" => ST_PRE_CONTROL, 
+			"next2" => ST_PLAYER_MARTIAL_LAW, 
 		],
 	],
 

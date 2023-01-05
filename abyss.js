@@ -1850,7 +1850,15 @@ var Abyss = /** @class */ (function () {
                     break;
                 case 'plotAtCourt':
                     this.addActionButton('button_plot', _('Plot') + " (1 <i class=\"icon icon-pearl\"></i>)", 'onPlot');
+                    if (args.canPlaceSentinel) {
+                        this.addActionButton('button_place_sentinel', _('Place sentinel'), function () { return _this.goToPlaceSentinel(); });
+                    }
                     this.addActionButton('button_pass', _('Pass'), 'onPass');
+                    break;
+                case 'action':
+                    if (args.canPlaceSentinel) {
+                        this.addActionButton('button_place_sentinel', _('Place sentinel'), function () { return _this.goToPlaceSentinel(); });
+                    }
                     break;
                 case 'lord23':
                 case 'lord26':
@@ -2505,6 +2513,12 @@ var Abyss = /** @class */ (function () {
         this.takeAction('giveKraken', {
             playerId: playerId,
         });
+    };
+    Abyss.prototype.goToPlaceSentinel = function () {
+        if (!this.checkAction('goToPlaceSentinel')) {
+            return;
+        }
+        this.takeAction('goToPlaceSentinel');
     };
     Abyss.prototype.takeAction = function (action, data) {
         data = data || {};
