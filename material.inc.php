@@ -241,11 +241,11 @@ $this->lords = array(
     "name" => clienttranslate("The Healer"),
     "desc" => clienttranslate("Take the Ally of your choice from the discard."),
   ),
-  "113" => array( // TODO
+  "113" => array(
     "name" => clienttranslate("The Highwayman"),
     "desc" => clienttranslate("When an opponent gains 2 or more Pearls, take 1 Pearl from them."),
   ),
-  "114" => array( // TODO
+  "114" => array(
     "name" => clienttranslate("The Executioner"),
     "desc" => clienttranslate("Choose a Race of Allies. Each opponent discards one affiliated Ally from that Race."),
   ),

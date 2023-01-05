@@ -433,6 +433,7 @@ trait ActionTrait {
 
         if (($keys + $pearls) > 0) {
             self::DbQuery( "UPDATE player SET player_pearls = player_pearls + $pearls, player_keys = player_keys + $keys WHERE player_id = " . $player_id );
+            $this->applyHighwayman($player_id, $pearls);
         }
 
         // Move the threat back to 0
@@ -490,6 +491,7 @@ trait ActionTrait {
         // Remove the pearls.
         self::DbQuery( "UPDATE player SET player_has_purchased = player_has_purchased + 1, player_pearls = player_pearls - ".$pearlCost." WHERE player_id = " . $player_id );
         self::DbQuery( "UPDATE player SET player_pearls = player_pearls + ".$pearlCost." WHERE player_id = " . $first_player_id );
+        $this->applyHighwayman($first_player_id, $pearlCost);
         if ($withNebulis) {
             self::DbQuery( "UPDATE player SET player_nebulis = player_nebulis - ".$nebulisCost." WHERE player_id = " . $player_id );
             self::DbQuery( "UPDATE player SET player_nebulis = player_nebulis + ".$nebulisCost." WHERE player_id = " . $first_player_id );

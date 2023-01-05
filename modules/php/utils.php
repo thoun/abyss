@@ -120,7 +120,7 @@ trait UtilTrait {
                 'player_id' => $player_id,
                 'player_name' => $players[$player_id]["player_name"],
                 'pearls' => $diff,
-                'num_pearls' => $diff,
+                'num_pearls' => abs($diff), // for log
                 'source' => $source
         );
         if (strpos($source, "lord_") === 0) {
@@ -140,6 +140,8 @@ trait UtilTrait {
             $message = clienttranslate('${player_name} gains 2 Pearls for causing the Lord track to refill');
         }
         self::notifyAllPlayers( "diff", $message, $params );
+
+        $this->applyHighwayman($player_id, $diff);
     }
 
     function checkNewKrakenOwner() {
@@ -424,6 +426,7 @@ trait UtilTrait {
 
             if (($keys + $pearls) > 0) {
                 self::DbQuery("UPDATE player SET player_pearls = player_pearls + $pearls, player_keys = player_keys + $keys WHERE player_id = $playerId");
+                $this->applyHighwayman($playerId, $pearls);
             }
 
             self::notifyAllPlayers("lootReward", clienttranslate('${player_name} earns ${rewards} with drawn loot'), [
@@ -541,5 +544,14 @@ trait UtilTrait {
             'playerId' => $playerId,
             'player_name' => $playerId == 0 ? '' : $this->getPlayerName($playerId),
         ]);
+    }
+
+    function applyHighwayman(int $playerId, int $pearls) {
+        if ($pearls >= 2 && Lord::opponentHas(113, $playerId) && !Lord::playerProtected($playerId)) {
+            $highwayman = Lord::get(113);
+            $highwaymanOwner = -$highwayman['place'];
+            $this->incPlayerPearls($playerId, -1, "lord_113");
+            $this->incPlayerPearls($highwaymanOwner, 1, "lord_113");
+        }
     }
 }
