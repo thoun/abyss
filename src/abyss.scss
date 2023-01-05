@@ -257,6 +257,10 @@ html body #game-holder .slot-fake {
   border: 3px solid #2d2;
 }
 
+.lord.selectable {
+  border: 3px solid #2d2;
+}
+
 #game-board .lord {
   display: block;
   position: absolute;
@@ -1067,4 +1071,17 @@ html a.bgabutton.affiliate-button:hover {
       box-shadow: 0 0 5px 5px red;
     }
   }
+}
+
+.krakenWrapper {
+    display: inline-block;
+    position: relative;
+}
+
+#krakenToken {
+  display: inline-block;
+  position: relative;
+  width: 65px;
+  height: 80px;
+  background-image: url('img/kraken.png');
 }

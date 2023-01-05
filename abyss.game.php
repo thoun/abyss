@@ -66,6 +66,7 @@ class Abyss extends Table {
 
             MARTIAL_LAW_ACTIVATED => 22,
             LAST_LOCATION => 23,
+            KRAKEN => 24,
 
             // game options
             KRAKEN_EXPANSION => KRAKEN_EXPANSION,
@@ -125,7 +126,7 @@ class Abyss extends Table {
 		self::setGameStateInitialValue( 'extra_turn', 0 );
 		self::setGameStateInitialValue( 'game_ending_player', -1 );
 		$this->setGameStateInitialValue(MARTIAL_LAW_ACTIVATED, 1);
-
+		$this->setGameStateInitialValue(KRAKEN, 0);
         // Init game statistics
         // (note: statistics used in this file must be defined in your stats.inc.php file)
 		self::initStat( 'table', "turns_number", 0 );
@@ -225,6 +226,7 @@ class Abyss extends Table {
 
         if ($krakenExpansion) {
             $result['sentinels'] = $this->getSentinels();
+            $result['kraken'] = intval(self::getGameStateValue(KRAKEN));
         }
 
         return $result;

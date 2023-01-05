@@ -859,6 +859,24 @@ var CardManager = /** @class */ (function () {
     };
     return CardManager;
 }());
+function slideToObjectAndAttach(game, object, destinationId, posX, posY) {
+    var destination = document.getElementById(destinationId);
+    if (destination.contains(object)) {
+        return;
+    }
+    object.style.zIndex = '10';
+    var animation = (posX || posY) ?
+        game.slideToObjectPos(object, destinationId, posX, posY) :
+        game.slideToObject(object, destinationId);
+    dojo.connect(animation, 'onEnd', dojo.hitch(this, function () {
+        object.style.top = 'unset';
+        object.style.left = 'unset';
+        object.style.position = 'relative';
+        object.style.zIndex = 'unset';
+        destination.appendChild(object);
+    }));
+    animation.play();
+}
 var AllyManager = /** @class */ (function (_super) {
     __extends(AllyManager, _super);
     function AllyManager(game) {
@@ -1566,7 +1584,7 @@ var Abyss = /** @class */ (function () {
     //                  You can use this method to perform some user interface changes at this moment.
     //
     Abyss.prototype.onEnteringState = function (stateName, args) {
-        log('onEnteringState', stateName, args);
+        log('onEnteringState', stateName, args.args);
         // Remove all current move indicators
         dojo.query('.card-current-move').removeClass('card-current-move');
         if (this.isCurrentPlayerActive()) {
@@ -1608,7 +1626,7 @@ var Abyss = /** @class */ (function () {
                 this.onEnteringRecruitPay(args.args);
                 break;
             case 'lord7':
-                this.onEnterinLord7();
+                this.onEnteringLord7();
                 break;
             case 'controlPostDraw':
                 this.onEnteringControlPostDraw(args.args);
@@ -1625,13 +1643,16 @@ var Abyss = /** @class */ (function () {
             case 'explore3':
                 this.onEnteringPurchaseExplore(args.args);
                 break;
+            case 'lord116':
+                this.onEnteringLord116(args.args);
+                break;
         }
     };
     Abyss.prototype.onEnteringRecruitPay = function (args) {
         // highlight the given lord
         dojo.query("#lords-track .lord[data-lord-id=" + args.lord_id + "]").addClass("selected");
     };
-    Abyss.prototype.onEnterinLord7 = function () {
+    Abyss.prototype.onEnteringLord7 = function () {
         // Put a red border around the player monster tokens (who aren't me)
         if (this.isCurrentPlayerActive()) {
             for (var player_id in this.gamedatas.players) {
@@ -1639,6 +1660,17 @@ var Abyss = /** @class */ (function () {
                     dojo.query("#cp_board_p" + player_id + " .icon.icon-monster").addClass("clickable");
                 }
             }
+        }
+    };
+    Abyss.prototype.onEnteringLord116 = function (args) {
+        // Put a green border around selectable lords
+        if (this.isCurrentPlayerActive()) {
+            console.log(args.lords);
+            args.lords.forEach(function (lord) {
+                return dojo.query(".lord[data-lord-id=\"".concat(lord.lord_id, "\"]")).addClass('selectable');
+            }
+            //this.lordManager.getCardElement(lord).classList.add('selectable')
+            );
         }
     };
     Abyss.prototype.onEnteringControlPostDraw = function (args) {
@@ -1713,7 +1745,13 @@ var Abyss = /** @class */ (function () {
                 this.enableAllPlayerPanels();
                 dojo.query('.player-name a').style('text-decoration', '');
                 break;
+            case 'lord116':
+                this.onLeavingLord116();
+                break;
         }
+    };
+    Abyss.prototype.onLeavingLord116 = function () {
+        dojo.query(".lord.selectable").removeClass('selectable');
     };
     // onUpdateActionButtons: in this method you can manage "action buttons" that are displayed in the
     //                        action status bar (ie: the HTML links in the status bar).
@@ -1991,6 +2029,7 @@ var Abyss = /** @class */ (function () {
         }
     };
     Abyss.prototype.createPlayerPanels = function (gamedatas) {
+        var _this = this;
         Object.values(gamedatas.players).forEach(function (player) {
             var playerId = Number(player.id);
             // Setting up players boards if needed
@@ -2001,6 +2040,11 @@ var Abyss = /** @class */ (function () {
             }
             html += "    <span class=\"key-holder spacer\" id=\"key-holder_p".concat(player.id, "\"><i class=\"icon icon-key\"></i><span class=\"spacer\" id=\"keycount_p").concat(player.id, "\">").concat(player.keys, "</span><span class=\"key-addendum\">(+<span id=\"lordkeycount_p").concat(player.id, "\"></span>)</span></span>\n                <span class=\"ally-holder spacer\" id=\"ally-holder_p").concat(player.id, "\"><i class=\"icon icon-ally\"></i><span class=\"spacer\" id=\"allycount_p").concat(player.id, "\">").concat(player.hand_size, "</span></span>\n                <span class=\"monster-holder spacer\" id=\"monster-holder_p").concat(player.id, "\"><i class=\"icon icon-monster\"></i><span class=\"spacer\" id=\"monstercount_p").concat(player.id, "\">").concat(player.num_monsters, "</span></span>\n                <span class=\"lordcount-holder spacer\"><i class=\"icon icon-lord\"></i><span id=\"lordcount_p").concat(player.id, "\">").concat(player.lords.length, "</span></span>\n                <div class=\"monster-hand\" id=\"monster-hand_p").concat(player.id, "\"></div>\n            </div>");
             dojo.place(html, player_board_div);
+            // kraken token
+            dojo.place("<div id=\"player_board_".concat(player.id, "_krakenWrapper\" class=\"krakenWrapper\"></div>"), "player_board_".concat(player.id));
+            if (gamedatas.kraken == playerId) {
+                _this.placeKrakenToken(playerId);
+            }
             // Set up scoring table in advance (helpful for testing!)
             var splitPlayerName = '';
             var chars = player.name.split("");
@@ -2020,6 +2064,23 @@ var Abyss = /** @class */ (function () {
     };
     Abyss.prototype.incNebulisCount = function (playerId, inc) {
         $('nebuliscount_p' + playerId).innerHTML = +($('nebuliscount_p' + playerId).innerHTML) + inc;
+    };
+    Abyss.prototype.placeKrakenToken = function (playerId) {
+        var krakenToken = document.getElementById('krakenToken');
+        if (krakenToken) {
+            if (playerId == 0) {
+                this.fadeOutAndDestroy(krakenToken);
+            }
+            else {
+                slideToObjectAndAttach(this, krakenToken, "player_board_".concat(playerId, "_krakenWrapper"));
+            }
+        }
+        else {
+            if (playerId != 0) {
+                dojo.place('<div id="krakenToken" class="token"></div>', "player_board_".concat(playerId, "_krakenWrapper"));
+                this.addTooltipHtml('krakenToken', _("The Kraken figure allows players to identify, during the game, the most corrupt player. The figure is given to the first player to receive any Nebulis. As soon as an opponent ties or gains more Nebulis than the most corrupt player, they get the Kraken figure"));
+            }
+        }
     };
     ///////////////////////////////////////////////////
     //// Player's action
@@ -2075,6 +2136,10 @@ var Abyss = /** @class */ (function () {
         }
     };
     Abyss.prototype.onClickLocation = function (evt) {
+        if (evt.target.classList.contains('lord') && evt.target.classList.contains('selectable') && this.gamedatas.gamestate.name === 'lord116') {
+            this.freeLord(evt.target.dataset.lordId);
+            return;
+        }
         var locations = dojo.query(evt.target).closest('.location');
         if (locations.length > 0) {
             var target = locations[0];
@@ -2363,6 +2428,14 @@ var Abyss = /** @class */ (function () {
         }
         this.takeAction('stopSanctuarySearch');
     };
+    Abyss.prototype.freeLord = function (id) {
+        if (!this.checkAction('freeLord')) {
+            return;
+        }
+        this.takeAction('freeLord', {
+            id: id,
+        });
+    };
     Abyss.prototype.takeAction = function (action, data) {
         data = data || {};
         data.lock = true;
@@ -2418,6 +2491,7 @@ var Abyss = /** @class */ (function () {
             ['highlightLootsToDiscard', 1000],
             ['discardLoots', 1],
             ['searchSanctuaryAlly', 500],
+            ['kraken', 500],
             ['endGame_scoring', 5000 * num_players + 3000],
         ];
         notifs.forEach(function (notif) {
@@ -2909,6 +2983,9 @@ var Abyss = /** @class */ (function () {
     Abyss.prototype.notif_searchSanctuaryAlly = function (notif) {
         this.getPlayerTable(notif.args.playerId).addHandAlly(notif.args.ally, document.getElementById('explore-track-deck'));
         this.setDeckSize(dojo.query('#explore-track .slot-0'), notif.args.deck_size);
+    };
+    Abyss.prototype.notif_kraken = function (notif) {
+        this.placeKrakenToken(notif.args.playerId);
     };
     return Abyss;
 }());

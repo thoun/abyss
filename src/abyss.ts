@@ -288,7 +288,7 @@ class Abyss implements AbyssGame {
     //                  You can use this method to perform some user interface changes at this moment.
     //
     onEnteringState(stateName: string, args: any) {
-        log('onEnteringState', stateName, args);
+        log('onEnteringState', stateName, args.args);
 
         // Remove all current move indicators
         dojo.query('.card-current-move').removeClass('card-current-move');
@@ -331,7 +331,7 @@ class Abyss implements AbyssGame {
                 this.onEnteringRecruitPay(args.args);
                 break;
             case 'lord7':
-                this.onEnterinLord7();
+                this.onEnteringLord7();
                 break;
             case 'controlPostDraw':
                 this.onEnteringControlPostDraw(args.args);
@@ -345,6 +345,9 @@ class Abyss implements AbyssGame {
             case 'purchase': case 'explore': case 'explore2': case 'explore3':
                 this.onEnteringPurchaseExplore(args.args);
                 break;
+            case 'lord116':
+                this.onEnteringLord116(args.args);
+                break;
         }
     }
 
@@ -353,7 +356,7 @@ class Abyss implements AbyssGame {
         dojo.query("#lords-track .lord[data-lord-id=" + args.lord_id + "]").addClass("selected");
     }
 
-    private onEnterinLord7() {
+    private onEnteringLord7() {
         // Put a red border around the player monster tokens (who aren't me)
         if ((this as any).isCurrentPlayerActive()) {
             for( var player_id in this.gamedatas.players ) {
@@ -361,6 +364,17 @@ class Abyss implements AbyssGame {
                     dojo.query("#cp_board_p" + player_id + " .icon.icon-monster").addClass("clickable");
                 }
             }
+        }
+    }
+
+    private onEnteringLord116(args: EnteringLord116Args) {
+        // Put a green border around selectable lords
+        if ((this as any).isCurrentPlayerActive()) {
+            console.log(args.lords);
+            args.lords.forEach(lord => 
+                dojo.query(`.lord[data-lord-id="${lord.lord_id}"]`).addClass('selectable')
+                //this.lordManager.getCardElement(lord).classList.add('selectable')
+            );
         }
     }
 
@@ -438,7 +452,14 @@ class Abyss implements AbyssGame {
                 (this as any).enableAllPlayerPanels();
                 dojo.query('.player-name a').style('text-decoration', '');
                 break;
+            case 'lord116':
+                this.onLeavingLord116();
+                break;
         }
+    }
+
+    private onLeavingLord116() {
+        dojo.query(`.lord.selectable`).removeClass('selectable');
     }
 
     // onUpdateActionButtons: in this method you can manage "action buttons" that are displayed in the
@@ -741,6 +762,15 @@ class Abyss implements AbyssGame {
                 <div class="monster-hand" id="monster-hand_p${player.id}"></div>
             </div>`;
             dojo.place( html, player_board_div );
+
+            
+
+            // kraken token
+            dojo.place(`<div id="player_board_${player.id}_krakenWrapper" class="krakenWrapper"></div>`, `player_board_${player.id}`);
+
+            if (gamedatas.kraken == playerId) {
+                this.placeKrakenToken(playerId);
+            }
             
             // Set up scoring table in advance (helpful for testing!)
             let splitPlayerName = '';
@@ -764,6 +794,23 @@ class Abyss implements AbyssGame {
     }
     private incNebulisCount(playerId: number, inc: number) {
         $('nebuliscount_p' + playerId).innerHTML = +($('nebuliscount_p' + playerId).innerHTML) + inc;
+    }
+
+    placeKrakenToken(playerId: number) {
+        const krakenToken = document.getElementById('krakenToken');
+        if (krakenToken) {
+            if (playerId == 0) {
+                (this as any).fadeOutAndDestroy(krakenToken);
+            } else {
+                slideToObjectAndAttach(this, krakenToken, `player_board_${playerId}_krakenWrapper`);
+            }
+        } else {
+            if (playerId != 0) {
+                dojo.place('<div id="krakenToken" class="token"></div>', `player_board_${playerId}_krakenWrapper`);
+
+                (this as any).addTooltipHtml('krakenToken', _("The Kraken figure allows players to identify, during the game, the most corrupt player. The figure is given to the first player to receive any Nebulis. As soon as an opponent ties or gains more Nebulis than the most corrupt player, they get the Kraken figure"));
+            }
+        }
     }
 
     ///////////////////////////////////////////////////
@@ -843,6 +890,11 @@ class Abyss implements AbyssGame {
     }
 
     onClickLocation ( evt ) {
+        if ((evt.target as HTMLDivElement).classList.contains('lord') && (evt.target as HTMLDivElement).classList.contains('selectable') && this.gamedatas.gamestate.name === 'lord116') {
+            this.freeLord(evt.target.dataset.lordId);
+            return;
+        }
+
         var locations = dojo.query(evt.target).closest('.location');
         if (locations.length > 0) {
         var target = locations[0];
@@ -1212,6 +1264,16 @@ class Abyss implements AbyssGame {
         this.takeAction('stopSanctuarySearch');
     }
 
+    private freeLord(id: number) {
+        if(!(this as any).checkAction('freeLord')) {
+            return;
+        }
+
+        this.takeAction('freeLord', {
+            id,
+        });
+    }
+
     public takeAction(action: string, data?: any) {
         data = data || {};
         data.lock = true;
@@ -1271,6 +1333,7 @@ class Abyss implements AbyssGame {
             ['highlightLootsToDiscard', 1000],
             ['discardLoots', 1],
             ['searchSanctuaryAlly', 500],
+            ['kraken', 500],
             ['endGame_scoring', 5000 * num_players + 3000],
         ];
     
@@ -1829,6 +1892,10 @@ class Abyss implements AbyssGame {
         this.getPlayerTable(notif.args.playerId).addHandAlly(notif.args.ally, document.getElementById('explore-track-deck'));
 
         this.setDeckSize(dojo.query('#explore-track .slot-0'), notif.args.deck_size);
+    }
+
+    notif_kraken(notif: Notif<any>) {
+        this.placeKrakenToken(notif.args.playerId);
     }
 
 }

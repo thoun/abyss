@@ -280,10 +280,25 @@ $machinestates = array(
  			"type" => "activeplayer",
   		"args" => "argLordEffect",
   		"action" => "stLordEffect",
-  		"possibleactions" => array( "pass" ),
- 			"transitions" => array( "done" => ST_PRE_CONTROL, "lord_2" => ST_MULTI_LORD2, "lord_4" => ST_PLAYER_LORD4, "lord_5" => ST_MULTI_LORD5,
-  										"lord_7" => ST_PLAYER_LORD7, "lord_16" => ST_PLAYER_LORD16, "lord_19" => ST_PLAYER_LORD19, "lord_22" => ST_PLAYER_LORD22,
-  										"lord_26" => ST_PLAYER_LORD26, "lord_23" => ST_PLAYER_LORD23, "lord_ambassador" => ST_PLAYER_CONTROL_POST_DRAW, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_LORD_EFFECT )
+  		"possibleactions" => [
+			"pass",
+		],
+		"transitions" => [ 
+			"done" => ST_PRE_CONTROL, 
+			"lord_2" => ST_MULTI_LORD2, 
+			"lord_4" => ST_PLAYER_LORD4, 
+			"lord_5" => ST_MULTI_LORD5,
+			"lord_7" => ST_PLAYER_LORD7, 
+			"lord_16" => ST_PLAYER_LORD16, 
+			"lord_19" => ST_PLAYER_LORD19, 
+			"lord_22" => ST_PLAYER_LORD22,
+			"lord_26" => ST_PLAYER_LORD26, 
+			"lord_23" => ST_PLAYER_LORD23, 
+			"lord_116" => ST_PLAYER_LORD116, 
+			"lord_ambassador" => ST_PLAYER_CONTROL_POST_DRAW, 
+			"zombiePass" => ST_PRE_CONTROL, 
+			"loopback" => ST_PLAYER_LORD_EFFECT,
+		],
  	),
 
  	ST_PLAYER_CLEANUP_DISCARD => array(
@@ -459,6 +474,22 @@ $machinestates = array(
   										"return_7" => ST_PLAYER_EXPLORE, "return_71" => ST_PLAYER_EXPLORE2, "return_72" => ST_PLAYER_EXPLORE3, "return_9" => ST_PLAYER_CONTROL, "return_11" => ST_PLAYER_CHOOSE_MONSTER_REWARD,
   										"return_12" => ST_PLAYER_RECRUIT_PAY, "return_13" => ST_PLAYER_AFFILIATE, "return_15" => ST_PLAYER_CLEANUP_DISCARD, "return_16" => ST_PLAYER_CONTROL_POST_DRAW, "return_18" => ST_PLAYER_UNUSED_LORDS, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_LORD21 )
  	),
+
+ 	ST_PLAYER_LORD116 => [
+ 		"name" => "lord116",
+  		"description" => clienttranslate('${actplayer} must choose a Lord to free from its Location'),
+		"descriptionmyturn" => clienttranslate('${you} must choose a Lord to free from its Location'),
+		"type" => "activeplayer",
+		"args" => "argLord116",
+  		"possibleactions" => [
+			"freeLord",
+		],
+ 		"transitions" => [
+			"freeLord" => ST_PRE_CONTROL, 
+			"zombiePass" => ST_PRE_CONTROL, 
+			"loopback" => ST_PLAYER_LORD116,
+		],
+	],
 
 	 ST_FINAL_SCORING => array(
  		"name" => "finalScoring",

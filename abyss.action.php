@@ -234,4 +234,14 @@
         self::ajaxResponse();
     }
 
+    public function freeLord() {
+        self::setAjaxMode();
+
+        $id = self::getArg("id", AT_posint, true);
+
+        $this->game->freeLord($id);
+
+        self::ajaxResponse();
+    }
+
 }

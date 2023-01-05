@@ -254,4 +254,15 @@ trait ArgsTrait {
 			'diff' => $diff,
 		];
 	}
+
+	function argLord116() {
+		$playerId = self::getActivePlayerId();
+		
+		$lords = Lord::getPlayerHand($playerId);
+		$lords = array_values(array_filter($lords, fn($lord) => $lord["location"] != null));
+
+		return [
+			'lords' => $lords,
+		];
+	}
 } 

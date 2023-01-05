@@ -253,7 +253,7 @@ $this->lords = array(
     "name" => clienttranslate("The Recipient"),
     "desc" => clienttranslate("During your turn, you can add a Lord to a free space of the Court."),
   ),
-  "116" => array( // TODO
+  "116" => array(
     "name" => clienttranslate("The Liberator"),
     "desc" => clienttranslate("Free one of your Lords which has been assigned to control a Location."),
   ),

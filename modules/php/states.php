@@ -34,7 +34,7 @@ trait StateTrait {
         $this->gamestate->nextState( );
     }
 
-    function doFinalScoring() {
+    function doFinalScoring() { // TODOTEST
         $breakdowns = array();
 
         $players = self::loadPlayersBasicInfos();
@@ -43,22 +43,6 @@ trait StateTrait {
             $breakdowns[$pid] = self::updatePlayerScore( $pid, true, false, false );
             $max_score = max($max_score, $breakdowns[$pid]["score"]);
         }
-
-        // TODO GBA
-        /*
-        Important : en fin de partie, chaque Nebulis en votre possession vous
-fera perdre 1 Point d’Influence !
-Le joueur qui en possède le plus (le plus corrompu, donc) aura un malus
-supplémentaire de 5 Points d’Influence.
-La figurine Kraken permet d’identifier, au cours de la partie, le joueur le plus
-corrompu. Celle-ci va au premier joueur qui reçoit des Nebulis. Dès qu’un
-adversaire atteint ou dépasse le total de Nebulis du joueur le plus corrompu,
-il reçoit le Kraken (dans le cas où plusieurs adversaires seraient à égalité, le
-joueur possédant la figurine Kraken choisit à qui il la donne).
-Si le joueur qui possède la figurine Kraken se défausse de sa dernière Nebulis
-et qu’aucun adversaire n’en possède, alors le Kraken est replacé à côté de la
-coupelle de Nebulis.
-*/
 
         // Fetch highest players
         $winning_pearls = NULL;
@@ -525,6 +509,15 @@ coupelle de Nebulis.
                     case 110:
                         // The Inheritor - Gain 5 Pearls.
                         $this->incPlayerPearls( $player_id, 5, "lord_110" );
+                        break;
+                    case 116:
+                        $lords = Lord::getPlayerHand($player_id);
+                        foreach ($lords as $lord) {
+                            if ($lord["location"]) {
+                                $transition = "lord_116";
+                                break;
+                            }
+                        }
                         break;
                     default;
                         throw new BgaVisibleSystemException( "Not implemented." );

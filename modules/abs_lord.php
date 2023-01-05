@@ -146,6 +146,10 @@ class Lord
     Abyss::DbQuery( "UPDATE lord SET place = ".(-1 * $player_id)." WHERE lord_id = $lord_id" );
   }
 
+  public static function freeLord(int $lord_id) {
+    Abyss::DbQuery( "UPDATE lord SET location = NULL WHERE lord_id = $lord_id" );
+  }
+
   public static function playerProtected(int $player_id ) {
     return self::playerHas( 14, $player_id );
   }

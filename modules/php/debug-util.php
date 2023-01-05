@@ -16,10 +16,11 @@ trait DebugUtilTrait {
 		$this->debugPickAllies(2343492);
 		//$this->debugPickAllies(2343493);
 
-		//$this->debugAddLocations(2343492);
-		//$this->debugAddLord(2343492);
+		$this->debugAddLocations(2343492);
+		$this->debugAddLord(2343492);
 
 		$this->DbQuery("UPDATE player SET player_nebulis = 3");
+		$this->DbQuery("UPDATE player SET player_pearls = 0");
 		//$this->DbQuery("UPDATE player SET player_keys = 3");
 		//$this->DbQuery("UPDATE location SET place = 1 WHERE location_id = 103");
     }
@@ -38,7 +39,7 @@ trait DebugUtilTrait {
 		}
 	}
 
-	function debugAddLord(int $playerId, $location = null, int $number = 5) {
+	function debugAddLord(int $playerId, $location = null, int $number = 3) {
 		for ($i=0; $i<$number; $i++) {
 			$lord = Abyss::getObject( "SELECT * FROM lord WHERE place = 0 ORDER BY RAND() LIMIT 1" );
 			self::DbQuery($location == null ? 

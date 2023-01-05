@@ -23,6 +23,7 @@
         "node_modules/bga-cards/src/stocks/visible-deck.ts",
         "node_modules/bga-cards/src/stocks/all-visible-deck.ts",
         "node_modules/bga-cards/src/card-manager.ts",
+        "src/slide-utils.ts",
         "src/ally-manager.ts",
         "src/lord-manager.ts",
         "src/location-manager.ts",

@@ -59,6 +59,13 @@ interface AbyssPlayer extends Player {
     num_monsters: number;
 }
 
+interface Sentinel {
+    lordId: number;
+    playerId: number | null;
+    location: string | null;
+    locationArg: number | null;
+}
+
 interface AbyssGamedatas {
     current_player_id: string;
     decision: {decision_type: string};
@@ -84,7 +91,8 @@ interface AbyssGamedatas {
     location_deck: number;
 
     krakenExpansion: boolean;
-    sentinels?: any[][];
+    kraken?: number;
+    sentinels?: Sentinel[];
 }
 
 interface AbyssGame extends Game {
@@ -130,6 +138,10 @@ interface EnteringPurchaseArgs {
 interface EnteringMartialLawArgs {
     canPay: boolean;
     diff: number;
+}
+
+interface EnteringLord116Args {
+    lords: AbyssLord[];
 }
 
 interface NotifFinalRoundArgs {

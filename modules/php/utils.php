@@ -1,5 +1,7 @@
 <?php
 
+require_once('objects/sentinel.php');
+
 trait UtilTrait {
 
     //////////////////////////////////////////////////////////////////////////////
@@ -140,6 +142,36 @@ trait UtilTrait {
         self::notifyAllPlayers( "diff", $message, $params );
     }
 
+    function checkNewKrakenOwner() {
+        $currentKrakenOwner = intval($this->getGameStateValue(KRAKEN));
+
+        $playersNebulisDb = Abyss::getCollection("SELECT player_id, player_nebulis FROM player");
+        $playersNebulisAfter = [];
+        foreach($playersNebulisDb as $dbLine) {
+            $playersNebulisAfter[intval($dbLine['player_id'])] = intval($dbLine['player_nebulis']);
+        }
+        $nebulisMax = max($playersNebulisAfter);
+        
+        $mustSelectNewPlayer = false;
+        if ($this->array_every($playersNebulisAfter, fn($nebulis) => $nebulis == 0)) {
+            $this->setKrakenPlayer(0);
+        } else {
+            $giveTo = [];
+            foreach($playersNebulisAfter as $pId => $nebulis) {
+                if ($pId != $currentKrakenOwner && $nebulis >= $nebulisMax) {
+                    $giveTo[] = $pId;
+                }
+            }
+            
+            if (count($giveTo) > 1) {
+                $mustSelectNewPlayer = true;
+            } else if (count($giveTo) == 1) {
+                $this->setKrakenPlayer($giveTo[0]);
+            }
+        }
+        $this->setGlobalVariable(MUST_SELECT_NEW_PLAYER_FOR_KRAKEN, $mustSelectNewPlayer ? $giveTo : []); // TODO GBA
+    }
+
     function incPlayerNebulis(int $player_id, int $diff, string $source) {
         self::DbQuery( "UPDATE player SET player_nebulis = player_nebulis + $diff WHERE player_id = $player_id" );
         $players = self::loadPlayersBasicInfos();
@@ -156,6 +188,8 @@ trait UtilTrait {
             $message = clienttranslate('${player_name} gains ${num_nebulis} Nebulis for recruiting with a Kraken of value ${kraken_value}');
         }
         self::notifyAllPlayers( "diff", $message, $params );
+
+        $this->checkNewKrakenOwner();
     }
 
     function incPlayerKeys(int $player_id, int $diff, string $source) {
@@ -250,7 +284,8 @@ trait UtilTrait {
         // Locations
         $location_points = 0;
 
-        $playerNebulis = $this->isKrakenExpansion() ? $this->getPlayerNebulis($player_id) : 0;
+        $krakenExpansion = $this->isKrakenExpansion();
+        $playerNebulis = $krakenExpansion ? $this->getPlayerNebulis($player_id) : 0;
 
         foreach ($locations as $l) {
             if ($l["location_id"] == 9) {
@@ -294,6 +329,18 @@ trait UtilTrait {
             }
         }
 
+        $nebulisPoints = 0;
+        $krakenPoints = 0;
+        if ($final_scoring) {
+            $nebulisPoints = -$playerNebulis;
+
+            if (intval($this->getGameStateValue(KRAKEN)) == $player_id) {
+                $krakenPoints = -5;
+            }
+
+            self::DbQuery( "UPDATE player SET player_score = player_score + $nebulisPoints + $krakenPoints WHERE player_id=$player_id" );
+        }
+
         if ($final_scoring && $log) {
             self::setStat( $monster_points, "points_from_monsters", $player_id );
             self::setStat( $lord_points, "points_from_lords", $player_id );
@@ -301,7 +348,7 @@ trait UtilTrait {
             self::setStat( $location_points, "points_from_locations", $player_id );
         }
 
-        $score = $affiliated_points + $lord_points + $monster_points + $location_points;
+        $score = $affiliated_points + $lord_points + $monster_points + $location_points + $nebulisPoints + $krakenPoints;
         $player_pearls = self::getPlayerPearls( $player_id );
 
         if ($update) {
@@ -439,37 +486,35 @@ trait UtilTrait {
     }
 
     function getSentinels() {
-        $sentinels = $this->getGlobalVariable(SENTINELS, true) ?? [
-            106 => ['', 0, null],
-            107 => ['', 0, null],
-            108 => ['', 0, null],
+        $sentinels = $this->getGlobalVariable(SENTINELS) ?? [
+            new Sentinel(106),
+            new Sentinel(107),
+            new Sentinel(108),
         ];
 
         return $sentinels;
     }
 
-    // return [playerId, sentinelId] if guarded, else null
+    // return $sentinel if guarded, else null
     function guardedBySentinel(string $location /* lord, council, location */, int $locationArg /* lord id, faction, location id*/) {
         $sentinels = $this->getSentinels();
 
-        $sentinelKey = $this->array_find_key($sentinels, fn($sentinel) => $sentinel[0] == $location && $sentinel[1] == $locationArg);
+        $sentinel = $this->array_find($sentinels, fn($sentinel) => $sentinel->location == $location && $sentinel->locationArg == $locationArg);
 
-        if ($sentinelKey !== null) {
-            $sentinel = $sentinels[$sentinelKey];
-            return [$sentinel[2], $sentinelKey];
-        } else {
-            return null;
-        }
+        return $sentinel;
     }
 
-    function setSentinel(int $playerId, int $lordId, string $location /* lord, council, location */, int $locationArg /* lord id, faction, location id*/) {
+    function setSentinel(int $playerId, int $lordId, string $location /* player, lord, council, location */, int $locationArg /* null, lord id, faction, location id*/) {
         $sentinels = $this->getSentinels();
 
-        if ($this->array_some($sentinels, fn($sentinel) => $sentinel[0] == $location && $sentinel[1] == $locationArg)) {
+        if ($this->array_some($sentinels, fn($sentinel) => $sentinel->location == $location && $sentinel->locationArg == $locationArg)) {
             throw new BgaVisibleSystemException("A sentinel is already placed here");
         }
 
-        $sentinels[$lordId] = [$location, $locationArg, $playerId];
+        $sentinel = $this->array_find($sentinels, fn($sentinel) => $sentinel->lordId == $lordId);
+        $sentinel->playerId = $playerId;
+        $sentinel->location = $location;
+        $sentinel->locationArg = $locationArg;
 
         $this->setGlobalVariable(SENTINELS, $sentinels);
     }
@@ -477,8 +522,24 @@ trait UtilTrait {
     function discardSentinel(int $lordId) {
         $sentinels = $this->getSentinels();
         
-        $sentinels[$lordId] = ['', 0, null];
+        $sentinel = $this->array_find($sentinels, fn($sentinel) => $sentinel->lordId == $lordId);
+        $sentinel->location = 'player';
+        $sentinel->locationArg = null;
 
         $this->setGlobalVariable(SENTINELS, $sentinels);
+    }
+
+    function setKrakenPlayer(int $playerId) { // 0 means no-one
+        if (intval($this->getGlobalVariable(KRAKEN)) == $playerId) {
+            return;
+        }
+
+        $this->setGameStateValue(KRAKEN, $playerId);
+
+        $log = $playerId == 0 ? '' : clienttranslate('${player_name} gets the Kraken (most corrupted player)');
+        $this->notifyAllPlayers("kraken", $log, [
+            'playerId' => $playerId,
+            'player_name' => $playerId == 0 ? '' : $this->getPlayerName($playerId),
+        ]);
     }
 }

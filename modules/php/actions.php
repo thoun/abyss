@@ -168,8 +168,8 @@ trait ActionTrait {
         if ($this->isKrakenExpansion()) {
             $guarded = $this->guardedBySentinel('lord', $lord_id);
             if ($guarded !== null) {
-                if ($guarded[0] == $player_id) {
-                    $this->discardSentinel($guarded[1]);
+                if ($guarded->playerId == $player_id) {
+                    $this->discardSentinel($guarded->lordId);
                 } else {
                     throw new BgaVisibleSystemException( "That Lord is not available (reserved by a sentinel)." );
                 } 
@@ -493,6 +493,7 @@ trait ActionTrait {
         if ($withNebulis) {
             self::DbQuery( "UPDATE player SET player_nebulis = player_nebulis - ".$nebulisCost." WHERE player_id = " . $player_id );
             self::DbQuery( "UPDATE player SET player_nebulis = player_nebulis + ".$nebulisCost." WHERE player_id = " . $first_player_id );
+            $this->checkNewKrakenOwner();
         }
         self::incGameStateValue( 'purchase_cost', 1 );
 
@@ -623,6 +624,7 @@ il est placé.
         }
         if ($nebulisCost > 0) {
             self::DbQuery( "UPDATE player SET player_pearls = player_nebulis - $nebulisCost WHERE player_id = " . $player_id );
+            $this->checkNewKrakenOwner();
         }
 
         $krakenAllies = array_filter($allies, fn($ally) => $ally['faction'] == 10);
@@ -678,8 +680,8 @@ il est placé.
         if ($this->isKrakenExpansion()) {
             $guarded = $this->guardedBySentinel('council', $faction);
             if ($guarded !== null) {
-                if ($guarded[0] == $player_id) {
-                    $this->discardSentinel($guarded[1]);
+                if ($guarded->playerId == $player_id) {
+                    $this->discardSentinel($guarded->lordId);
                 } else {
                     throw new BgaVisibleSystemException( "That stack is not available (reserved by a sentinel)." );
                 } 
@@ -805,9 +807,14 @@ il est placé.
         if ($state['name'] == 'martialLaw') {
             $args = $this->argMartialLaw();
             if (count($ally_ids) > $args['diff']) {
-                throw new BgaUserException( sprintf( self::_("You must discard %d card(s)."), 1 ) );
+                throw new BgaUserException(sprintf(self::_("You must discard %d card(s)."), $args['diff']));
             } else if (count($ally_ids) == $args['diff']) {
                 $afterMartialLaw = 'next';
+            }
+
+            $allies = Ally::typedAllies(Abyss::getCollection( "SELECT * FROM ally WHERE place = -" . $player_id . " AND NOT affiliated AND ally_id IN (".implode(",", $ally_ids).")"));
+            if ($this->array_some($allies, fn($ally) => $ally['faction'] == 10)) {
+                throw new BgaUserException(self::_("You cannot discard Kraken Allies in this way."));
             }
         } else if ($state['name'] == 'lord2') {
             // Discard 1 card
@@ -1164,8 +1171,8 @@ il est placé.
         if ($this->isKrakenExpansion()) {
             $guarded = $this->guardedBySentinel('location', $location_id);
             if ($guarded !== null) {
-                if ($guarded[0] == $player_id) {
-                    $this->discardSentinel($guarded[1]);
+                if ($guarded->playerId == $player_id) {
+                    $this->discardSentinel($guarded->lordId);
                 } else {
                     throw new BgaVisibleSystemException( "That Location is not available (reserved by a sentinel)." );
                 } 
@@ -1437,5 +1444,29 @@ il est placé.
         ]);
 
         $this->gamestate->nextState('next');
+    }
+
+    function freeLord(int $id) {
+        self::checkAction('freeLord');
+
+        $args = $this->argLord116();
+        if (!$this->array_some($args['lords'], fn($lord) => $lord['lord_id'] == $id)) {
+            throw new BgaVisibleSystemException("That Lord is not available.");
+        }
+
+        $playerId = intval($this->getActivePlayerId());
+
+        $lord = Lord::get($id);
+        Lord::freeLord($id);
+
+        self::notifyAllPlayers("recruit", clienttranslate('${player_name} frees lord ${lord_name}'), [
+            'lord' => $lord,
+            'player_id' => $playerId,
+            'player_name' => self::getActivePlayerName(),
+            "i18n" => ['lord_name'],
+            "lord_name" => $this->lords[$id]["name"],
+        ]);
+
+        $this->gamestate->nextState('freeLord');
     }
 }
