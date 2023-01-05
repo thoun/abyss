@@ -255,6 +255,12 @@ trait ArgsTrait {
 		];
 	}
 
+	function argGiveKraken() {
+		return [
+			'playersIds' => $this->getGlobalVariable(MUST_SELECT_NEW_PLAYER_FOR_KRAKEN),
+		];
+    }
+
 	function argLord112() {
 		return [
 			'allies' => Ally::getDiscard(),

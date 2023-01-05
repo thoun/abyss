@@ -141,6 +141,10 @@ interface EnteringMartialLawArgs {
     diff: number;
 }
 
+interface EnteringGiveKrakenArgs {
+    playersIds: number[];
+}
+
 interface EnteringLord112Args {
     allies: AbyssAlly[];
 }

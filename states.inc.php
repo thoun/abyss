@@ -345,6 +345,7 @@ $machinestates = array(
 			"pass",
 		],
 		"transitions" => [
+			"giveKraken" => ST_MULTIPLAYER_GIVE_KRAKEN,
 			"pass" => ST_PLAYER_CLEANUP_DISCARD, 
 			"lord_17" => ST_PLAYER_LORD17, 
 			"lord_21" => ST_PLAYER_LORD21, 
@@ -353,6 +354,21 @@ $machinestates = array(
 			"loopback" => ST_PLAYER_UNUSED_LORDS
 		],
  	),
+
+ 	ST_MULTIPLAYER_GIVE_KRAKEN => [
+ 		"name" => "giveKraken",
+  		"description" => clienttranslate('The player with the Kraken must give it to another player'),
+		"descriptionmyturn" => clienttranslate('${you} must give the Kraken to another player'),
+		"type" => "multipleactiveplayer",
+  		"action" => "stGiveKraken",
+		"args" => "argGiveKraken",
+  		"possibleactions" => [
+			"giveKraken"
+		],
+ 		"transitions" => [
+			"next" => ST_PLAYER_UNUSED_LORDS,
+		],
+	],
 
  	/* Lord effect (1xx) */
  	ST_MULTI_LORD2 => array(

@@ -1534,4 +1534,14 @@ il est placé.
         $this->gamestate->nextState('next');
 
     }
+
+    function giveKraken(int $toPlayerId) {
+        self::checkAction('giveKraken');
+
+        $this->setKrakenPlayer($toPlayerId);
+
+        $this->setGlobalVariable(MUST_SELECT_NEW_PLAYER_FOR_KRAKEN, []);
+
+        $this->gamestate->setPlayerNonMultiactive($this->getCurrentPlayerId(), 'next');
+    }
 }

@@ -616,6 +616,14 @@ class Abyss implements AbyssGame {
                         document.getElementById(`selectAllyRace${i}`).classList.add('affiliate-button');
                     }
                     break;
+                case 'giveKraken':
+                    const giveKrakenArgs = args as EnteringGiveKrakenArgs;      
+                    giveKrakenArgs.playersIds.forEach(playerId => {
+                        const player = this.getPlayer(playerId);
+                        (this as any).addActionButton(`giveKraken${playerId}-button`, player.name, () => this.giveKraken(playerId));
+                        document.getElementById(`giveKraken${playerId}-button`).style.border = `3px solid #${player.color}`;
+                    });
+                    break;
             }
         }
     }
@@ -720,6 +728,10 @@ class Abyss implements AbyssGame {
 
     public getPlayerId(): number {
         return Number((this as any).player_id);
+    }
+
+    private getPlayer(playerId: number): AbyssPlayer {
+        return Object.values(this.gamedatas.players).find(player => Number(player.id) == playerId);
     }
 
     private getPlayerTable(playerId: number): PlayerTable {
@@ -1313,6 +1325,16 @@ class Abyss implements AbyssGame {
 
         this.takeAction('discard', {
             ally_ids: ids.join(';'),
+        });
+    }
+
+    private giveKraken(playerId: number) {
+        if(!(this as any).checkAction('giveKraken')) {
+            return;
+        }
+
+        this.takeAction('giveKraken', {
+            playerId,
         });
     }
 

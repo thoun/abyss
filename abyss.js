@@ -1924,6 +1924,14 @@ var Abyss = /** @class */ (function () {
                         _loop_5(i_6);
                     }
                     break;
+                case 'giveKraken':
+                    var giveKrakenArgs = args;
+                    giveKrakenArgs.playersIds.forEach(function (playerId) {
+                        var player = _this.getPlayer(playerId);
+                        _this.addActionButton("giveKraken".concat(playerId, "-button"), player.name, function () { return _this.giveKraken(playerId); });
+                        document.getElementById("giveKraken".concat(playerId, "-button")).style.border = "3px solid #".concat(player.color);
+                    });
+                    break;
             }
         }
     };
@@ -2021,6 +2029,9 @@ var Abyss = /** @class */ (function () {
     };
     Abyss.prototype.getPlayerId = function () {
         return Number(this.player_id);
+    };
+    Abyss.prototype.getPlayer = function (playerId) {
+        return Object.values(this.gamedatas.players).find(function (player) { return Number(player.id) == playerId; });
     };
     Abyss.prototype.getPlayerTable = function (playerId) {
         return this.playersTables.find(function (playerTable) { return playerTable.playerId === playerId; });
@@ -2485,6 +2496,14 @@ var Abyss = /** @class */ (function () {
         }
         this.takeAction('discard', {
             ally_ids: ids.join(';'),
+        });
+    };
+    Abyss.prototype.giveKraken = function (playerId) {
+        if (!this.checkAction('giveKraken')) {
+            return;
+        }
+        this.takeAction('giveKraken', {
+            playerId: playerId,
         });
     };
     Abyss.prototype.takeAction = function (action, data) {

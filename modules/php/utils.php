@@ -171,7 +171,7 @@ trait UtilTrait {
                 $this->setKrakenPlayer($giveTo[0]);
             }
         }
-        $this->setGlobalVariable(MUST_SELECT_NEW_PLAYER_FOR_KRAKEN, $mustSelectNewPlayer ? $giveTo : []); // TODO GBA
+        $this->setGlobalVariable(MUST_SELECT_NEW_PLAYER_FOR_KRAKEN, $mustSelectNewPlayer ? $giveTo : []);
     }
 
     function incPlayerNebulis(int $player_id, int $diff, string $source) {

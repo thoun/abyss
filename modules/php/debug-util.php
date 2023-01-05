@@ -20,7 +20,7 @@ trait DebugUtilTrait {
 		$this->debugAddLord(2343492);
 
 		$this->DbQuery("UPDATE player SET player_nebulis = 3");
-		$this->DbQuery("UPDATE player SET player_pearls = 10");
+		$this->DbQuery("UPDATE player SET player_pearls = 0");
 		//$this->DbQuery("UPDATE player SET player_keys = 3");
 		//$this->DbQuery("UPDATE location SET place = 1 WHERE location_id = 103");
     }

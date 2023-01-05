@@ -264,4 +264,14 @@
         self::ajaxResponse();
     }
 
+    public function giveKraken() {
+        self::setAjaxMode();
+
+        $playerId = self::getArg("playerId", AT_posint, true);
+
+        $this->game->giveKraken($playerId);
+
+        self::ajaxResponse();
+    }
+
 }

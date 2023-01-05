@@ -124,6 +124,13 @@ trait StateTrait {
     }
 
     function stUnusedLords() {
+        // if a player must give the kraken, we do this right now!
+        $mustSelectNewPlayer = $this->getGlobalVariable(MUST_SELECT_NEW_PLAYER_FOR_KRAKEN) ?? [];
+        if (count($mustSelectNewPlayer) > 0) {
+            $this->gamestate->nextState('giveKraken');
+            return;
+        }
+
         // If the player has no unused Lords, then next!
         $player_id = $this->getActivePlayerId();
 
@@ -617,5 +624,9 @@ trait StateTrait {
             $playerId = self::getActivePlayerId();
             $this->applySearchSanctuary($playerId, $locationId);
         }
+    }
+
+  	function stGiveKraken() {
+        $this->gamestate->setPlayersMultiactive([intval(self::getGameStateValue(KRAKEN))], 'next', true);
     }
 }
