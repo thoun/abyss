@@ -104,6 +104,7 @@ interface AbyssGame extends Game {
     connectTooltip(node: any, html: string | Function, offsetType: string): void;
     getPlayerId(): number;
     organisePanelMessages(): void;
+    discardAllies(ids: number[]): void;
 }
 
 type WithNebulis = { [nebulis: number]: boolean };

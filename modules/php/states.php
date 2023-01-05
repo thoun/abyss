@@ -510,6 +510,13 @@ trait StateTrait {
                         // The Inheritor - Gain 5 Pearls.
                         $this->incPlayerPearls( $player_id, 5, "lord_110" );
                         break;
+                    case 114:
+                        $opponentsIds = $this->getOpponentsIds($player_id);
+                        $affiliated = $this->array_some($opponentsIds, fn($opponentId) => count(Ally::getPlayerAffiliated($opponentId)) > 0);
+                        if ($affiliated) {
+                            $transition = "lord_114";
+                        }
+                        break;
                     case 116:
                         $lords = Lord::getPlayerHand($player_id);
                         foreach ($lords as $lord) {
@@ -558,6 +565,29 @@ trait StateTrait {
                 $this->gamestate->setPlayerNonMultiactive($pid, 'next');
             }
         }
+    }
+
+    function stLord114() {
+        $player_id = self::getActivePlayerId();
+        $faction = intval($this->getGameStateValue(SELECTED_FACTION));
+
+        $opponentsIds = $this->getOpponentsIds($player_id);
+        $mustDiscard = [];
+        foreach($opponentsIds as $opponentId) {
+            if (!Lord::playerProtected($opponentId)) {
+                $affiliated = Ally::getPlayerAffiliated($opponentId);
+                $affiliatedOfFaction = array_filter($affiliated, fn($ally) => $ally['faction'] == $faction);
+                if (count($affiliatedOfFaction) > 0) {
+                    $mustDiscard[] = $opponentId;
+                }
+            }
+        }
+        
+        if (count($mustDiscard) == 0) {
+            $this->gamestate->nextState('next');
+        } else {
+            $this->gamestate->setPlayersMultiactive($mustDiscard, 'next', true);
+        }        
     }
 
     function stCleanupDiscard() {

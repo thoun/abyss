@@ -67,7 +67,7 @@ class PlayerTable {
     }
     
     public removeHandAllies(allies: AbyssAlly[]) {
-        allies.forEach(ally => this.hand.removeCard(ally));
+        allies.forEach(ally => this.game.allyManager.removeCard(ally));
     }
     
     public organisePanelMessages() {
@@ -100,6 +100,7 @@ class PlayerTable {
             sort: PlayerTable.sortAllies,
         });
         this.affiliatedStocks[faction].addCards(allies.filter(ally => ally.faction == faction));
+        this.affiliatedStocks[faction].onCardClick = ally => this.affiliatedAllyClick(ally);
       }
       return parent;
     }
@@ -130,5 +131,11 @@ class PlayerTable {
     public addLocation(location: AbyssLocation, lords: AbyssLord[]) {
         this.locations.addCard(location);
         this.placeLocationLords(location, lords);
+    }
+    
+    private affiliatedAllyClick(ally: AbyssAlly): void {
+        if ((this.game as any).gamedatas.gamestate.name === 'lord114multi') {
+            this.game.discardAllies([ally.ally_id]);
+        }
     }
 }

@@ -31,7 +31,7 @@ class AllyManager extends CardManager<AbyssAlly> {
     return node;
   }
 
-  allyNameText(ally: AbyssAlly) {
+  allyNameText(faction: number) {
     // 1 Crab, coloured
     let allies = [
       '<span style="color: purple">' + _('Jellyfish') + '</span>',
@@ -40,13 +40,13 @@ class AllyManager extends CardManager<AbyssAlly> {
       '<span style="color: green">' + _('Shellfish') + '</span>',
       '<span style="color: blue">' + _('Squid') + '</span>'
     ];
-    return allies[+ally.faction];
+    return allies[faction];
   }
 
   renderTooltip(ally: AbyssAlly) {
     if (ally.faction >= 0 && ally.faction != 100) {
       return `<div class="abs-tooltip-ally">
-        ${this.allyNameText(ally)}
+        ${this.allyNameText(ally.faction)}
         <br>
         <span style="font-size: smaller"><b>${_("Value")}: </b> ${_(ally.value)}</span>
       </div>`;

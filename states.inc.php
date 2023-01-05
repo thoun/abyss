@@ -294,6 +294,7 @@ $machinestates = array(
 			"lord_22" => ST_PLAYER_LORD22,
 			"lord_26" => ST_PLAYER_LORD26, 
 			"lord_23" => ST_PLAYER_LORD23, 
+			"lord_114" => ST_PLAYER_LORD114, 
 			"lord_116" => ST_PLAYER_LORD116, 
 			"lord_ambassador" => ST_PLAYER_CONTROL_POST_DRAW, 
 			"zombiePass" => ST_PRE_CONTROL, 
@@ -474,6 +475,36 @@ $machinestates = array(
   										"return_7" => ST_PLAYER_EXPLORE, "return_71" => ST_PLAYER_EXPLORE2, "return_72" => ST_PLAYER_EXPLORE3, "return_9" => ST_PLAYER_CONTROL, "return_11" => ST_PLAYER_CHOOSE_MONSTER_REWARD,
   										"return_12" => ST_PLAYER_RECRUIT_PAY, "return_13" => ST_PLAYER_AFFILIATE, "return_15" => ST_PLAYER_CLEANUP_DISCARD, "return_16" => ST_PLAYER_CONTROL_POST_DRAW, "return_18" => ST_PLAYER_UNUSED_LORDS, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_LORD21 )
  	),
+
+ 	ST_PLAYER_LORD114 => [
+ 		"name" => "lord114",
+  		"description" => clienttranslate('${actplayer} must choose a Race of Allies'),
+		"descriptionmyturn" => clienttranslate('${you} must choose a Race of Allies'),
+		"type" => "activeplayer",
+  		"possibleactions" => [
+			"selectAllyRace",
+		],
+ 		"transitions" => [
+			"next" => ST_MULTI_LORD114, 
+			"zombiePass" => ST_PRE_CONTROL, 
+			"loopback" => ST_PLAYER_LORD116,
+		],
+	],
+
+	ST_MULTI_LORD114 => [
+		"name" => "lord114multi",
+		"description" => clienttranslate('Other players must discard a ${faction} Ally'),
+		"descriptionmyturn" => clienttranslate('${you} must discard a ${faction} Ally'),
+		"type" => "multipleactiveplayer",
+		"action" => "stLord114",
+		"args" => "argLord114",
+		"possibleactions" => [
+			"discard",
+		],
+		"transitions" => [
+			"next" => ST_PRE_CONTROL,
+		],
+	],
 
  	ST_PLAYER_LORD116 => [
  		"name" => "lord116",

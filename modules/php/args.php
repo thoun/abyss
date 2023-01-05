@@ -255,6 +255,15 @@ trait ArgsTrait {
 		];
 	}
 
+	function argLord114() {
+		$faction = intval($this->getGameStateValue(SELECTED_FACTION));
+
+		return [
+			'faction' => $this->factions[$faction]["ally_name"],
+            'i18n' => ['faction']
+		];
+	}
+
 	function argLord116() {
 		$playerId = self::getActivePlayerId();
 		

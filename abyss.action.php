@@ -244,4 +244,14 @@
         self::ajaxResponse();
     }
 
+    public function selectAllyRace() {
+        self::setAjaxMode();
+
+        $faction = self::getArg("faction", AT_posint, true);
+
+        $this->game->selectAllyRace($faction);
+
+        self::ajaxResponse();
+    }
+
 }

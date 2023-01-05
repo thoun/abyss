@@ -797,6 +797,7 @@ il est placé.
 
         $player_id = intval(self::getCurrentPlayerId());
         $hand = Ally::getPlayerHand( $player_id );
+        $affiliated = Ally::getPlayerAffiliated( $player_id );
         $ally_ids = array_unique($ally_ids);
 
         $state = $this->gamestate->state();
@@ -828,6 +829,17 @@ il est placé.
             if (count($hand) - count($ally_ids) != 6) {
                 throw new BgaUserException( sprintf( self::_("You must discard %d card(s)."), count($hand) - 6 ) );
             }
+        } else if ($state['name'] == 'lord114multi') {
+            // Discard 1 card
+            $source = "lord_114";
+            if (count($ally_ids) != 1) {
+                throw new BgaUserException( sprintf( self::_("You must discard %d card(s)."), 1 ) );
+            }
+            $ally = Ally::get($ally_ids[0]);
+            $faction = intval($this->getGameStateValue(SELECTED_FACTION));
+            if ($ally['faction'] != $faction) {
+                throw new BgaUserException( sprintf( self::_("You must discard %s card(s)."), $this->factions[$faction]["ally_name"]) );
+            }
         } else {
             throw new BgaVisibleSystemException( "Not implemented." );
         }
@@ -835,14 +847,14 @@ il est placé.
         $allies_lost = array();
         foreach ($ally_ids as $ally_id) {
             $found = null;
-            foreach ($hand as $a) {
+            foreach (($source == "lord_114" ? $affiliated : $hand) as $a) {
                 if ($a["ally_id"] == $ally_id) {
                     $found = $a;
                     break;
                 }
             }
-            if (! isset($found)) {
-                throw new BgaVisibleSystemException( "You cannot discard that Ally (it isn't in your hand)." );
+            if (!isset($found)) {
+                throw new BgaVisibleSystemException($source == "lord_114" ? "You cannot discard that Ally (it isn't affiliated)." : "You cannot discard that Ally (it isn't in your hand).");
             }
             $allies_lost[] = $found;
             Ally::discard( $ally_id );
@@ -1468,5 +1480,24 @@ il est placé.
         ]);
 
         $this->gamestate->nextState('freeLord');
+    }
+
+    function selectAllyRace(int $faction) {
+        self::checkAction('selectAllyRace');
+
+        if ($faction < 0 || $faction > 4) {
+            throw new BgaVisibleSystemException("Invalid faction");
+        }
+
+        $this->setGameStateValue(SELECTED_FACTION, $faction);
+
+        self::notifyAllPlayers('log', clienttranslate('${player_name} chooses Ally race ${faction}'), [
+            'player_name' => self::getActivePlayerName(),
+            'faction' => $this->factions[$faction]["ally_name"],
+            'i18n' => ['faction'],
+        ]);
+
+        $this->gamestate->nextState('next');
+
     }
 }

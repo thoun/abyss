@@ -535,7 +535,7 @@ class Abyss implements AbyssGame {
                 case 'affiliate':
                     for (var i in args.allies) {
                         var ally = args.allies[i];
-                        var r: string = ally.value + ' ' + this.allyManager.allyNameText(ally);
+                        var r: string = ally.value + ' ' + this.allyManager.allyNameText(ally.faction);
                         var btnId = 'button_affiliate_' + ally.ally_id;
                         (this as any).addActionButton( btnId, r, 'onChooseAffiliate' );
                         dojo.addClass($(btnId), 'affiliate-button')
@@ -596,6 +596,12 @@ class Abyss implements AbyssGame {
                 case 'fillSanctuary':
                     (this as any).addActionButton('button_continue', _('Continue searching'), () => this.searchSanctuary());
                     (this as any).addActionButton('button_stop', _('Stop searching'), () => this.stopSanctuarySearch());
+                    break;
+                case 'lord114':
+                    for (let i = 0; i < 5; i++) {
+                        (this as any).addActionButton(`selectAllyRace${i}`, this.allyManager.allyNameText(i), () => this.selectAllyRace(i));
+                        document.getElementById(`selectAllyRace${i}`).classList.add('affiliate-button');
+                    }
                     break;
             }
         }
@@ -827,19 +833,12 @@ class Abyss implements AbyssGame {
 
     */
     onDiscard() {
-        if(!(this as any).checkAction( 'discard' )) {
-        return;
-        }
-
         var ally_ids = [];
         dojo.query("#player-hand .ally.selected").forEach(node => 
             ally_ids.push(+dojo.attr(node, 'data-ally-id'))
         );
 
-        (this as any).ajaxcall( "/abyss/abyss/discard.html", { lock: true, ally_ids: ally_ids.join(';') }, this,
-        () => {},
-        () => {}
-        );
+        this.discardAllies(ally_ids);
     }
 
     onRecruit(withNebulis: number) {
@@ -1271,6 +1270,26 @@ class Abyss implements AbyssGame {
 
         this.takeAction('freeLord', {
             id,
+        });
+    }
+
+    private selectAllyRace(faction: number) {
+        if(!(this as any).checkAction('selectAllyRace')) {
+            return;
+        }
+
+        this.takeAction('selectAllyRace', {
+            faction,
+        });
+    }
+    
+    public discardAllies(ids: number[]) {
+        if(!(this as any).checkAction('discard')) {
+            return;
+        }
+
+        this.takeAction('discard', {
+            ally_ids: ids.join(';'),
         });
     }
 

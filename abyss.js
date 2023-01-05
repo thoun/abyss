@@ -907,7 +907,7 @@ var AllyManager = /** @class */ (function (_super) {
         this.game.connectTooltip(node, this.renderTooltip(ally), "ally");
         return node;
     };
-    AllyManager.prototype.allyNameText = function (ally) {
+    AllyManager.prototype.allyNameText = function (faction) {
         // 1 Crab, coloured
         var allies = [
             '<span style="color: purple">' + _('Jellyfish') + '</span>',
@@ -916,11 +916,11 @@ var AllyManager = /** @class */ (function (_super) {
             '<span style="color: green">' + _('Shellfish') + '</span>',
             '<span style="color: blue">' + _('Squid') + '</span>'
         ];
-        return allies[+ally.faction];
+        return allies[faction];
     };
     AllyManager.prototype.renderTooltip = function (ally) {
         if (ally.faction >= 0 && ally.faction != 100) {
-            return "<div class=\"abs-tooltip-ally\">\n        ".concat(this.allyNameText(ally), "\n        <br>\n        <span style=\"font-size: smaller\"><b>").concat(_("Value"), ": </b> ").concat(_(ally.value), "</span>\n      </div>");
+            return "<div class=\"abs-tooltip-ally\">\n        ".concat(this.allyNameText(ally.faction), "\n        <br>\n        <span style=\"font-size: smaller\"><b>").concat(_("Value"), ": </b> ").concat(_(ally.value), "</span>\n      </div>");
         }
         else { // TODO GBA
             return "<div class=\"abs-tooltip-ally\">\n        ".concat(_("Monster"), "\n      </div>");
@@ -1277,7 +1277,7 @@ var PlayerTable = /** @class */ (function () {
     };
     PlayerTable.prototype.removeHandAllies = function (allies) {
         var _this = this;
-        allies.forEach(function (ally) { return _this.hand.removeCard(ally); });
+        allies.forEach(function (ally) { return _this.game.allyManager.removeCard(ally); });
     };
     PlayerTable.prototype.organisePanelMessages = function () {
         var i = this.playerId;
@@ -1294,6 +1294,7 @@ var PlayerTable = /** @class */ (function () {
         }
     };
     PlayerTable.prototype.placeAffiliated = function (allies, playerId) {
+        var _this = this;
         var parent = document.getElementById("player-panel-".concat(playerId, "-affiliated"));
         for (var faction = 0; faction < 5; faction++) {
             var factionHolder = dojo.create("div");
@@ -1305,6 +1306,7 @@ var PlayerTable = /** @class */ (function () {
                 sort: PlayerTable.sortAllies,
             });
             this.affiliatedStocks[faction].addCards(allies.filter(function (ally) { return ally.faction == faction; }));
+            this.affiliatedStocks[faction].onCardClick = function (ally) { return _this.affiliatedAllyClick(ally); };
         }
         return parent;
     };
@@ -1329,6 +1331,11 @@ var PlayerTable = /** @class */ (function () {
     PlayerTable.prototype.addLocation = function (location, lords) {
         this.locations.addCard(location);
         this.placeLocationLords(location, lords);
+    };
+    PlayerTable.prototype.affiliatedAllyClick = function (ally) {
+        if (this.game.gamedatas.gamestate.name === 'lord114multi') {
+            this.game.discardAllies([ally.ally_id]);
+        }
     };
     PlayerTable.sortAllies = sortFunction('faction', 'value');
     return PlayerTable;
@@ -1822,7 +1829,7 @@ var Abyss = /** @class */ (function () {
                 case 'affiliate':
                     for (var i in args.allies) {
                         var ally = args.allies[i];
-                        var r = ally.value + ' ' + this.allyManager.allyNameText(ally);
+                        var r = ally.value + ' ' + this.allyManager.allyNameText(ally.faction);
                         var btnId = 'button_affiliate_' + ally.ally_id;
                         this.addActionButton(btnId, r, 'onChooseAffiliate');
                         dojo.addClass($(btnId), 'affiliate-button');
@@ -1893,6 +1900,16 @@ var Abyss = /** @class */ (function () {
                 case 'fillSanctuary':
                     this.addActionButton('button_continue', _('Continue searching'), function () { return _this.searchSanctuary(); });
                     this.addActionButton('button_stop', _('Stop searching'), function () { return _this.stopSanctuarySearch(); });
+                    break;
+                case 'lord114':
+                    var _loop_5 = function (i_6) {
+                        this_1.addActionButton("selectAllyRace".concat(i_6), this_1.allyManager.allyNameText(i_6), function () { return _this.selectAllyRace(i_6); });
+                        document.getElementById("selectAllyRace".concat(i_6)).classList.add('affiliate-button');
+                    };
+                    var this_1 = this;
+                    for (var i_6 = 0; i_6 < 5; i_6++) {
+                        _loop_5(i_6);
+                    }
                     break;
             }
         }
@@ -2095,14 +2112,11 @@ var Abyss = /** @class */ (function () {
 
     */
     Abyss.prototype.onDiscard = function () {
-        if (!this.checkAction('discard')) {
-            return;
-        }
         var ally_ids = [];
         dojo.query("#player-hand .ally.selected").forEach(function (node) {
             return ally_ids.push(+dojo.attr(node, 'data-ally-id'));
         });
-        this.ajaxcall("/abyss/abyss/discard.html", { lock: true, ally_ids: ally_ids.join(';') }, this, function () { }, function () { });
+        this.discardAllies(ally_ids);
     };
     Abyss.prototype.onRecruit = function (withNebulis) {
         if (!this.checkAction('pay')) {
@@ -2436,6 +2450,22 @@ var Abyss = /** @class */ (function () {
             id: id,
         });
     };
+    Abyss.prototype.selectAllyRace = function (faction) {
+        if (!this.checkAction('selectAllyRace')) {
+            return;
+        }
+        this.takeAction('selectAllyRace', {
+            faction: faction,
+        });
+    };
+    Abyss.prototype.discardAllies = function (ids) {
+        if (!this.checkAction('discard')) {
+            return;
+        }
+        this.takeAction('discard', {
+            ally_ids: ids.join(';'),
+        });
+    };
     Abyss.prototype.takeAction = function (action, data) {
         data = data || {};
         data.lock = true;
@@ -2507,7 +2537,7 @@ var Abyss = /** @class */ (function () {
         $('scoring-row-' + stage + '-p' + player_id).innerHTML = value;
     };
     Abyss.prototype.setScoringRowWinner = function (winner_ids) {
-        var _loop_5 = function (i) {
+        var _loop_6 = function (i) {
             var player_id = winner_ids[i];
             dojo.addClass($('scoring-row-name-p' + player_id), 'wavetext');
             ['location', 'lord', 'affiliated', 'monster', 'total'].forEach(function (stage) {
@@ -2515,7 +2545,7 @@ var Abyss = /** @class */ (function () {
             });
         };
         for (var i in winner_ids) {
-            _loop_5(i);
+            _loop_6(i);
         }
     };
     Abyss.prototype.notif_finalRound = function (notif) {
@@ -2702,7 +2732,7 @@ var Abyss = /** @class */ (function () {
         // For each slot, animate to the council pile, fade out and destroy, then increase the council pile by 1
         var delay = 0;
         var self = this;
-        var _loop_6 = function () {
+        var _loop_7 = function () {
             ally = dojo.query('#explore-track .slot-' + i);
             if (ally.length > 0) {
                 var theAlly_1 = ally[0];
@@ -2710,13 +2740,13 @@ var Abyss = /** @class */ (function () {
                 dojo.setStyle(theAlly_1, "transition", "none");
                 if (faction == FACTION_MONSTER) {
                     // Monster just fades out
-                    this_1.fadeOutAndDestroy(theAlly_1, 400, delay);
+                    this_2.fadeOutAndDestroy(theAlly_1, 400, delay);
                     delay += 200;
                 }
                 else if (i != slot) {
                     // Animate to the council!
                     var deck_1 = dojo.query('#council-track .slot-' + faction);
-                    animation = this_1.slideToObject(theAlly_1, deck_1[0], 600, delay);
+                    animation = this_2.slideToObject(theAlly_1, deck_1[0], 600, delay);
                     animation.onEnd = function () {
                         dojo.destroy(theAlly_1);
                         var num = +dojo.attr(deck_1[0], 'data-size') + 1;
@@ -2727,7 +2757,7 @@ var Abyss = /** @class */ (function () {
                 }
                 else {
                     // This is the card that was taken - animate it to hand or player board
-                    if (player_id == this_1.getPlayerId()) {
+                    if (player_id == this_2.getPlayerId()) {
                         dojo.setStyle(theAlly_1, "zIndex", "1");
                         dojo.setStyle(theAlly_1, "transition", "none");
                         setTimeout(function () {
@@ -2740,7 +2770,7 @@ var Abyss = /** @class */ (function () {
                     else {
                         dojo.setStyle(theAlly_1, "zIndex", "1");
                         dojo.setStyle(theAlly_1, "transition", "none");
-                        animation = this_1.slideToObject(theAlly_1, $('player_board_' + player_id), 600, delay);
+                        animation = this_2.slideToObject(theAlly_1, $('player_board_' + player_id), 600, delay);
                         animation.onEnd = function () {
                             dojo.destroy(theAlly_1);
                             $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
@@ -2751,9 +2781,9 @@ var Abyss = /** @class */ (function () {
                 }
             }
         };
-        var this_1 = this, ally, faction, animation, animation;
+        var this_2 = this, ally, faction, animation, animation;
         for (var i = 1; i <= 5; i++) {
-            _loop_6();
+            _loop_7();
         }
         this.organisePanelMessages();
     };
@@ -2889,19 +2919,19 @@ var Abyss = /** @class */ (function () {
         var lords = notif.args.lords;
         var player_id = +notif.args.player_id;
         var deck_size = notif.args.deck_size;
-        var _loop_7 = function () {
+        var _loop_8 = function () {
             lord = lords[i];
             if (dojo.query("#lords-track .lord[data-lord-id=" + lord.lord_id + "]").length == 0) {
-                var node_1 = this_2.lordManager.placeWithTooltip(lord, $('lords-track'));
+                var node_1 = this_3.lordManager.placeWithTooltip(lord, $('lords-track'));
                 dojo.setStyle(node_1, "left", "13px");
                 requestAnimationFrame(function () {
                     dojo.setStyle(node_1, "left", "");
                 });
             }
         };
-        var this_2 = this, lord;
+        var this_3 = this, lord;
         for (var i in lords) {
-            _loop_7();
+            _loop_8();
         }
         this.setDeckSize(dojo.query('#lords-track .slot-0'), deck_size);
     };

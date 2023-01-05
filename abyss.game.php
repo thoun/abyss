@@ -67,6 +67,7 @@ class Abyss extends Table {
             MARTIAL_LAW_ACTIVATED => 22,
             LAST_LOCATION => 23,
             KRAKEN => 24,
+            SELECTED_FACTION => 25,
 
             // game options
             KRAKEN_EXPANSION => KRAKEN_EXPANSION,

@@ -94,6 +94,10 @@ class Ally {
     return self::typedAllies(Abyss::getCollection( "SELECT * FROM ally WHERE place = -" . $player_id . " AND NOT affiliated"));
   }
 
+  public static function get(int $ally_id ) {
+    return self::typedAlly(Abyss::getObject( "SELECT * FROM ally WHERE ally_id = $ally_id" ));
+  }
+
   public static function getPlayerAffiliated( $player_id ) {
     return self::typedAllies(Abyss::getCollection( "SELECT * FROM ally WHERE place = -" . $player_id . " AND affiliated"));
   }
