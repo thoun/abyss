@@ -209,8 +209,8 @@ $this->lords = array(
     "name" => clienttranslate("The Fence"),
     "desc" => clienttranslate("Give 1 of your Nebulis to each opponent."),
   ),
-  "105" => array( // TODO
-    "name" => clienttranslate("The Fence"),
+  "105" => array(
+    "name" => clienttranslate("The Cleaner"),
     "desc" => clienttranslate("At the end of the game, you do not receive any Nebulis for the Krakens you still have in hand."),
   ),
   "106" => array(

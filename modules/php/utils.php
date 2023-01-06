@@ -188,6 +188,9 @@ trait UtilTrait {
         );
         if ($source == "recruit-kraken") {
             $message = clienttranslate('${player_name} gains ${num_nebulis} Nebulis for recruiting with a Kraken of value ${kraken_value}');
+        } else 
+        if ($source == "end-game-kraken") {
+            $message = clienttranslate('${player_name} gains ${num_nebulis} Nebulis for remaining Kraken of value ${kraken_value}');
         }
         self::notifyAllPlayers( "diff", $message, $params );
 
@@ -287,6 +290,18 @@ trait UtilTrait {
         $location_points = 0;
 
         $krakenExpansion = $this->isKrakenExpansion();
+
+        if ($krakenExpansion) {
+            $allyHand = Ally::getPlayerHand($player_id);
+            $krakenAllies = array_filter($allyHand, fn($ally) => $ally['faction'] == 10);
+            foreach ($krakenAllies as $ally) {
+                Ally::discard($ally['ally_id']);
+                if (!Lord::playerHas(105, $player_id)) {
+                    $this->incPlayerNebulis($player_id, $ally['value'] - 1, "end-game-kraken");
+                }
+            }
+        }
+
         $playerNebulis = $krakenExpansion ? $this->getPlayerNebulis($player_id) : 0;
 
         foreach ($locations as $l) {
