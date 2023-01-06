@@ -1906,6 +1906,27 @@ var Abyss = /** @class */ (function () {
                     this.addActionButton('button_continue', _('Continue searching'), function () { return _this.searchSanctuary(); });
                     this.addActionButton('button_stop', _('Stop searching'), function () { return _this.stopSanctuarySearch(); });
                     break;
+                case 'lord104':
+                    var lord104Args_1 = args;
+                    if (lord104Args_1.nebulis == 1) {
+                        lord104Args_1.playersIds.forEach(function (playerId) {
+                            var player = _this.getPlayer(playerId);
+                            _this.addActionButton("giveNebulisTo".concat(playerId, "-button"), player.name, function () { return _this.giveNebulisTo([playerId]); });
+                            document.getElementById("giveNebulisTo".concat(playerId, "-button")).style.border = "3px solid #".concat(player.color);
+                        });
+                    }
+                    else {
+                        lord104Args_1.playersIds.forEach(function (playerId) {
+                            lord104Args_1.playersIds.filter(function (secondPlayerId) { return secondPlayerId != playerId; }).forEach(function (secondPlayerId) {
+                                var player = _this.getPlayer(playerId);
+                                var secondPlayer = _this.getPlayer(secondPlayerId);
+                                if (!document.getElementById("giveNebulisTo".concat(playerId, "-").concat(secondPlayerId, "-button")) && !document.getElementById("giveNebulisTo".concat(secondPlayerId, "-").concat(playerId, "-button"))) {
+                                    _this.addActionButton("giveNebulisTo".concat(playerId, "-").concat(secondPlayerId, "-button"), _('${player_name} and ${player_name2}').replace('${player_name}', player.name).replace('${player_name2}', secondPlayer.name), function () { return _this.giveNebulisTo([playerId, secondPlayerId]); });
+                                }
+                            });
+                        });
+                    }
+                    break;
                 case 'lord114':
                     var _loop_5 = function (i_6) {
                         this_1.addActionButton("selectAllyRace".concat(i_6), this_1.allyManager.allyNameText(i_6), function () { return _this.selectAllyRace(i_6); });
@@ -2586,6 +2607,14 @@ var Abyss = /** @class */ (function () {
         this.takeAction('placeSentinel', {
             location: location,
             locationArg: locationArg,
+        });
+    };
+    Abyss.prototype.giveNebulisTo = function (playersIds) {
+        if (!this.checkAction('giveNebulisTo')) {
+            return;
+        }
+        this.takeAction('giveNebulisTo', {
+            playersIds: playersIds.join(';'),
         });
     };
     Abyss.prototype.takeAction = function (action, data) {

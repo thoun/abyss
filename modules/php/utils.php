@@ -182,14 +182,25 @@ trait UtilTrait {
                 'player_id' => $player_id,
                 'player_name' => $players[$player_id]["player_name"],
                 'nebulis' => $diff,
-                'num_nebulis' => $diff, // for log
+                'num_nebulis' => abs($diff), // for log
                 'kraken_value' => $diff + 1, // for log
                 'source' => $source
         );
-        if ($source == "recruit-kraken") {
+
+        if (strpos($source, "lord_") === 0) {
+            $lord_id = str_replace("lord_", "", $source);
+            if ($diff > 0) {
+                $message = clienttranslate('${player_name} gains ${num_nebulis} Nebulis from ${lord_name}');
+                $params["i18n"] = array('lord_name');
+                $params["lord_name"] = $this->lords[$lord_id]["name"];
+            } else if ($diff < 0) {
+                $message = clienttranslate('${player_name} loses ${num_nebulis} Nebulis from ${lord_name}');
+                $params["i18n"] = array('lord_name');
+                $params["lord_name"] = $this->lords[$lord_id]["name"];
+            }
+        } else if ($source == "recruit-kraken") {
             $message = clienttranslate('${player_name} gains ${num_nebulis} Nebulis for recruiting with a Kraken of value ${kraken_value}');
-        } else 
-        if ($source == "end-game-kraken") {
+        } else if ($source == "end-game-kraken") {
             $message = clienttranslate('${player_name} gains ${num_nebulis} Nebulis for remaining Kraken of value ${kraken_value}');
         }
         self::notifyAllPlayers( "diff", $message, $params );
@@ -291,7 +302,7 @@ trait UtilTrait {
 
         $krakenExpansion = $this->isKrakenExpansion();
 
-        if ($krakenExpansion) {
+        if ($final_scoring && $krakenExpansion) {
             $allyHand = Ally::getPlayerHand($player_id);
             $krakenAllies = array_filter($allyHand, fn($ally) => $ally['faction'] == 10);
             foreach ($krakenAllies as $ally) {

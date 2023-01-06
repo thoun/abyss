@@ -1588,4 +1588,17 @@ il est placé.
             $this->gamestate->nextState('next'.$this->getGameStateValue(AFTER_PLACE_SENTINEL));
         }
     }
+
+    function giveNebulisTo(array $opponentsIds) {
+        self::checkAction('giveNebulisTo');
+
+        $playerId = intval($this->getActivePlayerId());
+
+        foreach ($opponentsIds as $opponentId) {
+            $this->incPlayerNebulis($opponentId, 1, "lord_104");
+        }
+        $this->incPlayerNebulis($playerId, -count($opponentsIds), "lord_104");
+
+        $this->gamestate->nextState('next');
+    }
 }

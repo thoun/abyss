@@ -293,4 +293,20 @@
         self::ajaxResponse();
     }
 
+    public function giveNebulisTo() {
+        self::setAjaxMode();
+
+        $playersIds_raw = self::getArg( "playersIds", AT_numberlist, true );
+        if( substr( $playersIds_raw, -1 ) == ';' )
+            $playersIds_raw = substr( $playersIds_raw, 0, -1 );
+        if( $playersIds_raw == '' )
+            $playersIds = array();
+        else
+            $playersIds = explode( ';', $playersIds_raw );
+
+        $this->game->giveNebulisTo($playersIds);
+
+        self::ajaxResponse( );
+    }
+
 }

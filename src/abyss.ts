@@ -620,6 +620,26 @@ class Abyss implements AbyssGame {
                     (this as any).addActionButton('button_continue', _('Continue searching'), () => this.searchSanctuary());
                     (this as any).addActionButton('button_stop', _('Stop searching'), () => this.stopSanctuarySearch());
                     break;
+                case 'lord104':
+                    const lord104Args = args as EnteringLord104Args;   
+                    if (lord104Args.nebulis == 1) {   
+                        lord104Args.playersIds.forEach(playerId => {
+                            const player = this.getPlayer(playerId);
+                            (this as any).addActionButton(`giveNebulisTo${playerId}-button`, player.name, () => this.giveNebulisTo([playerId]));
+                            document.getElementById(`giveNebulisTo${playerId}-button`).style.border = `3px solid #${player.color}`;
+                        });
+                    } else {
+                        lord104Args.playersIds.forEach(playerId => {
+                            lord104Args.playersIds.filter(secondPlayerId => secondPlayerId != playerId).forEach(secondPlayerId => {
+                                const player = this.getPlayer(playerId);
+                                const secondPlayer = this.getPlayer(secondPlayerId);
+                                if (!document.getElementById(`giveNebulisTo${playerId}-${secondPlayerId}-button`) && !document.getElementById(`giveNebulisTo${secondPlayerId}-${playerId}-button`)) {
+                                    (this as any).addActionButton(`giveNebulisTo${playerId}-${secondPlayerId}-button`, _('${player_name} and ${player_name2}').replace('${player_name}', player.name).replace('${player_name2}', secondPlayer.name), () => this.giveNebulisTo([playerId, secondPlayerId]));
+                                }
+                            });
+                        });
+                    }
+                    break;
                 case 'lord114':
                     for (let i = 0; i < 5; i++) {
                         (this as any).addActionButton(`selectAllyRace${i}`, this.allyManager.allyNameText(i), () => this.selectAllyRace(i));
@@ -1446,6 +1466,16 @@ class Abyss implements AbyssGame {
         this.takeAction('placeSentinel', {
             location,
             locationArg,
+        });
+    }
+
+    private giveNebulisTo(playersIds: number[]) {
+        if(!(this as any).checkAction('giveNebulisTo')) {
+            return;
+        }
+
+        this.takeAction('giveNebulisTo', {
+            playersIds: playersIds.join(';'),
         });
     }
 

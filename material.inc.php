@@ -205,7 +205,7 @@ $this->lords = array(
     "name" => clienttranslate("The Counterfeiter"),
     "desc" => clienttranslate("When purchasing something, you can use 1 Nebulis even if you still have Pearls."),
   ),
-  "104" => array( // TODO
+  "104" => array(
     "name" => clienttranslate("The Fence"),
     "desc" => clienttranslate("Give 1 of your Nebulis to each opponent."),
   ),

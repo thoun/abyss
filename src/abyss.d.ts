@@ -145,6 +145,11 @@ interface EnteringGiveKrakenArgs {
     playersIds: number[];
 }
 
+interface EnteringLord104Args {
+    nebulis: number;
+    playersIds: number[];
+}
+
 interface EnteringLord112Args {
     allies: AbyssAlly[];
 }

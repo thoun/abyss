@@ -23,6 +23,8 @@ trait DebugUtilTrait {
 		$this->DbQuery("UPDATE player SET player_pearls = 10");
 		//$this->DbQuery("UPDATE player SET player_keys = 3");
 		//$this->DbQuery("UPDATE location SET place = 1 WHERE location_id = 103");
+
+		$this->gamestate->changeActivePlayer(2343492);
     }
 
 	function debugPickAllies(int $playerId, int $number = 12) {

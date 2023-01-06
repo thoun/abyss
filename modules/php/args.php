@@ -273,6 +273,15 @@ trait ArgsTrait {
 		];
     }
 
+	function argLord104() {
+		$playerId = self::getActivePlayerId();
+
+		return [
+			'nebulis' => $this->getPlayerNebulis($playerId),
+			'playersIds' => $this->getOpponentsIds($playerId),
+		];
+	}
+
 	function argLord112() {
 		return [
 			'allies' => Ally::getDiscard(),

@@ -513,6 +513,20 @@ trait StateTrait {
                             $transition = "lord_ambassador";
                         }
                         break;
+                    case 104:
+                        $playerNebulis = $this->getPlayerNebulis($player_id);
+                        if ($playerNebulis > 0) {
+                            $opponentsIds = $this->getOpponentsIds($player_id);
+                            if ($playerNebulis < count($opponentsIds)) {
+                                $transition = "lord_104";
+                            } else {
+                                foreach ($opponentsIds as $opponentId) {
+                                    $this->incPlayerNebulis($opponentId, 1, "lord_104");
+                                }
+                                $this->incPlayerNebulis($player_id, -count($opponentsIds), "lord_104");
+                            }
+                        }
+                        break;
                     case 110:
                         // The Inheritor - Gain 5 Pearls.
                         $this->incPlayerPearls( $player_id, 5, "lord_110" );
