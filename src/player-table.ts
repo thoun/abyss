@@ -24,6 +24,7 @@ class PlayerTable {
             <i id="no-lords-msg-p${player.id}">${_("No Lords")}</i>
             <div id="player-panel-${player.id}-free-lords" class="free-lords"></div>
             <div id="player-panel-${player.id}-locations" class="locations"></div>
+            <div id="player-panel-${player.id}-sentinels" class="sentinels"></div>
         </div>
         `;
         

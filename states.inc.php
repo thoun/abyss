@@ -75,7 +75,7 @@ $machinestates = array(
  			"type" => "activeplayer",
 			"args" => "argAffordableLords",
 			"action" => "stPlotAtCourt",
- 			"possibleactions" => array( "plot", "pass", "explore", "requestSupport", "recruit", "lordEffect" ),
+ 			"possibleactions" => array( "plot", "pass", "explore", "requestSupport", "recruit", "lordEffect", "goToPlaceSentinel" ),
  			"transitions" => array( "plot" => ST_PLAYER_PLOT_AT_COURT, "pass" => ST_PLAYER_ACTION, "explore" => ST_PRE_PURCHASE, "requestSupport" => ST_PRE_CONTROL, "requestSupport2" => ST_PLAYER_SECOND_STACK, "recruit" => ST_PLAYER_RECRUIT_PAY, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PLAYER_ACTION, "loopback" => ST_PLAYER_PLOT_AT_COURT
 			, "placeSentinel" => ST_PLAYER_PLACE_SENTINEL, )
  	),
@@ -87,7 +87,7 @@ $machinestates = array(
  			"type" => "activeplayer",
 			"args" => "argAffordableLords",
 			"action" => "stAction",
- 			"possibleactions" => array( "explore", "requestSupport", "recruit", "lordEffect" ),
+ 			"possibleactions" => array( "explore", "requestSupport", "recruit", "lordEffect", "goToPlaceSentinel" ),
  			"transitions" => array( "explore" => ST_PRE_PURCHASE, "requestSupport" => ST_PRE_CONTROL, "requestSupport2" => ST_PLAYER_SECOND_STACK, "recruit" => ST_PLAYER_RECRUIT_PAY, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_ACTION 
 			 , "placeSentinel" => ST_PLAYER_PLACE_SENTINEL, )
  	),

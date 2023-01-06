@@ -507,10 +507,19 @@ trait UtilTrait {
         return $sentinel;
     }
 
-    function setSentinel(int $playerId, int $lordId, string $location /* player, lord, council, location */, int $locationArg /* null, lord id, faction, location id*/) {
+    private function getReservedElement(string $code) {
+        switch ($code) {
+            case 'lord': return clienttranslate('a Lord'); 
+            case 'council': return clienttranslate('a Council stack');
+            case 'location': return clienttranslate('a Location');
+            default: return '';
+        }
+    }
+
+    function setSentinel(int $playerId, int $lordId, string $location /* player, lord, council, location */, /*int|null*/ $locationArg /* null, lord id, faction, location id*/) {
         $sentinels = $this->getSentinels();
 
-        if ($this->array_some($sentinels, fn($sentinel) => $sentinel->location == $location && $sentinel->locationArg == $locationArg)) {
+        if ($location != 'player' && $this->array_some($sentinels, fn($sentinel) => $sentinel->location == $location && $sentinel->locationArg == $locationArg)) {
             throw new BgaVisibleSystemException("A sentinel is already placed here");
         }
 
@@ -519,17 +528,27 @@ trait UtilTrait {
         $sentinel->location = $location;
         $sentinel->locationArg = $locationArg;
 
+        $log = $location == 'table' ? 
+            clienttranslate('${player_name} takes the Sentinel token and puts it in player area') : 
+            clienttranslate('${player_name} places the sentinel to reserve ${reservedElement}');
+        $this->notifyAllPlayers("placeSentinel", $log, [
+            'playerId' => $playerId,
+            'player_name' => $this->getPlayerName($playerId),
+            'reservedElement' => $this->getReservedElement($sentinel->location),
+            'i18n' => ['reservedElement'],
+            'lordId' => $sentinel->lordId,
+            'location' => $sentinel->location,
+            'locationArg' => $sentinel->locationArg,
+        ]);
+
         $this->setGlobalVariable(SENTINELS, $sentinels);
     }
 
     function discardSentinel(int $lordId) {
         $sentinels = $this->getSentinels();
         
-        $sentinel = $this->array_find($sentinels, fn($sentinel) => $sentinel->lordId == $lordId);
-        $sentinel->location = 'player';
-        $sentinel->locationArg = null;
-
-        $this->setGlobalVariable(SENTINELS, $sentinels);
+        $sentinel = $this->array_find($sentinels, fn($sentinel) => $sentinel->lordId == $lordId);        
+        $this->setSentinel($sentinel->playerId, $sentinel->lordId, 'player', null);
     }
 
     function mustPlaceSentinel(int $playerId) {

@@ -23,7 +23,18 @@ trait ArgsTrait {
 		foreach ($lords as $lord) {
 			$canAffordLord = self::canAffordLord($player_id, $hand, $pearls, $lord);
 			if ($canAffordLord) {
-				$affordableLords[] = $lord;
+				if ($this->isKrakenExpansion()) {
+					$guarded = $this->guardedBySentinel('lord', $lord['lord_id']);
+					if ($guarded !== null) {
+						if ($guarded->playerId == $player_id) {
+							$affordableLords[] = $lord;
+						}
+					} else {
+						$affordableLords[] = $lord;
+					}
+				} else {
+					$affordableLords[] = $lord;
+				}
 			}
 		}
 		

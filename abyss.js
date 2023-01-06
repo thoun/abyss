@@ -859,24 +859,6 @@ var CardManager = /** @class */ (function () {
     };
     return CardManager;
 }());
-function slideToObjectAndAttach(game, object, destinationId, posX, posY) {
-    var destination = document.getElementById(destinationId);
-    if (destination.contains(object)) {
-        return;
-    }
-    object.style.zIndex = '10';
-    var animation = (posX || posY) ?
-        game.slideToObjectPos(object, destinationId, posX, posY) :
-        game.slideToObject(object, destinationId);
-    dojo.connect(animation, 'onEnd', dojo.hitch(this, function () {
-        object.style.top = 'unset';
-        object.style.left = 'unset';
-        object.style.position = 'relative';
-        object.style.zIndex = 'unset';
-        destination.appendChild(object);
-    }));
-    animation.play();
-}
 var AllyManager = /** @class */ (function (_super) {
     __extends(AllyManager, _super);
     function AllyManager(game) {
@@ -1243,7 +1225,7 @@ var PlayerTable = /** @class */ (function () {
         this.affiliatedStocks = [];
         this.playerId = Number(player.id);
         this.currentPlayer = this.playerId == this.game.getPlayerId();
-        var template = "\n        <div id=\"player-panel-".concat(player.id, "\" class=\"player-panel whiteblock\">\n            <h3 class=\"player-name\" style=\"color: #").concat(player.color, ";\" data-color=\"").concat(player.color, "\">").concat(player.name, "</h3>\n            ").concat(this.currentPlayer ? "<div id=\"player-hand\" class=\"hand\"><i id=\"no-hand-msg\">".concat(_("No Allies in hand"), "</i></div>") : '', "\n            <h4>").concat(_("Affiliated Allies"), "</h4>\n            <i id=\"no-affiliated-msg-p").concat(player.id, "\">").concat(_("No Affiliated Allies"), "</i>\n            <div id=\"player-panel-").concat(player.id, "-affiliated\" class=\"affiliated\"></div>\n            <h4>").concat(_("Lords"), "</h4>\n            <i id=\"no-lords-msg-p").concat(player.id, "\">").concat(_("No Lords"), "</i>\n            <div id=\"player-panel-").concat(player.id, "-free-lords\" class=\"free-lords\"></div>\n            <div id=\"player-panel-").concat(player.id, "-locations\" class=\"locations\"></div>\n        </div>\n        ");
+        var template = "\n        <div id=\"player-panel-".concat(player.id, "\" class=\"player-panel whiteblock\">\n            <h3 class=\"player-name\" style=\"color: #").concat(player.color, ";\" data-color=\"").concat(player.color, "\">").concat(player.name, "</h3>\n            ").concat(this.currentPlayer ? "<div id=\"player-hand\" class=\"hand\"><i id=\"no-hand-msg\">".concat(_("No Allies in hand"), "</i></div>") : '', "\n            <h4>").concat(_("Affiliated Allies"), "</h4>\n            <i id=\"no-affiliated-msg-p").concat(player.id, "\">").concat(_("No Affiliated Allies"), "</i>\n            <div id=\"player-panel-").concat(player.id, "-affiliated\" class=\"affiliated\"></div>\n            <h4>").concat(_("Lords"), "</h4>\n            <i id=\"no-lords-msg-p").concat(player.id, "\">").concat(_("No Lords"), "</i>\n            <div id=\"player-panel-").concat(player.id, "-free-lords\" class=\"free-lords\"></div>\n            <div id=\"player-panel-").concat(player.id, "-locations\" class=\"locations\"></div>\n            <div id=\"player-panel-").concat(player.id, "-sentinels\" class=\"sentinels\"></div>\n        </div>\n        ");
         dojo.place(template, $('player-panel-holder'));
         // Add a whiteblock for the player
         if (this.currentPlayer) {
@@ -1350,6 +1332,7 @@ var Abyss = /** @class */ (function () {
     }
     Abyss.prototype.setup = function (gamedatas) {
         var _this = this;
+        var _a;
         log("Starting game setup");
         if (!gamedatas.krakenExpansion) {
             this.dontPreloadImage("lords-kraken.jpg");
@@ -1517,6 +1500,7 @@ var Abyss = /** @class */ (function () {
             // $('gameplay-options').style.display = this.bRealtime ? 'none' : 'inline-block';
             dojo.style($('last-round'), { 'display': 'block' });
         }
+        (_a = this.gamedatas.sentinels) === null || _a === void 0 ? void 0 : _a.filter(function (sentinel) { return sentinel.playerId; }).forEach(function (sentinel) { return _this.placeSentinelToken(sentinel.playerId, sentinel.lordId, sentinel.location, sentinel.locationArg); });
         // Insert options into option box
         var me = gamedatas.players[this.player_id];
         if (me) {
@@ -2121,7 +2105,12 @@ var Abyss = /** @class */ (function () {
                 this.fadeOutAndDestroy(krakenToken);
             }
             else {
-                slideToObjectAndAttach(this, krakenToken, "player_board_".concat(playerId, "_krakenWrapper"));
+                var parentElement = krakenToken.parentElement;
+                document.getElementById("player_board_".concat(playerId, "_krakenWrapper")).appendChild(krakenToken);
+                stockSlideAnimation({
+                    element: krakenToken,
+                    fromElement: parentElement
+                });
             }
         }
         else {
@@ -2129,6 +2118,63 @@ var Abyss = /** @class */ (function () {
                 dojo.place('<div id="krakenToken" class="token"></div>', "player_board_".concat(playerId, "_krakenWrapper"));
                 this.addTooltipHtml('krakenToken', _("The Kraken figure allows players to identify, during the game, the most corrupt player. The figure is given to the first player to receive any Nebulis. As soon as an opponent ties or gains more Nebulis than the most corrupt player, they get the Kraken figure"));
             }
+        }
+    };
+    Abyss.prototype.getSentinelToken = function (lordId) {
+        var div = document.getElementById("sentinel-".concat(lordId));
+        if (!div) {
+            div = document.createElement('div');
+            div.id = "sentinel-".concat(lordId);
+            div.classList.add('sentinel-token');
+            div.dataset.lordId = "".concat(lordId);
+        }
+        return div;
+    };
+    Abyss.prototype.placeSentinelToken = function (playerId, lordId, location, locationArg) {
+        var _a, _b;
+        var sentinel = this.getSentinelToken(lordId);
+        var parentElement = sentinel.parentElement;
+        switch (location) {
+            case 'player':
+                var sentinelsElement = document.getElementById("player-panel-".concat(playerId, "-sentinels"));
+                sentinelsElement.appendChild(sentinel);
+                if (parentElement) {
+                    stockSlideAnimation({
+                        element: sentinel,
+                        fromElement: parentElement
+                    });
+                }
+                break;
+            case 'lord':
+                var lordElement = (_a = this.lordManager.getCardElement({ lord_id: locationArg })) !== null && _a !== void 0 ? _a : document.querySelector(".lord[data-lord-id=\"".concat(locationArg, "\"]")); // TODO GBA remove ??
+                lordElement.appendChild(sentinel);
+                if (parentElement) {
+                    stockSlideAnimation({
+                        element: sentinel,
+                        fromElement: parentElement
+                    });
+                }
+                break;
+            case 'council':
+                var councilElement = document.getElementById("council-track-".concat(locationArg));
+                councilElement.appendChild(sentinel);
+                if (parentElement) {
+                    stockSlideAnimation({
+                        element: sentinel,
+                        fromElement: parentElement
+                    });
+                }
+                break;
+            case 'location':
+                var locationElement = (_b = this.locationManager.getCardElement({ location_id: locationArg })) !== null && _b !== void 0 ? _b : document.querySelector(".location[data-location-id=\"".concat(locationArg, "\"]")); // TODO GBA remove ??
+                locationElement.appendChild(sentinel);
+                if (parentElement) {
+                    stockSlideAnimation({
+                        element: sentinel,
+                        fromElement: parentElement
+                    });
+                }
+                break;
         }
     };
     ///////////////////////////////////////////////////
@@ -2175,6 +2221,10 @@ var Abyss = /** @class */ (function () {
             // Draw this stack??
             dojo.stopEvent(evt);
             var faction = dojo.attr(evt.target, 'data-faction');
+            if (this.gamedatas.gamestate.name === 'placeSentinel') {
+                this.placeSentinel(2, faction);
+                return;
+            }
             if (!this.checkAction('requestSupport')) {
                 return;
             }
@@ -2192,6 +2242,10 @@ var Abyss = /** @class */ (function () {
             if (dojo.hasClass(target, 'location') && !dojo.hasClass(target, 'location-back')) {
                 dojo.stopEvent(evt);
                 var location_id_1 = dojo.attr(target, 'data-location-id');
+                if (this.gamedatas.gamestate.name === 'placeSentinel') {
+                    this.placeSentinel(3, location_id_1);
+                    return;
+                }
                 if (!this.checkAction('chooseLocation')) {
                     return;
                 }
@@ -2223,10 +2277,15 @@ var Abyss = /** @class */ (function () {
             // Draw this stack??
             dojo.stopEvent(evt);
             var lord_id = dojo.attr(evt.target, 'data-lord-id');
-            if (!this.checkAction('recruit')) {
-                return;
+            if (this.gamedatas.gamestate.name === 'placeSentinel') {
+                this.placeSentinel(1, lord_id);
             }
-            this.ajaxcall("/abyss/abyss/recruit.html", { lock: true, lord_id: lord_id }, this, function () { }, function () { });
+            else {
+                if (!this.checkAction('recruit')) {
+                    return;
+                }
+                this.ajaxcall("/abyss/abyss/recruit.html", { lock: true, lord_id: lord_id }, this, function () { }, function () { });
+            }
         }
     };
     Abyss.prototype.onClickExploreTrack = function (evt) {
@@ -2520,6 +2579,15 @@ var Abyss = /** @class */ (function () {
         }
         this.takeAction('goToPlaceSentinel');
     };
+    Abyss.prototype.placeSentinel = function (location, locationArg) {
+        if (!this.checkAction('placeSentinel')) {
+            return;
+        }
+        this.takeAction('placeSentinel', {
+            location: location,
+            locationArg: locationArg,
+        });
+    };
     Abyss.prototype.takeAction = function (action, data) {
         data = data || {};
         data.lock = true;
@@ -2577,6 +2645,7 @@ var Abyss = /** @class */ (function () {
             ['discardLoots', 1],
             ['searchSanctuaryAlly', 500],
             ['kraken', 500],
+            ['placeSentinel', 500],
             ['endGame_scoring', 5000 * num_players + 3000],
         ];
         notifs.forEach(function (notif) {
@@ -3079,6 +3148,9 @@ var Abyss = /** @class */ (function () {
     };
     Abyss.prototype.notif_kraken = function (notif) {
         this.placeKrakenToken(notif.args.playerId);
+    };
+    Abyss.prototype.notif_placeSentinel = function (notif) {
+        this.placeSentinelToken(notif.args.playerId, notif.args.lordId, notif.args.location, notif.args.locationArg);
     };
     return Abyss;
 }());

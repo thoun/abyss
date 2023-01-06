@@ -315,3 +315,10 @@ interface NotifSearchSanctuaryAllyArgs {
     ally: AbyssAlly;
     deck_size: number;
 }
+
+interface NotifPlaceSentinelArgs {
+    playerId: number;
+    lordId: number;
+    location: string;
+    locationArg: number;
+}

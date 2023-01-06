@@ -217,6 +217,8 @@ class Abyss implements AbyssGame {
             dojo.style($('last-round'), { 'display': 'block' });
         }
 
+        this.gamedatas.sentinels?.filter(sentinel => sentinel.playerId).forEach(sentinel => this.placeSentinelToken(sentinel.playerId, sentinel.lordId, sentinel.location, sentinel.locationArg));
+
         // Insert options into option box
         let me = gamedatas.players[(this as any).player_id];
         if (me) {
@@ -835,13 +837,19 @@ class Abyss implements AbyssGame {
         $('nebuliscount_p' + playerId).innerHTML = +($('nebuliscount_p' + playerId).innerHTML) + inc;
     }
 
-    placeKrakenToken(playerId: number) {
+    private placeKrakenToken(playerId: number) {
         const krakenToken = document.getElementById('krakenToken');
         if (krakenToken) {
             if (playerId == 0) {
                 (this as any).fadeOutAndDestroy(krakenToken);
             } else {
-                slideToObjectAndAttach(this, krakenToken, `player_board_${playerId}_krakenWrapper`);
+                const parentElement = krakenToken.parentElement;
+
+                document.getElementById(`player_board_${playerId}_krakenWrapper`).appendChild(krakenToken);
+                stockSlideAnimation({
+                    element: krakenToken,
+                    fromElement: parentElement
+                });
             }
         } else {
             if (playerId != 0) {
@@ -849,6 +857,66 @@ class Abyss implements AbyssGame {
 
                 (this as any).addTooltipHtml('krakenToken', _("The Kraken figure allows players to identify, during the game, the most corrupt player. The figure is given to the first player to receive any Nebulis. As soon as an opponent ties or gains more Nebulis than the most corrupt player, they get the Kraken figure"));
             }
+        }
+    }
+
+    private getSentinelToken(lordId: number) {
+        let div = document.getElementById(`sentinel-${lordId}`);
+        if (!div) {
+            div = document.createElement('div');
+            div.id = `sentinel-${lordId}`;
+            div.classList.add('sentinel-token');
+            div.dataset.lordId = `${lordId}`;
+        }
+        return div;
+    }
+
+    private placeSentinelToken(playerId: number, lordId: number, location: string, locationArg: number) {
+        const sentinel = this.getSentinelToken(lordId);
+        const parentElement = sentinel.parentElement;
+
+        switch (location) {
+            case 'player':
+                const sentinelsElement = document.getElementById(`player-panel-${playerId}-sentinels`);
+                sentinelsElement.appendChild(sentinel);
+                if (parentElement) {
+                    stockSlideAnimation({
+                        element: sentinel,
+                        fromElement: parentElement
+                    });
+                }
+                break;
+            case 'lord':
+                const lordElement = this.lordManager.getCardElement({ lord_id: locationArg } as AbyssLord) ?? document.querySelector(`.lord[data-lord-id="${locationArg}"]`); // TODO GBA remove ??
+                lordElement.appendChild(sentinel);
+                if (parentElement) {
+                    stockSlideAnimation({
+                        element: sentinel,
+                        fromElement: parentElement
+                    });
+                }
+                break;
+            case 'council':
+                const councilElement = document.getElementById(`council-track-${locationArg}`);
+                councilElement.appendChild(sentinel);
+                if (parentElement) {
+                    stockSlideAnimation({
+                        element: sentinel,
+                        fromElement: parentElement
+                    });
+                }
+                break;
+            case 'location':
+                const locationElement = this.locationManager.getCardElement({ location_id: locationArg } as AbyssLocation) ?? document.querySelector(`.location[data-location-id="${locationArg}"]`); // TODO GBA remove ??
+                locationElement.appendChild(sentinel);
+                if (parentElement) {
+                    stockSlideAnimation({
+                        element: sentinel,
+                        fromElement: parentElement
+                    });
+                }
+                break;
+
         }
     }
 
@@ -910,6 +978,11 @@ class Abyss implements AbyssGame {
 
         var faction = dojo.attr(evt.target, 'data-faction');
 
+        if (this.gamedatas.gamestate.name === 'placeSentinel') {
+            this.placeSentinel(2, faction);
+            return;
+        }
+
         if( ! (this as any).checkAction( 'requestSupport' ) ) {
             return;
         }
@@ -934,6 +1007,11 @@ class Abyss implements AbyssGame {
             dojo.stopEvent( evt );
 
             let location_id = dojo.attr(target, 'data-location-id');
+
+            if (this.gamedatas.gamestate.name === 'placeSentinel') {
+                this.placeSentinel(3, location_id);
+                return;
+            }
 
             if( ! (this as any).checkAction( 'chooseLocation' ) ) {
             return;
@@ -974,19 +1052,25 @@ class Abyss implements AbyssGame {
 
     onClickLordsTrack( evt ) {
         if (dojo.hasClass(evt.target, 'lord') && ! dojo.hasClass(evt.target, 'lord-back')) {
-        // Draw this stack??
-        dojo.stopEvent( evt );
+            // Draw this stack??
+            dojo.stopEvent( evt );
 
-        var lord_id = dojo.attr(evt.target, 'data-lord-id');
+            var lord_id = dojo.attr(evt.target, 'data-lord-id');
 
-        if( ! (this as any).checkAction( 'recruit' ) ) {
-            return;
-        }
+            if (this.gamedatas.gamestate.name === 'placeSentinel') {
+                this.placeSentinel(1, lord_id);
+            } else {
 
-        (this as any).ajaxcall( "/abyss/abyss/recruit.html", { lock: true, lord_id: lord_id }, this,
-        () => {},
-        () => {}
-        );
+                if( ! (this as any).checkAction( 'recruit' ) ) {
+                    return;
+                }
+        
+                (this as any).ajaxcall( "/abyss/abyss/recruit.html", { lock: true, lord_id: lord_id }, this,
+                () => {},
+                () => {}
+                );
+
+            }
         }
     }
 
@@ -1354,6 +1438,17 @@ class Abyss implements AbyssGame {
         this.takeAction('goToPlaceSentinel');
     }
 
+    private placeSentinel(location: number, locationArg: number) {
+        if(!(this as any).checkAction('placeSentinel')) {
+            return;
+        }
+
+        this.takeAction('placeSentinel', {
+            location,
+            locationArg,
+        });
+    }
+
     public takeAction(action: string, data?: any) {
         data = data || {};
         data.lock = true;
@@ -1415,6 +1510,7 @@ class Abyss implements AbyssGame {
             ['discardLoots', 1],
             ['searchSanctuaryAlly', 500],
             ['kraken', 500],
+            ['placeSentinel', 500],
             ['endGame_scoring', 5000 * num_players + 3000],
         ];
     
@@ -1989,6 +2085,10 @@ class Abyss implements AbyssGame {
 
     notif_kraken(notif: Notif<any>) {
         this.placeKrakenToken(notif.args.playerId);
+    }
+
+    notif_placeSentinel(notif: Notif<NotifPlaceSentinelArgs>) {
+        this.placeSentinelToken(notif.args.playerId, notif.args.lordId, notif.args.location, notif.args.locationArg);
     }
 
 }

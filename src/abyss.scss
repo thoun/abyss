@@ -90,7 +90,12 @@
 /* DECKS */
 
 .deck-empty {
-  visibility: hidden !important;
+  background: unset !important;
+  box-shadow: none !important;
+
+  &:not(.selectable) {
+    cursor: unset;
+  }
 }
 
 html body #game-holder .slot-fake {
@@ -1085,4 +1090,29 @@ html a.bgabutton.affiliate-button:hover {
   width: 65px;
   height: 80px;
   background-image: url('img/kraken.png');
+}
+
+.sentinel-token {
+  position: absolute;
+  top: calc(50% - 38px);
+  left: calc(50% - 38px);
+  width: 75px;
+  height: 75px;
+  z-index: 10;
+  background: url('img/sentinels.png');
+  background-size: auto 100%;
+  border-radius: 50%;
+  box-shadow: 1px 1px 3px 2px black;
+
+  &[data-lord-id="106"] { background-position-y: 0%; }
+  &[data-lord-id="107"] { background-position-y: 50%; }
+  &[data-lord-id="108"] { background-position-y: 100%; }
+}
+
+.sentinels {
+  .sentinel-token {
+    position: relative;
+    left: unset;
+    top: unset;
+  }
 }

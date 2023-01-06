@@ -1560,13 +1560,13 @@ il est placé.
         }
 
         $args = $this->argPlaceSentinel();
-        if ($location == 1 && $this->array_some($args['possibleLords'], fn($lord) => $lord['lord_id'] == $locationArg)) {
+        if ($location == 1 && !$this->array_some($args['possibleLords'], fn($lord) => $lord['lord_id'] == $locationArg)) {
             throw new BgaVisibleSystemException("Invalid Lord");
         }
-        if ($location == 2 && $this->array_some($args['possibleCouncil'], fn($stack) => $stack == $locationArg)) {
+        if ($location == 2 && !$this->array_some($args['possibleCouncil'], fn($stack) => $stack == $locationArg)) {
             throw new BgaVisibleSystemException("Invalid Council stack");
         }
-        if ($location == 3 && $this->array_some($args['possibleLocations'], fn($location) => $location['location_id'] == $locationArg)) {
+        if ($location == 3 && !$this->array_some($args['possibleLocations'], fn($location) => $location['location_id'] == $locationArg)) {
             throw new BgaVisibleSystemException("Invalid Location");
         }
 

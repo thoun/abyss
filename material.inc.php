@@ -213,15 +213,15 @@ $this->lords = array(
     "name" => clienttranslate("The Fence"),
     "desc" => clienttranslate("At the end of the game, you do not receive any Nebulis for the Krakens you still have in hand."),
   ),
-  "106" => array( // TODO
+  "106" => array(
     "name" => clienttranslate("The Watcher"),
     "desc" => clienttranslate("Take the corresponding Sentinel token and place it on a free area. Gain 1 Nebulis."),
   ),
-  "107" => array( // TODO
+  "107" => array(
     "name" => clienttranslate("The Vigil"),
     "desc" => clienttranslate("Take the corresponding Sentinel token and place it on a free area. Gain 1 Nebulis."),
   ),
-  "108" => array( // TODO
+  "108" => array(
     "name" => clienttranslate("The Lookout"),
     "desc" => clienttranslate("Take the corresponding Sentinel token and place it on a free area. Gain 1 Nebulis."),
   ),
