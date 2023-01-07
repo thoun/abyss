@@ -34,8 +34,8 @@ trait StateTrait {
         $this->gamestate->nextState( );
     }
 
-    function doFinalScoring() { // TODOTEST
-        $breakdowns = array();
+    function doFinalScoring() {
+        $breakdowns = [];
 
         $players = self::loadPlayersBasicInfos();
         $max_score = 0;
@@ -305,7 +305,7 @@ trait StateTrait {
                     $lowest_per_faction = array();
                     foreach ($allies as $ally) {
                         $f = $ally["faction"];
-                        if (! isset($lowest_per_faction[$f]) || $lowest_per_faction[$f]["value"] > $ally["value"]) {
+                        if ($f != 10 && (! isset($lowest_per_faction[$f]) || $lowest_per_faction[$f]["value"] > $ally["value"])) {
                             $lowest_per_faction[$f] = $ally;
                         }
                     }

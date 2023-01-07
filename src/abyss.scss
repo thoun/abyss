@@ -915,6 +915,9 @@ i.icon-ally {
 #game-scoring table tr.line-below {
   border-bottom: 2px solid white;
 }
+#game-scoring table tr.line-above {
+  border-top: 2px solid white;
+}
 #game-scoring i.icon {
   width: 48px;
   height: 48px;
@@ -1090,6 +1093,17 @@ html a.bgabutton.affiliate-button:hover {
   width: 65px;
   height: 80px;
   background-image: url('img/kraken.png');
+}
+
+.icon-kraken {
+  display: inline-block;
+  position: relative;
+  width: 48px;
+  height: 48px;
+  background-image: url('img/kraken.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .sentinel-token {

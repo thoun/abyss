@@ -86,17 +86,6 @@ class LocationManager extends CardManager<AbyssLocation> {
     return desc;
   }
 
-  render(location: AbyssLocation) {
-    var desc = this.makeDesc(location, true);
-
-    return `<div id="location-uid-${++LocationManager.uniqueId}" class="location board location-${location.location_id}" data-location-id="${location.location_id}">
-      <div class="location-clicker"></div>
-      <span class="location-name">${_(location.name)}</span>
-      <span class="location-desc">${desc}</span>
-      <div class="trapped-lords-holder"></div>
-    </div>`;
-  }
-
   renderTooltip(location: AbyssLocation) {
     var desc = this.makeDesc(location);
     return `<div class="abs-tooltip-location">
@@ -104,15 +93,6 @@ class LocationManager extends CardManager<AbyssLocation> {
       <hr>
       ${desc}
     </div>`;
-  }
-
-  placeWithTooltip(location: AbyssLocation, parent) {
-    let node = dojo.place( this.render(location), parent );
-    this.game.connectTooltip( node, this.renderTooltip(location), "location" );
-    if (parent?.id == 'locations-holder') {
-      this.organise();
-    }
-    return node;
   }
 
   organise() {

@@ -16,10 +16,10 @@
       <tr id="scoring-row-affiliated">
         <td class="first-column"><span class="arrow">→</span><i id="scoring-affiliated-icon" class="icon icon-affiliated-ally"></i></td>
       </tr>
-      <tr id="scoring-row-monster" class="line-below">
+      <tr id="scoring-row-monster">
         <td class="first-column"><span class="arrow">→</span><i id="scoring-monster-tokens-icon" class="icon icon-monster"></i></td>
       </tr>
-      <tr id="scoring-row-total">
+      <tr id="scoring-row-total" class="line-above">
         <td id="text-total" class="first-column"></td>
       </tr>
     </table>
@@ -69,6 +69,8 @@
       <div id="locations-holder" class="board">
         <div class="location board location-back">
           <span class="deck-size"></span>
+        </div>
+        <div id="visible-locations-stock">
         </div>
       </div>
     </div>

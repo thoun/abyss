@@ -394,6 +394,11 @@ trait UtilTrait {
                 'location_points' => $location_points,
                 'final_scoring' => $final_scoring,
         );
+
+        if ($krakenExpansion) {
+            $breakdown['nebulis_points'] = $nebulisPoints;
+            $breakdown['kraken_points'] = $krakenPoints;
+        }
         
         if ($log) {
             self::notifyAllPlayers( "score", '', $breakdown );

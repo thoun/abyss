@@ -23,6 +23,7 @@ class Abyss implements AbyssGame {
     private useZoom: boolean;
     private zoomLevel: number;
     private lastExploreTime: number;
+    private visibleLocations: LineStock<AbyssLocation>;
 
     constructor() {
     }
@@ -91,6 +92,17 @@ class Abyss implements AbyssGame {
             }
             this.locationManager.organise();
         }, 200));
+
+        if (gamedatas.krakenExpansion) {
+            document.getElementById('scoring-row-total').insertAdjacentHTML('beforebegin', `
+                <tr id="scoring-row-nebulis">
+                    <td class="first-column"><span class="arrow">→</span><i id="scoring-nebulis-icon" class="icon icon-nebulis"></i></td>
+                </tr>
+                <tr id="scoring-row-kraken">
+                    <td class="first-column"><span class="arrow">→</span><i id="scoring-kraken-icon" class="icon-kraken"></i></td>
+                </tr>
+            `);
+        }
         
         // Setting up player boards
         this.createPlayerPanels(gamedatas);
@@ -102,6 +114,10 @@ class Abyss implements AbyssGame {
         $('scoring-row-lord').innerHTML += `<td></td>`;
         $('scoring-row-affiliated').innerHTML += `<td></td>`;
         $('scoring-row-monster').innerHTML += `<td></td>`;
+        if (gamedatas.krakenExpansion) {
+            $('scoring-row-nebulis').innerHTML += `<td></td>`;
+            $('scoring-row-kraken').innerHTML += `<td></td>`;  
+        }
         
         $('scoring-row-total').innerHTML += `<td></td>`;
 
@@ -161,10 +177,12 @@ class Abyss implements AbyssGame {
         dojo.addClass(threat_token, "slot-" + gamedatas.threat_level);
 
         // Locations
-        for ( var i in gamedatas.location_available ) {
-            var location = gamedatas.location_available[i];
-            this.locationManager.placeWithTooltip(location, $('locations-holder'));
-        }
+        this.visibleLocations = new LineStock<AbyssLocation>(this.locationManager, document.getElementById('visible-locations-stock'), {
+            center: false,
+            direction: 'column',
+        });
+        this.visibleLocations.addCards(gamedatas.location_available);
+        this.visibleLocations.onCardClick = location => this.onVisibleLocationClick(location);
         this.setDeckSize(dojo.query('#locations-holder .location-back'), gamedatas.location_deck);
 
         // Clickers
@@ -174,7 +192,7 @@ class Abyss implements AbyssGame {
         dojo.connect($('player-hand'), 'onclick', this, 'onClickPlayerHand');
         (this as any).addEventToClass('icon-monster', 'onclick', 'onClickMonsterIcon');
         (this as any).addEventToClass('free-lords', 'onclick', 'onClickPlayerFreeLords');
-        dojo.connect($('locations-holder'), 'onclick', this, 'onClickLocation');
+        //dojo.connect($('locations-holder'), 'onclick', this, 'onClickLocation');
         dojo.connect($('locations-holder-overflow'), 'onclick', this, 'onClickLocation');
         (this as any).addEventToClass('locations', 'onclick', 'onClickLocation');
 
@@ -192,6 +210,10 @@ class Abyss implements AbyssGame {
         (this as any).addTooltip( 'scoring-lords-icon', _( 'Lords' ), '' );
         (this as any).addTooltip( 'scoring-affiliated-icon', _( 'Affiliated Allies' ), '' );
         (this as any).addTooltip( 'scoring-monster-tokens-icon', _( 'Monster tokens' ), '' );
+        if (gamedatas.krakenExpansion) {
+            (this as any).addTooltip('scoring-nebulis-icon', _( 'Nebulis' ), '');
+            (this as any).addTooltip('scoring-kraken-icon', _( 'Kraken' ), '');
+        }
         
         // Localisation of options box
         $('option-desc').innerHTML = _('Which Ally cards do you want to automatically pass on?');
@@ -417,13 +439,13 @@ class Abyss implements AbyssGame {
     private onEnteringLocationEffectBlackSmokers(args: EnteringLocationEffectBlackSmokersArgs) {
         // Draw all the locations in a div at the top. Register to each an onclick to select it.
         if ((this as any).isCurrentPlayerActive()) {
-            for( var iLocation in args._private.locations ) {
-                var location = args._private.locations[iLocation];
-                var location_element = this.locationManager.placeWithTooltip(location, $('game-extra'));
-                dojo.addClass(location_element, 'card-current-move');
-                dojo.connect(location_element, 'onclick', this, 'onClickLocation');
-            }
+            dojo.place('<div id="ally-discard"></div>', 'game-extra');
             dojo.style($('game-extra'), "display", "block");
+            const stock = new LineStock<AbyssLocation>(this.locationManager, document.getElementById(`ally-discard`), {
+                direction: 'column',
+            });
+            stock.addCards(args._private.locations);
+            stock.onCardClick = location => this.onVisibleLocationClick(location);
         }
     }
 
@@ -845,6 +867,10 @@ class Abyss implements AbyssGame {
             $('scoring-row-lord').innerHTML += `<td id="scoring-row-lord-p${playerId}"></td>`;
             $('scoring-row-affiliated').innerHTML += `<td id="scoring-row-affiliated-p${playerId}"></td>`;
             $('scoring-row-monster').innerHTML += `<td id="scoring-row-monster-p${playerId}"></td>`;
+            if (gamedatas.krakenExpansion) {
+                $('scoring-row-nebulis').innerHTML += `<td id="scoring-row-nebulis-p${playerId}"></td>`;
+                $('scoring-row-kraken').innerHTML += `<td id="scoring-row-kraken-p${playerId}"></td>`;  
+            }
             
             $('scoring-row-total').innerHTML += `<td id="scoring-row-total-p${playerId}"></td>`;
         });
@@ -1043,31 +1069,54 @@ class Abyss implements AbyssGame {
                 let location_deck_size = +dojo.attr(location_deck, 'data-size');
                 if (location_deck_size == 0) {
                 (this as any).confirmationDialog( _('Are you sure you want to select this Location? There are no Locations left in the deck.'), dojo.hitch( this, function() {
-                    var lord_ids = [];
-                    dojo.query("#player-panel-" + (this as any).player_id + " .free-lords .lord.selected").forEach(node => 
-                        lord_ids.push(+dojo.attr(node, 'data-lord-id'))
-                    );
-    
-                    (this as any).ajaxcall( "/abyss/abyss/chooseLocation.html", { lock: true, location_id: location_id, lord_ids: lord_ids.join(';') }, this,
-                    () => {},
-                    () => {}
-                    );
+                    this.chooseLocation(location_id);
                     } ) );
                     return;
                 }
             }
             
-            var lord_ids = [];
-            dojo.query("#player-panel-" + (this as any).player_id + " .free-lords .lord.selected").forEach(node =>
-            lord_ids.push(+dojo.attr(node, 'data-lord-id'))
-            );
+            this.chooseLocation(location_id);
+        }
+        }
+    }
 
-            (this as any).ajaxcall( "/abyss/abyss/chooseLocation.html", { lock: true, location_id: location_id, lord_ids: lord_ids.join(';') }, this,
-            () => {},
-            () => {}
-            );
+    private onVisibleLocationClick(location: AbyssLocation) {
+        const location_id = location.location_id;
+
+        if (this.gamedatas.gamestate.name === 'placeSentinel') {
+            this.placeSentinel(3, location_id);
+            return;
         }
+
+        if( ! (this as any).checkAction( 'chooseLocation' ) ) {
+            return;
         }
+        
+        // If you select Black Smokers with an empty deck, warn!
+        if (location_id == 10) {
+            let location_deck = dojo.query('.location.location-back')[0];
+            let location_deck_size = +dojo.attr(location_deck, 'data-size');
+            if (location_deck_size == 0) {
+            (this as any).confirmationDialog( _('Are you sure you want to select this Location? There are no Locations left in the deck.'), dojo.hitch( this, function() {
+                this.chooseLocation(location_id);
+                } ) );
+                return;
+            }
+        }
+        
+        this.chooseLocation(location_id);
+    }
+
+    private chooseLocation(locationId: number) {
+        var lord_ids = [];
+        dojo.query("#player-panel-" + (this as any).player_id + " .free-lords .lord.selected").forEach(node =>
+        lord_ids.push(+dojo.attr(node, 'data-lord-id'))
+        );
+
+        this.takeAction('chooseLocation', {
+            location_id: locationId,
+            lord_ids: lord_ids.join(';'),
+        });
     }
 
     onClickLordsTrack( evt ) {
@@ -1559,12 +1608,12 @@ class Abyss implements AbyssGame {
             $('scoring-row-' + stage + '-p' + player_id).innerHTML = value;
         }
     
-    setScoringRowWinner(winner_ids: string[]) {
+    setScoringRowWinner(winner_ids: string[], lines: string[]) {
         for (let i in winner_ids) {
             let player_id = winner_ids[i];
             dojo.addClass($('scoring-row-name-p' + player_id), 'wavetext');
             
-            ['location', 'lord', 'affiliated', 'monster', 'total'].forEach(stage =>
+            lines.forEach(stage =>
                 dojo.style($('scoring-row-'+stage+'-p' + player_id), {'backgroundColor': 'rgba(255, 215, 0, 0.3)'})
             );
         }
@@ -1586,7 +1635,13 @@ class Abyss implements AbyssGame {
         dojo.style($('game-scoring'), {'display': 'block'});
         
         let currentTime = 0;
-        ['location', 'lord', 'affiliated', 'monster', 'total'].forEach(stage => {
+        const lines = ['location', 'lord', 'affiliated', 'monster'];
+        if (this.gamedatas.krakenExpansion) {
+            lines.push('nebulis', 'kraken');
+        }
+        lines.push('total');
+        console.log(breakdowns);
+        lines.forEach(stage => {
             let breakdownStage = stage + '_points';
             if (stage == 'total') {
                 breakdownStage = 'score';
@@ -1601,7 +1656,7 @@ class Abyss implements AbyssGame {
         
         // Set winner to be animated!
         currentTime -= 500;
-        setTimeout(this.setScoringRowWinner.bind(this, winnerIds), currentTime);
+        setTimeout(this.setScoringRowWinner.bind(this, winnerIds, lines), currentTime);
     }
 
     notif_useLord( notif: Notif<NotifUseLordArgs> ) {
@@ -1646,9 +1701,7 @@ class Abyss implements AbyssGame {
         var player_id = notif.args.player_id;
 
         // Delete the location/lords
-        dojo.query('.location.location-' + location_id).forEach(function (node) {
-        dojo.destroy(node);
-        });
+        dojo.query('.location.location-' + location_id).forEach(node => dojo.destroy(node));
         
         this.lordManager.updateLordKeys(player_id);
         
@@ -1659,11 +1712,7 @@ class Abyss implements AbyssGame {
         var locations = notif.args.locations;
         var deck_size = notif.args.deck_size;
 
-        for (var i in locations) {
-            var location = locations[i];
-            this.locationManager.placeWithTooltip( location, $('locations-holder') );
-        }
-
+        this.visibleLocations.addCards(locations);
         this.setDeckSize(dojo.query('#locations-holder .location-back'), deck_size);
     }
 

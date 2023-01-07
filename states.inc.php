@@ -597,7 +597,7 @@ $machinestates = array(
   		"descriptionmyturn" => clienttranslate("Final scoring"),
  		"type" => "game",
  		"action" => "stFinalScoring",
- 		"transitions" => array( "" => ST_END_GAME )
+ 		"transitions" => array( "" => ST_PRE_TURN/*  die( TODO GBA ST_END_GAME*/ )
  ),
 
  	// Final state.
