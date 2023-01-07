@@ -23,6 +23,8 @@ class Abyss implements AbyssGame {
     private useZoom: boolean;
     private zoomLevel: number;
     private lastExploreTime: number;
+    private visibleAllies: SlotStock<AbyssAlly>;
+    private councilStacks: VoidStock<AbyssAlly>[] = [];
     private visibleLords: SlotStock<AbyssLord>;
     private visibleLocations: LineStock<AbyssLocation>;
     private visibleLocationsOverflow: LineStock<AbyssLocation>;
@@ -163,15 +165,18 @@ class Abyss implements AbyssGame {
         this.visibleLords.onCardClick = lord => this.onVisibleLordClick(lord);
 
         // Allies
-        for ( var i in gamedatas.ally_explore_slots ) {
-            var ally = gamedatas.ally_explore_slots[i];
-            if (ally.faction == null) ally.faction = FACTION_MONSTER;
-            this.allyManager.placeWithTooltip(ally, $('explore-track'));
-        }
+        this.visibleAllies = new SlotStock<AbyssAlly>(this.allyManager, document.getElementById('visible-allies-stock'), {
+            slotsIds: [1,2,3,4,5],
+            mapCardToSlot: ally => ally.place,
+        });
+        this.visibleAllies.addCards(gamedatas.ally_explore_slots);
+        this.visibleAllies.onCardClick = ally => this.onVisibleAllyClick(ally);
+        
         for ( var i in gamedatas.ally_council_slots ) {
             var num = gamedatas.ally_council_slots[i];
             var deck = dojo.query('#council-track .slot-' + i);
             this.setDeckSize(deck, num);
+            this.councilStacks[i] = new VoidStock<AbyssAlly>(this.allyManager, deck[0]);
         }
         this.setDeckSize(dojo.query('#lords-track .slot-0'), gamedatas.lord_deck);
         this.setDeckSize(dojo.query('#explore-track .slot-0'), gamedatas.ally_deck);
@@ -194,7 +199,7 @@ class Abyss implements AbyssGame {
         this.setDeckSize(dojo.query('#locations-holder .location-back'), gamedatas.location_deck);
 
         // Clickers
-        dojo.connect($('explore-track'), 'onclick', this, 'onClickExploreTrack');
+        dojo.connect($('explore-track-deck'), 'onclick', this, e => this.onClickExploreDeck(e));
         dojo.connect($('council-track'), 'onclick', this, 'onClickCouncilTrack');
         dojo.connect($('player-hand'), 'onclick', this, 'onClickPlayerHand');
         (this as any).addEventToClass('icon-monster', 'onclick', 'onClickMonsterIcon');
@@ -530,13 +535,13 @@ class Abyss implements AbyssGame {
                 case 'purchase':
                     const purchageArgs = args as EnteringPurchaseArgs;
                     const cost = purchageArgs.cost;
-                    (this as any).addActionButton('button_purchase', _('Purchase') + ` (${cost} <i class="icon icon-pearl"></i>)`, event => this.onPurchase(event, 0));
+                    (this as any).addActionButton('button_purchase', _('Purchase') + ` (${cost} <i class="icon icon-pearl"></i>)`, () => this.onPurchase(0));
                     if (!purchageArgs.canPayWithPearls) {
                         document.getElementById('button_purchase').classList.add('disabled');
                     }
                     if (purchageArgs.withNebulis) {
                         Object.keys(purchageArgs.withNebulis).forEach(i => {
-                            (this as any).addActionButton(`button_purchase_with${i}Nebulis`, _('Purchase') + ` (${ cost - Number(i) > 0 ? `${cost - Number(i)} <i class="icon icon-pearl"></i> ` : ''}${i} <i class="icon icon-nebulis"></i>)`, event => this.onPurchase(event, Number(i)));
+                            (this as any).addActionButton(`button_purchase_with${i}Nebulis`, _('Purchase') + ` (${ cost - Number(i) > 0 ? `${cost - Number(i)} <i class="icon icon-pearl"></i> ` : ''}${i} <i class="icon icon-nebulis"></i>)`, event => this.onPurchase(Number(i)));
                             if (!purchageArgs.withNebulis[i]) {
                                 document.getElementById(`button_purchase_with${i}Nebulis`).classList.add('disabled');
                             }
@@ -1158,61 +1163,32 @@ class Abyss implements AbyssGame {
         },);
     }
 
-    onClickExploreTrack( evt ) {
-        if (dojo.hasClass(evt.target, 'slot-0')) {
-        this.onClickExploreDeck( evt );
-        } else if (dojo.hasClass(evt.target, 'ally')) {
-        this.onClickExploreCard( evt );
-        }
-    }
-
     onClickExploreDeck( evt ) {
         dojo.stopEvent( evt );
 
-        if( ! (this as any).checkAction( 'explore' ) ) {
-        return;
-        }
-
-        (this as any).ajaxcall( "/abyss/abyss/explore.html", { lock: true }, this,
-        () => {},
-        () => {}
-        );
-    }
-
-    onClickExploreCard( evt ) {
-        dojo.stopEvent( evt );
-        
-        if( (this as any).checkAction( 'purchase', true ) ) {
-            this.onPurchase( evt, 0); // TODO BGA ?
+        if (!(this as any).checkAction('explore')) {
             return;
         }
 
-        if( ! (this as any).checkAction( 'exploreTake' ) ) {
-        return;
-        }
-
-        var slot = 0;
-        if (dojo.hasClass(evt.target, 'slot-1')) {
-        slot = 1;
-        } else if (dojo.hasClass(evt.target, 'slot-2')) {
-        slot = 2;
-        } else if (dojo.hasClass(evt.target, 'slot-3')) {
-        slot = 3;
-        } else if (dojo.hasClass(evt.target, 'slot-4')) {
-        slot = 4;
-        } else if (dojo.hasClass(evt.target, 'slot-5')) {
-        slot = 5;
-        }
-
-        (this as any).ajaxcall( "/abyss/abyss/exploreTake.html", { lock: true, slot: slot }, this,
-        () => {},
-        () => {}
-        );
+        this.takeAction('explore');
     }
 
-    onPurchase(evt, withNebulis: number) {
-        dojo.stopEvent( evt );
+    onVisibleAllyClick(ally: AbyssAlly) {
+        if((this as any).checkAction('purchase', true)) {
+            this.onPurchase(0); // TODO BGA ?
+            return;
+        }
 
+        if(!(this as any).checkAction('exploreTake')) {
+            return;
+        }
+
+        this.takeAction('exploreTake', {
+            slot: ally.place,
+        });
+    }
+
+    onPurchase(withNebulis: number) {
         if(!(this as any).checkAction('purchase')) {
             return;
         }
@@ -1822,10 +1798,9 @@ class Abyss implements AbyssGame {
         if (ally.faction == null) {
             ally.faction = FACTION_MONSTER;
         }
-        let node = this.allyManager.placeWithTooltip(ally, $('explore-track'));
-        dojo.setStyle(node, "left", "9px");
-        requestAnimationFrame(() => {
-            dojo.setStyle(node, "left", "");
+        this.visibleAllies.addCard(ally, {
+            fromElement: document.getElementById('explore-track-deck'),
+            originalSide: 'back',
         });
 
         // Update ally decksize
@@ -1857,29 +1832,22 @@ class Abyss implements AbyssGame {
         // For each slot, animate to the council pile, fade out and destroy, then increase the council pile by 1
         var delay = 0;
         let self = this;
+        const cards = this.visibleAllies.getCards();
         for (var i = 1; i <= 5; i++) {
-            var ally = dojo.query('#explore-track .slot-' + i);
-            if (ally.length > 0) {
-                let theAlly = ally[0];
-                var faction = dojo.attr(theAlly, 'data-faction');
-                dojo.setStyle(theAlly, "transition", "none");
+            const ally = cards.find(ally => ally.place == i);
+            if (ally) {
+                const faction = ally.faction;
                 if (faction == FACTION_MONSTER) {
                     // Monster just fades out
-                    (this as any).fadeOutAndDestroy( theAlly, 400, delay );
+                    this.visibleAllies.removeCard(ally);
                     delay += 200;
-                } else if (i != slot) {
+                } else if (i != slot && faction != 10) {
                     // Animate to the council!
-                    let deck = dojo.query('#council-track .slot-' + faction);
-                    var animation = (this as any).slideToObject( theAlly, deck[0], 600, delay );
-                    animation.onEnd = function() {
-                        dojo.destroy(theAlly);
-                        var num = +dojo.attr(deck[0], 'data-size') + 1;
-                        self.setDeckSize(deck, num);
-                    };
-                    animation.play();
+                    this.councilStacks[faction].addCard(ally);
                     delay += 200;
                 } else {
                     // This is the card that was taken - animate it to hand or player board
+                    const theAlly = this.allyManager.getCardElement(ally);
                     if (player_id == this.getPlayerId()) {
                         dojo.setStyle(theAlly, "zIndex", "1");
                         dojo.setStyle(theAlly, "transition", "none");
@@ -1957,9 +1925,7 @@ class Abyss implements AbyssGame {
     }
 
     notif_discardCouncil( notif: Notif<NotifDiscardCouncilArgs> ) {
-        var player_id = notif.args.player_id;
         var faction = notif.args.faction;
-        var num = notif.args.num;
 
         // Empty the council pile
         var deck = dojo.query('#council-track .slot-' + faction);

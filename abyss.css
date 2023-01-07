@@ -493,36 +493,6 @@ html body #game-holder .slot-fake {
   position: absolute;
 }
 
-#lords-track .slot[data-slot-id="1"] {
-  left: 129px;
-  position: absolute;
-}
-
-#lords-track .slot[data-slot-id="2"] {
-  left: 234px;
-  position: absolute;
-}
-
-#lords-track .slot[data-slot-id="3"] {
-  left: 339px;
-  position: absolute;
-}
-
-#lords-track .slot[data-slot-id="4"] {
-  left: 444px;
-  position: absolute;
-}
-
-#lords-track .slot[data-slot-id="5"] {
-  left: 550px;
-  position: absolute;
-}
-
-#lords-track .slot[data-slot-id="6"] {
-  left: 655px;
-  position: absolute;
-}
-
 #lords-track .lord.selected {
   --scale: scale(1.5);
   z-index: 90;
@@ -903,30 +873,14 @@ html .lord .lord-desc {
 
 #game-board #explore-track .slot-0 {
   left: 9px;
-}
-
-#game-board #explore-track .slot-1 {
-  left: 141px;
-}
-
-#game-board #explore-track .slot-2 {
-  left: 273px;
-}
-
-#game-board #explore-track .slot-3 {
-  left: 406px;
-}
-
-#game-board #explore-track .slot-4 {
-  left: 539px;
-}
-
-#game-board #explore-track .slot-5 {
-  left: 671px;
+  position: absolute;
 }
 
 #council-track {
   position: absolute;
+}
+#council-track [data-faction] {
+  transform: var(--rotation);
 }
 
 #game-board #council-track .slot-0 {
@@ -942,6 +896,7 @@ html .lord .lord-desc {
 }
 
 #game-board #council-track .slot-2 {
+  --rotation: rotate(0deg);
   left: 348px;
   top: 177px;
 }
@@ -962,22 +917,19 @@ html .lord .lord-desc {
   position: relative;
   width: 58px;
   height: 86px;
+  color: white;
+  cursor: pointer;
+}
+
+.ally-side {
   background-image: url(img/allies.jpg);
   background-size: 800% 400%;
-  color: white;
-  border-radius: 3px;
-  cursor: pointer;
   /*box-shadow: 2px 2px rgba(0,0,0,0.7);*/
   box-shadow: 2px 2px #222;
 }
-.ally:not(.card) {
-  transition: transform 0.2s ease-in-out;
-  /* 100/7% for each horizontal, 33.33% for each vertical */
-  transform: var(--rotation, rotate(0)) var(--translate, translate(0)) var(--scale, scale(1));
-}
 
 #explore-track .ally {
-  transition: transform 0.2s ease-in-out, left 0.5s ease-in-out, top 0.5s ease-in-out;
+  transition: transform 0.2s ease-in-out;
 }
 
 #game-board .ally {
@@ -1153,16 +1105,16 @@ html .lord .lord-desc {
   background-position: 28.571% 100%;
 }
 
-.ally[data-faction="10"] {
+.ally-side[data-faction="10"] {
   background-position-y: 100%;
 }
-.ally[data-faction="10"][data-value="2"] {
+.ally-side[data-faction="10"][data-value="2"] {
   background-position-x: 42.8571428571%;
 }
-.ally[data-faction="10"][data-value="3"] {
+.ally-side[data-faction="10"][data-value="3"] {
   background-position-x: 57.1428571429%;
 }
-.ally[data-faction="10"][data-value="4"] {
+.ally-side[data-faction="10"][data-value="4"] {
   background-position-x: 71.4285714286%;
 }
 
@@ -1904,4 +1856,35 @@ html a.bgabutton.affiliate-button:hover {
   position: relative;
   left: unset;
   top: unset;
+}
+
+#visible-allies-stock {
+  left: 121px;
+  width: 512px;
+  position: absolute;
+  justify-content: space-between;
+}
+#visible-allies-stock .slot {
+  width: 58px;
+  height: 86px;
+}
+
+#visible-lords-stock {
+  left: 128px;
+  width: 616px;
+  position: absolute;
+  justify-content: space-between;
+}
+#visible-lords-stock .slot {
+  width: 88px;
+  height: 136px;
+}
+
+.playmat-narrow #visible-allies-stock {
+  left: 138px;
+  width: 583px;
+}
+.playmat-narrow #visible-lords-stock {
+  left: 115px;
+  width: 604px;
 }

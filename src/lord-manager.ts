@@ -1,6 +1,4 @@
 class LordManager extends CardManager<AbyssLord> {
-  private static uniqueId: number = 0;
-
   constructor(public game: AbyssGame) {
     super(game, {
       getId: lord => `lord-${lord.lord_id}`,

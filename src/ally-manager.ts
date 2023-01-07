@@ -1,14 +1,10 @@
 class AllyManager extends CardManager<AbyssAlly> {
-  private static uniqueId: number = 0;
 
   constructor(public game: AbyssGame) {
     super(game, {
       getId: ally => `ally-${ally.ally_id}`,
       setupDiv: (ally, div) => {
-        div.classList.add(`ally`, `ally-${ally.faction}-${ally.value}`);
-        if (ally.place >= 0) {
-          div.classList.add(`slot-${ally.place}`);
-        }
+        div.classList.add(`ally`);
         div.dataset.allyId = `${ally.ally_id}`;
         div.dataset.faction = `${ally.faction}`;
         div.dataset.value = `${ally.value}`;
@@ -16,19 +12,14 @@ class AllyManager extends CardManager<AbyssAlly> {
         this.game.connectTooltip(div, this.renderTooltip(ally), "ally");
       },
       setupFrontDiv: (ally, div) => {
-        div.classList.add( `ally-${ally.faction}-${ally.value}`);
+        div.dataset.faction = `${ally.faction}`;
+        div.dataset.value = `${ally.value}`;
+        div.classList.add('ally-side', `ally-${ally.faction}-${ally.value}`);
+      },
+      setupBackDiv: (ally, div) => {
+        div.classList.add('ally-side', `ally-back`);
       },
     });
-  }
-
-  render(ally: AbyssAlly) {
-    return `<div id="ally-uid-${++AllyManager.uniqueId}" data-ally-id="${ally.ally_id}" data-faction="${ally.faction}" data-value="${ally.value}" class="ally ally-${ally.faction}-${ally.value} ${ally.place >= 0 ? ('slot-' + ally.place) : ''}"></div>`;
-  }
-
-  placeWithTooltip(ally: AbyssAlly, parent) {
-    let node = dojo.place( this.render(ally), parent );
-    this.game.connectTooltip( node, this.renderTooltip(ally), "ally" );
-    return node;
   }
 
   allyNameText(faction: number) {
@@ -40,6 +31,7 @@ class AllyManager extends CardManager<AbyssAlly> {
       '<span style="color: green">' + _('Shellfish') + '</span>',
       '<span style="color: blue">' + _('Squid') + '</span>'
     ];
+    allies[10] = '<span style="color: gray">' + _('Kraken') + '</span>';
     return allies[faction];
   }
 

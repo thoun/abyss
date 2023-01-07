@@ -28,8 +28,6 @@ class CompressedLineStock<T> extends ManualPositionStock<T> {
 }
 
 class LocationManager extends CardManager<AbyssLocation> {
-  private static uniqueId: number = 0;
-
   private lordsStocks: LineStock<AbyssLord>[] = [];
   private lootStocks: CompressedLineStock<AbyssLoot>[] = [];
 
