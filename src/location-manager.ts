@@ -95,26 +95,6 @@ class LocationManager extends CardManager<AbyssLocation> {
     </div>`;
   }
 
-  organise() {
-    // First, move all in overflow back to holder
-    let overflowLocations = dojo.query('.location:not(.location-back)', $('locations-holder-overflow'));
-    for (let i = 0; i < overflowLocations.length; i++) {
-      $('locations-holder').appendChild(overflowLocations[i]);
-    }
-    
-    // If on playmat:
-    if (dojo.hasClass($('game-board-holder'), "playmat")) {
-      // Then, move all beyond 5 into the overflow
-      let locations = dojo.query('.location:not(.location-back)', $('locations-holder'));
-      if (locations.length > 5) {
-        for (let i = 5; i < locations.length; i++) {
-          // move to overflow...
-          $('locations-holder-overflow').appendChild(locations[i]);
-        }
-      }
-    }
-  }
-
   public addLoot(locationId: number, loot: AbyssLoot) {
     this.lootStocks[locationId].addCard(loot); // TODO GBA add from element 
   }

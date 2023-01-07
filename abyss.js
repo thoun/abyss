@@ -1140,24 +1140,6 @@ var LocationManager = /** @class */ (function (_super) {
         var desc = this.makeDesc(location);
         return "<div class=\"abs-tooltip-location\">\n      <h3 style=\"padding-right: 50px;\">".concat(_(location.name), "</h3>\n      <hr>\n      ").concat(desc, "\n    </div>");
     };
-    LocationManager.prototype.organise = function () {
-        // First, move all in overflow back to holder
-        var overflowLocations = dojo.query('.location:not(.location-back)', $('locations-holder-overflow'));
-        for (var i = 0; i < overflowLocations.length; i++) {
-            $('locations-holder').appendChild(overflowLocations[i]);
-        }
-        // If on playmat:
-        if (dojo.hasClass($('game-board-holder'), "playmat")) {
-            // Then, move all beyond 5 into the overflow
-            var locations = dojo.query('.location:not(.location-back)', $('locations-holder'));
-            if (locations.length > 5) {
-                for (var i = 5; i < locations.length; i++) {
-                    // move to overflow...
-                    $('locations-holder-overflow').appendChild(locations[i]);
-                }
-            }
-        }
-    };
     LocationManager.prototype.addLoot = function (locationId, loot) {
         this.lootStocks[locationId].addCard(loot); // TODO GBA add from element 
     };
@@ -1378,7 +1360,7 @@ var Abyss = /** @class */ (function () {
                     height: height
                 });
             }
-            _this.locationManager.organise();
+            _this.organiseLocations();
         }, 200));
         if (gamedatas.krakenExpansion) {
             document.getElementById('scoring-row-total').insertAdjacentHTML('beforebegin', "\n                <tr id=\"scoring-row-nebulis\">\n                    <td class=\"first-column\"><span class=\"arrow\">\u2192</span><i id=\"scoring-nebulis-icon\" class=\"icon icon-nebulis\"></i></td>\n                </tr>\n                <tr id=\"scoring-row-kraken\">\n                    <td class=\"first-column\"><span class=\"arrow\">\u2192</span><i id=\"scoring-kraken-icon\" class=\"icon-kraken\"></i></td>\n                </tr>\n            ");
@@ -1452,6 +1434,10 @@ var Abyss = /** @class */ (function () {
         });
         this.visibleLocations.addCards(gamedatas.location_available);
         this.visibleLocations.onCardClick = function (location) { return _this.onVisibleLocationClick(location); };
+        this.visibleLocations.addCards(gamedatas.location_available);
+        this.visibleLocationsOverflow = new LineStock(this.locationManager, document.getElementById('locations-holder-overflow'));
+        this.visibleLocationsOverflow.onCardClick = function (location) { return _this.onVisibleLocationClick(location); };
+        this.organiseLocations();
         this.setDeckSize(dojo.query('#locations-holder .location-back'), gamedatas.location_deck);
         // Clickers
         dojo.connect($('explore-track'), 'onclick', this, 'onClickExploreTrack');
@@ -1460,8 +1446,6 @@ var Abyss = /** @class */ (function () {
         dojo.connect($('player-hand'), 'onclick', this, 'onClickPlayerHand');
         this.addEventToClass('icon-monster', 'onclick', 'onClickMonsterIcon');
         this.addEventToClass('free-lords', 'onclick', 'onClickPlayerFreeLords');
-        //dojo.connect($('locations-holder'), 'onclick', this, 'onClickLocation');
-        dojo.connect($('locations-holder-overflow'), 'onclick', this, 'onClickLocation');
         this.addEventToClass('locations', 'onclick', 'onClickLocation');
         // Tooltips
         // Hide this one, because it doesn't line up due to Zoom
@@ -2204,6 +2188,22 @@ var Abyss = /** @class */ (function () {
                 break;
         }
     };
+    Abyss.prototype.organiseLocations = function () {
+        // If on playmat:
+        if (dojo.hasClass($('game-board-holder'), "playmat")) {
+            // move all beyond 5 into the overflow
+            var locations = this.visibleLocations.getCards();
+            if (locations.length > 5) {
+                this.visibleLocationsOverflow.addCards(locations.slice(5));
+            }
+        }
+        else {
+            var locations = this.visibleLocationsOverflow.getCards();
+            if (locations.length > 0) {
+                this.visibleLocations.addCards(locations);
+            }
+        }
+    };
     ///////////////////////////////////////////////////
     //// Player's action
     /*
@@ -2806,6 +2806,7 @@ var Abyss = /** @class */ (function () {
         var locations = notif.args.locations;
         var deck_size = notif.args.deck_size;
         this.visibleLocations.addCards(locations);
+        this.organiseLocations();
         this.setDeckSize(dojo.query('#locations-holder .location-back'), deck_size);
     };
     Abyss.prototype.notif_disable = function (notif) {

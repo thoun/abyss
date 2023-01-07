@@ -591,23 +591,25 @@ $machinestates = array(
 		],
 	],
 
-	 ST_FINAL_SCORING => array(
+	 ST_FINAL_SCORING => [
  		"name" => "finalScoring",
  		"description" => clienttranslate("Final scoring"),
   		"descriptionmyturn" => clienttranslate("Final scoring"),
  		"type" => "game",
  		"action" => "stFinalScoring",
- 		"transitions" => array( "" => ST_PRE_TURN/*  die( TODO GBA ST_END_GAME*/ )
- ),
+ 		"transitions" => [
+			"" => ST_END_GAME,
+		],
+	],
 
  	// Final state.
  	// Please do not modify (and do not overload action/args methods).
- 	ST_END_GAME => array(
+ 	ST_END_GAME => [
   		"name" => "gameEnd",
   		"description" => clienttranslate("End of game"),
   		"type" => "manager",
   		"action" => "stGameEnd",
-  		"args" => "argGameEnd"
- 	)
+  		"args" => "argGameEnd",
+	],
 
 );

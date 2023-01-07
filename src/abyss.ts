@@ -24,6 +24,7 @@ class Abyss implements AbyssGame {
     private zoomLevel: number;
     private lastExploreTime: number;
     private visibleLocations: LineStock<AbyssLocation>;
+    private visibleLocationsOverflow: LineStock<AbyssLocation>;
 
     constructor() {
     }
@@ -90,7 +91,7 @@ class Abyss implements AbyssGame {
                     height: height
                 });
             }
-            this.locationManager.organise();
+            this.organiseLocations();
         }, 200));
 
         if (gamedatas.krakenExpansion) {
@@ -183,6 +184,10 @@ class Abyss implements AbyssGame {
         });
         this.visibleLocations.addCards(gamedatas.location_available);
         this.visibleLocations.onCardClick = location => this.onVisibleLocationClick(location);
+        this.visibleLocations.addCards(gamedatas.location_available);
+        this.visibleLocationsOverflow = new LineStock<AbyssLocation>(this.locationManager, document.getElementById('locations-holder-overflow'));
+        this.visibleLocationsOverflow.onCardClick = location => this.onVisibleLocationClick(location);
+        this.organiseLocations();
         this.setDeckSize(dojo.query('#locations-holder .location-back'), gamedatas.location_deck);
 
         // Clickers
@@ -192,8 +197,6 @@ class Abyss implements AbyssGame {
         dojo.connect($('player-hand'), 'onclick', this, 'onClickPlayerHand');
         (this as any).addEventToClass('icon-monster', 'onclick', 'onClickMonsterIcon');
         (this as any).addEventToClass('free-lords', 'onclick', 'onClickPlayerFreeLords');
-        //dojo.connect($('locations-holder'), 'onclick', this, 'onClickLocation');
-        dojo.connect($('locations-holder-overflow'), 'onclick', this, 'onClickLocation');
         (this as any).addEventToClass('locations', 'onclick', 'onClickLocation');
 
         // Tooltips
@@ -966,6 +969,22 @@ class Abyss implements AbyssGame {
         }
     }
 
+    private organiseLocations() {
+        // If on playmat:
+        if (dojo.hasClass($('game-board-holder'), "playmat")) {
+            // move all beyond 5 into the overflow
+            const locations = this.visibleLocations.getCards();
+            if (locations.length > 5) {
+                this.visibleLocationsOverflow.addCards(locations.slice(5));
+            }
+        } else {
+            const locations = this.visibleLocationsOverflow.getCards();
+            if (locations.length > 0) {
+                this.visibleLocations.addCards(locations);
+            }
+        }
+    }
+
     ///////////////////////////////////////////////////
     //// Player's action
 
@@ -1713,6 +1732,7 @@ class Abyss implements AbyssGame {
         var deck_size = notif.args.deck_size;
 
         this.visibleLocations.addCards(locations);
+        this.organiseLocations();
         this.setDeckSize(dojo.query('#locations-holder .location-back'), deck_size);
     }
 
