@@ -52,9 +52,10 @@
         </div>
       </div>
       <div id="lords-track">
-        <div class="lord lord-back slot-0 deck-full">
+        <div class="lord lord-side lord-back slot-0 deck-full">
           <span class="deck-size"></span>
         </div>
+        <div id="visible-lords-stock"></div>
         <div id="bonus-pearls-holder">
           <i class="icon icon-pearl"></i>
           <i class="icon icon-pearl"></i>

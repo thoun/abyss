@@ -480,14 +480,6 @@ html body #game-holder .slot-fake {
   text-align: center;
 }
 
-.location .trapped-lords-holder .lord {
-  margin-right: 10px;
-}
-
-.location .trapped-lords-holder .lord:last-child {
-  margin-right: 0;
-}
-
 /* LORDS */
 #lords-track {
   position: absolute;
@@ -498,30 +490,37 @@ html body #game-holder .slot-fake {
 
 #lords-track .slot-0 {
   left: 13px;
+  position: absolute;
 }
 
-#lords-track .slot-1 {
-  left: 118px;
+#lords-track .slot[data-slot-id="1"] {
+  left: 129px;
+  position: absolute;
 }
 
-#lords-track .slot-2 {
-  left: 222px;
+#lords-track .slot[data-slot-id="2"] {
+  left: 234px;
+  position: absolute;
 }
 
-#lords-track .slot-3 {
-  left: 326px;
+#lords-track .slot[data-slot-id="3"] {
+  left: 339px;
+  position: absolute;
 }
 
-#lords-track .slot-4 {
-  left: 430px;
+#lords-track .slot[data-slot-id="4"] {
+  left: 444px;
+  position: absolute;
 }
 
-#lords-track .slot-5 {
-  left: 532px;
+#lords-track .slot[data-slot-id="5"] {
+  left: 550px;
+  position: absolute;
 }
 
-#lords-track .slot-6 {
-  left: 637px;
+#lords-track .slot[data-slot-id="6"] {
+  left: 655px;
+  position: absolute;
 }
 
 #lords-track .lord.selected {
@@ -553,11 +552,6 @@ html body #game-holder .slot-fake {
 
 .lord.selectable {
   border: 3px solid #2d2;
-}
-
-#game-board .lord {
-  display: block;
-  position: absolute;
 }
 
 .player-panel .player-name {
@@ -593,20 +587,22 @@ html body #game-holder .slot-fake {
 .lord {
   width: 88px; /* 370 / 420 */
   height: 136px;
-  background-image: url(img/lords.jpg);
-  background-size: 1100% 400%;
   color: white;
   bottom: 0;
-  border-radius: 3px;
   transition: transform 0.2s ease-in-out, left 0.5s ease-in-out, top 0.5s ease-in-out;
   cursor: pointer;
-  box-shadow: 2px 2px #222;
   user-select: none;
   -webkit-user-select: none;
   -ms-user-select: none;
   -webkit-touch-callout: none;
   /* 10% for each horizontal, 33.33% for each vertical */
   transform: var(--translate, translate(0)) var(--scale, scale(1));
+}
+
+.lord-side {
+  background-image: url(img/lords.jpg);
+  background-size: 1100% 400%;
+  border-radius: 3px;
 }
 
 .lord.disabled {
@@ -768,109 +764,109 @@ html body #game-holder .slot-fake {
   background-position: 20% 100%;
 }
 
-.lord[data-lord-id="101"] {
+.lord-side[data-lord-id="101"] {
   background-image: url("img/lords-kraken.jpg");
   background-size: 900% 200%;
   background-position: 0% 0%;
 }
 
-.lord[data-lord-id="102"] {
+.lord-side[data-lord-id="102"] {
   background-image: url("img/lords-kraken.jpg");
   background-size: 900% 200%;
   background-position: 12.5% 0%;
 }
 
-.lord[data-lord-id="103"] {
+.lord-side[data-lord-id="103"] {
   background-image: url("img/lords-kraken.jpg");
   background-size: 900% 200%;
   background-position: 25% 0%;
 }
 
-.lord[data-lord-id="104"] {
+.lord-side[data-lord-id="104"] {
   background-image: url("img/lords-kraken.jpg");
   background-size: 900% 200%;
   background-position: 37.5% 0%;
 }
 
-.lord[data-lord-id="105"] {
+.lord-side[data-lord-id="105"] {
   background-image: url("img/lords-kraken.jpg");
   background-size: 900% 200%;
   background-position: 50% 0%;
 }
 
-.lord[data-lord-id="106"] {
+.lord-side[data-lord-id="106"] {
   background-image: url("img/lords-kraken.jpg");
   background-size: 900% 200%;
   background-position: 62.5% 0%;
 }
 
-.lord[data-lord-id="107"] {
+.lord-side[data-lord-id="107"] {
   background-image: url("img/lords-kraken.jpg");
   background-size: 900% 200%;
   background-position: 75% 0%;
 }
 
-.lord[data-lord-id="108"] {
+.lord-side[data-lord-id="108"] {
   background-image: url("img/lords-kraken.jpg");
   background-size: 900% 200%;
   background-position: 87.5% 0%;
 }
 
-.lord[data-lord-id="109"] {
+.lord-side[data-lord-id="109"] {
   background-image: url("img/lords-kraken.jpg");
   background-size: 900% 200%;
   background-position: 100% 0%;
 }
 
-.lord[data-lord-id="110"] {
+.lord-side[data-lord-id="110"] {
   background-image: url("img/lords-kraken.jpg");
   background-size: 900% 200%;
   background-position: 0% 100%;
 }
 
-.lord[data-lord-id="111"] {
+.lord-side[data-lord-id="111"] {
   background-image: url("img/lords-kraken.jpg");
   background-size: 900% 200%;
   background-position: 12.5% 100%;
 }
 
-.lord[data-lord-id="112"] {
+.lord-side[data-lord-id="112"] {
   background-image: url("img/lords-kraken.jpg");
   background-size: 900% 200%;
   background-position: 25% 100%;
 }
 
-.lord[data-lord-id="113"] {
+.lord-side[data-lord-id="113"] {
   background-image: url("img/lords-kraken.jpg");
   background-size: 900% 200%;
   background-position: 37.5% 100%;
 }
 
-.lord[data-lord-id="114"] {
+.lord-side[data-lord-id="114"] {
   background-image: url("img/lords-kraken.jpg");
   background-size: 900% 200%;
   background-position: 50% 100%;
 }
 
-.lord[data-lord-id="115"] {
+.lord-side[data-lord-id="115"] {
   background-image: url("img/lords-kraken.jpg");
   background-size: 900% 200%;
   background-position: 62.5% 100%;
 }
 
-.lord[data-lord-id="116"] {
+.lord-side[data-lord-id="116"] {
   background-image: url("img/lords-kraken.jpg");
   background-size: 900% 200%;
   background-position: 75% 100%;
 }
 
-.lord[data-lord-id="117"] {
+.lord-side[data-lord-id="117"] {
   background-image: url("img/lords-kraken.jpg");
   background-size: 900% 200%;
   background-position: 87.5% 100%;
 }
 
-.lord[data-lord-id="118"] {
+.lord-side[data-lord-id="118"] {
   background-image: url("img/lords-kraken.jpg");
   background-size: 900% 200%;
   background-position: 100% 100%;

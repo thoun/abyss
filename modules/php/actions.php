@@ -165,7 +165,8 @@ trait ActionTrait {
             throw new BgaVisibleSystemException( "That Lord is not available." );
         }
 
-        if ($this->isKrakenExpansion()) {
+        $krakenExpansion = $this->isKrakenExpansion();
+        if ($krakenExpansion) {
             $guarded = $this->guardedBySentinel('lord', $lord_id);
             if ($guarded !== null) {
                 if ($guarded->playerId == $player_id) {
@@ -243,8 +244,7 @@ trait ActionTrait {
             ) );
         } else {
             $hand = Ally::getPlayerHand( $player_id );
-            
-            $canAffordLord = self::canAffordLord($player_id, $hand, $pearls, $lord);
+            $canAffordLord = self::canAffordLord($player_id, $hand, $pearls, $lord, $krakenExpansion);
 
             if (! $canAffordLord) {
                 throw new BgaUserException( self::_("You cannot afford that Lord.") );
@@ -292,7 +292,7 @@ trait ActionTrait {
         return false;
     }
         
-    function canAffordLord(int $player_id, array $hand, int $pearls, $lord) {
+    function canAffordLord(int $player_id, array $hand, int $pearls, $lord, bool $krakenExpansion) {
         $potentialFound = false;
         
         $hasDiplomat = Lord::playerHas( 24 , $player_id );
@@ -309,6 +309,7 @@ trait ActionTrait {
 
             if ($ally["faction"] == 10) {
                 $krakens++;
+                $hasDiplomat = true; // the kraken can replace the required color, so it behaves as the diplomat
             }
         }
         //throw new BgaUserException( self::_(join(", ", array_keys($diversity)) . " : " . join(", ", array_values($diversity))) );
@@ -322,7 +323,7 @@ trait ActionTrait {
             $potentialFound = false;
         } else {
             // Can you get the required value?
-            $cost -= (self::getPlayerPearls( $player_id ) + ($this->isKrakenExpansion() ? self::getPlayerNebulis($player_id) : 0));
+            $cost -= (self::getPlayerPearls( $player_id ) + ($krakenExpansion ? self::getPlayerNebulis($player_id) : 0));
             if ($hasDiplomat || ! isset($lord["faction"]) || $requiredDiversity == 5) {
                 // Using any $requiredDiversity different groups, can you get the value required?
                 $values = array_values($diversity);

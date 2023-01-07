@@ -109,6 +109,14 @@ class PlayerTable {
     public addAffiliated(ally: AbyssAlly) {
         this.affiliatedStocks[ally.faction].addCard(ally);
     }
+    
+    public addLord(lord: AbyssLord) {
+        this.freeLords.addCard(lord);
+    }
+    
+    public removeLords(lords: AbyssLord[]) {
+        this.freeLords.removeCards(lords);
+    }
 
     private getAffiliatedAllies() {
         let affiliated = [];
@@ -119,19 +127,10 @@ class PlayerTable {
 
         return affiliated;
     }
-
-    private placeLocationLords(location: AbyssLocation, lords: AbyssLord[]) {
-      const locationNode = this.game.locationManager.getCardElement(location);
-      for (let i in lords) {
-        let lord = lords[i];
-        let parent = dojo.query('.trapped-lords-holder', locationNode)[0];
-        this.game.lordManager.placeWithTooltip(lord, parent);
-      }
-    }
     
     public addLocation(location: AbyssLocation, lords: AbyssLord[]) {
         this.locations.addCard(location);
-        this.placeLocationLords(location, lords);
+        this.game.locationManager.addLords(location.location_id, lords);
     }
     
     private affiliatedAllyClick(ally: AbyssAlly): void {

@@ -30,14 +30,16 @@ class CompressedLineStock<T> extends ManualPositionStock<T> {
 class LocationManager extends CardManager<AbyssLocation> {
   private static uniqueId: number = 0;
 
+  private lordsStocks: LineStock<AbyssLord>[] = [];
   private lootStocks: CompressedLineStock<AbyssLoot>[] = [];
 
-  constructor(public game: AbyssGame, private lootManager: LootManager) {
+  constructor(public game: AbyssGame, private lordManager: LordManager, private lootManager: LootManager) {
     super(game, {
       getId: location => `location-${location.location_id}`,
       setupDiv: (location, div) => {
         const lordHolder = document.createElement('div');
         lordHolder.classList.add('trapped-lords-holder');
+        this.lordsStocks[location.location_id] = new LineStock<AbyssLord>(this.lordManager, lordHolder);
         div.prepend(lordHolder);
 
         div.classList.add(`location`, `location-${location.location_id}`, `board`);
@@ -93,6 +95,10 @@ class LocationManager extends CardManager<AbyssLocation> {
       <hr>
       ${desc}
     </div>`;
+  }
+
+  public addLords(locationId: number, lords: AbyssLord[]) {
+    this.lordsStocks[locationId].addCards(lords);
   }
 
   public addLoot(locationId: number, loot: AbyssLoot) {

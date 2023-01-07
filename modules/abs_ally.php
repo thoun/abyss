@@ -124,6 +124,7 @@ class Ally {
       if ($a["faction"] == 10) {
         // we do not count krakens in diversity
         $krakens++;
+        $includesRequired = true;
       } else {
         $factions[$a["faction"]] = 1;
       }

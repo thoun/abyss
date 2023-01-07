@@ -5,7 +5,7 @@ class LordManager extends CardManager<AbyssLord> {
     super(game, {
       getId: lord => `lord-${lord.lord_id}`,
       setupDiv: (lord, div) => {
-        div.classList.add(`lord`, `lord-${lord.lord_id}`, `slot-${lord.place}`, `transition-position`);
+        div.classList.add(`lord`);
         if (lord.turned) {
           div.classList.add(`disabled`);
         }
@@ -20,19 +20,16 @@ class LordManager extends CardManager<AbyssLord> {
         this.game.connectTooltip(div, this.renderTooltip(lord), "lord" );
       },
       setupFrontDiv: (lord, div) => {
-        div.classList.add(`lord-${lord.lord_id}`);
+        div.dataset.lordId = `${lord.lord_id}`;
+        div.classList.add(`lord-side`, `lord-${lord.lord_id}`);
         div.innerHTML = `
           <span class="lord-desc"><span class="lord-name">${_(lord.name)}</span>${_(lord.desc)}</span>
         `;
       },
+      setupBackDiv: (lord, div) => {
+        div.classList.add(`lord-side`, `lord-back`);
+      },
     });
-  }
-
-  // TODO : Names need to move outside of PHP and into js for i18n
-  render(lord: AbyssLord) {
-    return `<div id="lord-uid-${++LordManager.uniqueId}" class="lord lord-${lord.lord_id} slot-${lord.place} transition-position ${lord.turned  ? 'disabled' : ''}" data-lord-id="${lord.lord_id}" data-cost="${lord.cost}" data-diversity="${lord.diversity}" data-used="${lord.used}" data-turned="${lord.turned}" data-effect="${lord.effect}" data-keys="${lord.keys}">
-      <span class="lord-desc"><span class="lord-name">${_(lord.name)}</span>${_(lord.desc)}</span>
-    </div>`;
   }
 
   renderTooltip(lord: AbyssLord) {
@@ -114,12 +111,6 @@ class LordManager extends CardManager<AbyssLord> {
       <span style="font-size: smaller"><b>${costString}: </b> ${costNumber} ${diversitySection}</span>
       ${descSection}
     </div>`;
-  }
-
-  placeWithTooltip(lord: AbyssLord, parent) {
-    let node = dojo.place( this.render(lord), parent );
-    this.game.connectTooltip( node, this.renderTooltip.bind(this, lord), "lord" );
-    return node;
   }
 
   updateLordKeys(playerId: number | string) {

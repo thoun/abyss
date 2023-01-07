@@ -211,14 +211,6 @@ html body #game-holder .slot-fake {
   text-align: center;
 }
 
-.location .trapped-lords-holder .lord {
-  margin-right: 10px;
-}
-
-.location .trapped-lords-holder .lord:last-child {
-  margin-right: 0;
-}
-
 /* LORDS */
 
 #lords-track {
@@ -228,13 +220,13 @@ html body #game-holder .slot-fake {
   height: 136px;
 }
 
-#lords-track .slot-0 {left: 13px; }
-#lords-track .slot-1 {left: 118px; }
-#lords-track .slot-2 {left: 222px; }
-#lords-track .slot-3 {left: 326px; }
-#lords-track .slot-4 {left: 430px; }
-#lords-track .slot-5 {left: 532px; }
-#lords-track .slot-6 {left: 637px; }
+#lords-track .slot-0 {left: 13px; position: absolute; }
+#lords-track .slot[data-slot-id="1"] {left: 129px; position: absolute; }
+#lords-track .slot[data-slot-id="2"] {left: 234px; position: absolute; }
+#lords-track .slot[data-slot-id="3"] {left: 339px; position: absolute; }
+#lords-track .slot[data-slot-id="4"] {left: 444px; position: absolute; }
+#lords-track .slot[data-slot-id="5"] {left: 550px; position: absolute; }
+#lords-track .slot[data-slot-id="6"] {left: 655px; position: absolute; }
 
 #lords-track .lord.selected {
   --scale: scale(1.5);
@@ -264,11 +256,6 @@ html body #game-holder .slot-fake {
 
 .lord.selectable {
   border: 3px solid #2d2;
-}
-
-#game-board .lord {
-  display: block;
-  position: absolute;
 }
 
 .player-panel {
@@ -312,20 +299,22 @@ html body #game-holder .slot-fake {
 .lord {
   width: 88px; /* 370 / 420 */
   height: 136px;
-  background-image: url(img/lords.jpg);
-  background-size: 1100% 400%;
   color: white;
   bottom: 0;
-  border-radius: 3px;
   transition: transform .2s ease-in-out, left .5s ease-in-out, top .5s ease-in-out;
   cursor: pointer;
-  box-shadow: 2px 2px #222;
   user-select: none;
   -webkit-user-select: none;
   -ms-user-select: none;
   -webkit-touch-callout: none;
   /* 10% for each horizontal, 33.33% for each vertical */
   transform: var(--translate,translate(0)) var(--scale,scale(1));
+}
+
+.lord-side {
+  background-image: url(img/lords.jpg);
+  background-size: 1100% 400%;
+  border-radius: 3px;
 }
 
 .lord.disabled {
@@ -354,14 +343,14 @@ html body #game-holder .slot-fake {
 
 
 @for $index from 1 through 9 {
-  .lord[data-lord-id="#{100 + $index}"] {
+  .lord-side[data-lord-id="#{100 + $index}"] {
       background-image: url('img/lords-kraken.jpg');
       background-size: 900% 200%;
       background-position: #{($index - 1) * 100% / 8} 0%;
   }
 }
 @for $index from 1 through 9 {
-  .lord[data-lord-id="#{109 + $index}"] {
+  .lord-side[data-lord-id="#{109 + $index}"] {
       background-image: url('img/lords-kraken.jpg');
       background-size: 900% 200%;
       background-position: #{($index - 1) * 100% / 8} 100%;

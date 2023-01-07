@@ -23,6 +23,7 @@ class Abyss implements AbyssGame {
     private useZoom: boolean;
     private zoomLevel: number;
     private lastExploreTime: number;
+    private visibleLords: SlotStock<AbyssLord>;
     private visibleLocations: LineStock<AbyssLocation>;
     private visibleLocationsOverflow: LineStock<AbyssLocation>;
 
@@ -43,7 +44,7 @@ class Abyss implements AbyssGame {
         this.allyManager = new AllyManager(this);
         this.lordManager = new LordManager(this);
         this.lootManager = new LootManager(this);
-        this.locationManager = new LocationManager(this, this.lootManager);
+        this.locationManager = new LocationManager(this, this.lordManager, this.lootManager);
 
         // Use zoom when not on FF
         this.useZoom = false; //navigator.userAgent.toLowerCase().indexOf('firefox') <= -1;
@@ -154,9 +155,12 @@ class Abyss implements AbyssGame {
         }
 
         // Lords
-        for ( var i in gamedatas.lord_slots ) {
-            let node = this.lordManager.placeWithTooltip( gamedatas.lord_slots[i], $('lords-track') );
-        }
+        this.visibleLords = new SlotStock<AbyssLord>(this.lordManager, document.getElementById('visible-lords-stock'), {
+            slotsIds: [1,2,3,4,5,6],
+            mapCardToSlot: lord => lord.place,
+        });
+        this.visibleLords.addCards(gamedatas.lord_slots);
+        this.visibleLords.onCardClick = lord => this.onVisibleLordClick(lord);
 
         // Allies
         for ( var i in gamedatas.ally_explore_slots ) {
@@ -184,7 +188,6 @@ class Abyss implements AbyssGame {
         });
         this.visibleLocations.addCards(gamedatas.location_available);
         this.visibleLocations.onCardClick = location => this.onVisibleLocationClick(location);
-        this.visibleLocations.addCards(gamedatas.location_available);
         this.visibleLocationsOverflow = new LineStock<AbyssLocation>(this.locationManager, document.getElementById('locations-holder-overflow'));
         this.visibleLocationsOverflow.onCardClick = location => this.onVisibleLocationClick(location);
         this.organiseLocations();
@@ -193,7 +196,6 @@ class Abyss implements AbyssGame {
         // Clickers
         dojo.connect($('explore-track'), 'onclick', this, 'onClickExploreTrack');
         dojo.connect($('council-track'), 'onclick', this, 'onClickCouncilTrack');
-        dojo.connect($('lords-track'), 'onclick', this, 'onClickLordsTrack');
         dojo.connect($('player-hand'), 'onclick', this, 'onClickPlayerHand');
         (this as any).addEventToClass('icon-monster', 'onclick', 'onClickMonsterIcon');
         (this as any).addEventToClass('free-lords', 'onclick', 'onClickPlayerFreeLords');
@@ -1138,28 +1140,22 @@ class Abyss implements AbyssGame {
         });
     }
 
-    onClickLordsTrack( evt ) {
-        if (dojo.hasClass(evt.target, 'lord') && ! dojo.hasClass(evt.target, 'lord-back')) {
-            // Draw this stack??
-            dojo.stopEvent( evt );
-
-            var lord_id = dojo.attr(evt.target, 'data-lord-id');
-
-            if (this.gamedatas.gamestate.name === 'placeSentinel') {
-                this.placeSentinel(1, lord_id);
-            } else {
-
-                if( ! (this as any).checkAction( 'recruit' ) ) {
-                    return;
-                }
-        
-                (this as any).ajaxcall( "/abyss/abyss/recruit.html", { lock: true, lord_id: lord_id }, this,
-                () => {},
-                () => {}
-                );
-
-            }
+    onVisibleLordClick(lord: AbyssLord) {
+        if (this.gamedatas.gamestate.name === 'placeSentinel') {
+            this.placeSentinel(1, lord.lord_id);
+        } else {
+            this.recruit(lord.lord_id);
         }
+    }
+
+    private recruit(lordId: number) {
+        if (!(this as any).checkAction('recruit')) {
+            return;
+        }
+
+        this.takeAction('recruit', {
+            lord_id: lordId,
+        },);
     }
 
     onClickExploreTrack( evt ) {
@@ -1700,13 +1696,6 @@ class Abyss implements AbyssGame {
         var lords = notif.args.lords;
         var player_id = notif.args.player_id;
 
-        // Delete the location/lords
-        dojo.query('.location.location-' + location.location_id).forEach(node => dojo.destroy(node));
-        for (var i in lords) {
-            var lord = lords[i];
-            dojo.query('.lord.lord-' + lord.lord_id).forEach(node => dojo.destroy(node));
-        }
-
         // Add the location to the player board
         this.getPlayerTable(player_id).addLocation(location, lords);
         
@@ -1731,7 +1720,10 @@ class Abyss implements AbyssGame {
         var locations = notif.args.locations;
         var deck_size = notif.args.deck_size;
 
-        this.visibleLocations.addCards(locations);
+        this.visibleLocations.addCards(locations, {
+            fromElement: document.querySelector('.location.location-back'),
+            originalSide: 'back',
+        });
         this.organiseLocations();
         this.setDeckSize(dojo.query('#locations-holder .location-back'), deck_size);
     }
@@ -1795,10 +1787,9 @@ class Abyss implements AbyssGame {
         var old_lord = notif.args.old_lord;
 
         this.incPearlCount(player_id, -pearls);
-        let node = this.lordManager.placeWithTooltip( lord, $('lords-track') );
-        dojo.setStyle(node, "left", "13px");
-        requestAnimationFrame(() => {
-        dojo.setStyle(node, "left", "");
+        this.visibleLords.addCard(lord, {
+            fromElement: document.querySelector('.lord.lord-back'),
+            originalSide: 'back',
         });
         this.setDeckSize(dojo.query('#lords-track .slot-0'), deck_size);
 
@@ -2014,20 +2005,8 @@ class Abyss implements AbyssGame {
         });
     }
 
-    notif_moveLordsRight() {
-        // Shuffle everything right
-        var num = dojo.query("#lords-track .lord").length - 1;
-        for (var i = 6; i >= 1; i--) {
-        // Go back from here, and move the first lord we find into this slot
-        for (var j = i; j >= 1; j--) {
-            var potential = dojo.query("#lords-track .lord.slot-" + j);
-            if (potential.length > 0) {
-                dojo.removeClass(potential[0], 'slot-' + j);
-                dojo.addClass(potential[0], 'slot-' + i);
-                break;
-                }
-            }
-        }
+    notif_moveLordsRight(notif: Notif<any>) {
+        this.visibleLords.addCards(notif.args.lords);
     }
 
     notif_recruit( notif: Notif<NotifRecruitArgs> ) {
@@ -2035,11 +2014,6 @@ class Abyss implements AbyssGame {
         var player_id = +notif.args.player_id;
         var spent_lords = notif.args.spent_lords;
         var spent_allies = notif.args.spent_allies;
-
-        // Remove lord from the track
-        if (lord) {
-        dojo.query("#lords-track .lord[data-lord-id=" + lord.lord_id + "]").forEach(node => dojo.destroy(node));
-        }
 
         // Spend pearls and allies
         if (spent_allies) {
@@ -2058,35 +2032,25 @@ class Abyss implements AbyssGame {
         }
 
         if (spent_lords) {
-            for (var i in spent_lords) {
-                var lord2 = spent_lords[i];
-                dojo.query('#player-panel-'+player_id+' .lord[data-lord-id='+lord2.lord_id+']').forEach(node => dojo.destroy(node));
-            }
+            this.getPlayerTable(player_id).removeLords(spent_lords);
         }
 
         // Add the lord
         if (lord) {
-            this.lordManager.placeWithTooltip( lord, dojo.query('#player-panel-'+player_id+' .free-lords')[0] );
+            this.getPlayerTable(player_id).addLord(lord);
         }
         
         this.lordManager.updateLordKeys(player_id);
         this.organisePanelMessages();
     }
 
-    notif_refillLords( notif: Notif<NotifRefillLordsArgs> ) {
+    notif_refillLords(notif: Notif<NotifRefillLordsArgs>) {
         var lords = notif.args.lords;
-        var player_id = +notif.args.player_id;
         var deck_size = notif.args.deck_size;
-        for (var i in lords) {
-            var lord = lords[i];
-            if (dojo.query("#lords-track .lord[data-lord-id=" + lord.lord_id + "]").length == 0) {
-                let node = this.lordManager.placeWithTooltip( lord, $('lords-track') );
-                dojo.setStyle(node, "left", "13px");
-                requestAnimationFrame(() => {
-                    dojo.setStyle(node, "left", "");
-                });
-            }
-        }
+        this.visibleLords.addCards(lords, {
+            fromElement: document.querySelector('.lord.lord-back'),
+            originalSide: 'back',
+        });
         this.setDeckSize(dojo.query('#lords-track .slot-0'), deck_size);
     }
 

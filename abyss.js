@@ -142,6 +142,16 @@ var CardStock = /** @class */ (function () {
         return document.getElementById(this.manager.getId(card));
     };
     /**
+     * Checks if the card can be added. By default, only if it isn't already present in the stock.
+     *
+     * @param card the card to add
+     * @param settings the addCard settings
+     * @returns if the card can be added
+     */
+    CardStock.prototype.canAddCard = function (card, settings) {
+        return !this.cardInStock(card);
+    };
+    /**
      * Add a card to the stock.
      *
      * @param card the card to add
@@ -151,7 +161,7 @@ var CardStock = /** @class */ (function () {
      */
     CardStock.prototype.addCard = function (card, animation, settings) {
         var _a, _b;
-        if (this.cardInStock(card)) {
+        if (!this.canAddCard(card, settings)) {
             return Promise.resolve(false);
         }
         var promise;
@@ -217,7 +227,10 @@ var CardStock = /** @class */ (function () {
             rotationDelta: animation.rotationDelta,
             animation: animation.animation,
         });
-        animation.fromStock.removeCard(card);
+        // in the case the card was move inside the same stock we don't remove it
+        if (animation.fromStock != this) {
+            animation.fromStock.removeCard(card);
+        }
         return promise;
     };
     CardStock.prototype.moveFromElement = function (card, cardElement, animation, settings) {
@@ -630,6 +643,17 @@ var SlotStock = /** @class */ (function (_super) {
     SlotStock.prototype.cardElementInStock = function (element) {
         return (element === null || element === void 0 ? void 0 : element.parentElement.parentElement) == this.element;
     };
+    SlotStock.prototype.canAddCard = function (card, settings) {
+        var _a, _b;
+        if (!this.cardInStock(card)) {
+            return true;
+        }
+        else {
+            var currentCardSlot = this.getCardElement(card).closest('.slot').dataset.slotId;
+            var slotId = (_a = settings === null || settings === void 0 ? void 0 : settings.slot) !== null && _a !== void 0 ? _a : (_b = this.mapCardToSlot) === null || _b === void 0 ? void 0 : _b.call(this, card);
+            return currentCardSlot != slotId;
+        }
+    };
     return SlotStock;
 }(LineStock));
 /**
@@ -938,7 +962,7 @@ var LordManager = /** @class */ (function (_super) {
         var _this = _super.call(this, game, {
             getId: function (lord) { return "lord-".concat(lord.lord_id); },
             setupDiv: function (lord, div) {
-                div.classList.add("lord", "lord-".concat(lord.lord_id), "slot-".concat(lord.place), "transition-position");
+                div.classList.add("lord");
                 if (lord.turned) {
                     div.classList.add("disabled");
                 }
@@ -952,17 +976,17 @@ var LordManager = /** @class */ (function (_super) {
                 _this.game.connectTooltip(div, _this.renderTooltip(lord), "lord");
             },
             setupFrontDiv: function (lord, div) {
-                div.classList.add("lord-".concat(lord.lord_id));
+                div.dataset.lordId = "".concat(lord.lord_id);
+                div.classList.add("lord-side", "lord-".concat(lord.lord_id));
                 div.innerHTML = "\n          <span class=\"lord-desc\"><span class=\"lord-name\">".concat(_(lord.name), "</span>").concat(_(lord.desc), "</span>\n        ");
+            },
+            setupBackDiv: function (lord, div) {
+                div.classList.add("lord-side", "lord-back");
             },
         }) || this;
         _this.game = game;
         return _this;
     }
-    // TODO : Names need to move outside of PHP and into js for i18n
-    LordManager.prototype.render = function (lord) {
-        return "<div id=\"lord-uid-".concat(++LordManager.uniqueId, "\" class=\"lord lord-").concat(lord.lord_id, " slot-").concat(lord.place, " transition-position ").concat(lord.turned ? 'disabled' : '', "\" data-lord-id=\"").concat(lord.lord_id, "\" data-cost=\"").concat(lord.cost, "\" data-diversity=\"").concat(lord.diversity, "\" data-used=\"").concat(lord.used, "\" data-turned=\"").concat(lord.turned, "\" data-effect=\"").concat(lord.effect, "\" data-keys=\"").concat(lord.keys, "\">\n      <span class=\"lord-desc\"><span class=\"lord-name\">").concat(_(lord.name), "</span>").concat(_(lord.desc), "</span>\n    </div>");
-    };
     LordManager.prototype.renderTooltip = function (lord) {
         var descSection = "";
         if (lord.desc != "") {
@@ -1037,11 +1061,6 @@ var LordManager = /** @class */ (function (_super) {
         }
         return "<div class=\"abs-tooltip-lord\">\n      <span style=\"float: right\">".concat(_(lord.points), " <i class=\"fa fa-star\"></i>").concat(keysString, "</span>\n      <h3 style=\"padding-right: 60px;\">").concat(_(lord.name), "</h3>\n      ").concat(factionSection, "\n      <span style=\"font-size: smaller\"><b>").concat(costString, ": </b> ").concat(costNumber, " ").concat(diversitySection, "</span>\n      ").concat(descSection, "\n    </div>");
     };
-    LordManager.prototype.placeWithTooltip = function (lord, parent) {
-        var node = dojo.place(this.render(lord), parent);
-        this.game.connectTooltip(node, this.renderTooltip.bind(this, lord), "lord");
-        return node;
-    };
     LordManager.prototype.updateLordKeys = function (playerId) {
         var playerPanel = $('player-panel-' + playerId);
         var lords = dojo.query('.free-lords .lord', playerPanel);
@@ -1088,12 +1107,13 @@ var CompressedLineStock = /** @class */ (function (_super) {
 }(ManualPositionStock));
 var LocationManager = /** @class */ (function (_super) {
     __extends(LocationManager, _super);
-    function LocationManager(game, lootManager) {
+    function LocationManager(game, lordManager, lootManager) {
         var _this = _super.call(this, game, {
             getId: function (location) { return "location-".concat(location.location_id); },
             setupDiv: function (location, div) {
                 var lordHolder = document.createElement('div');
                 lordHolder.classList.add('trapped-lords-holder');
+                _this.lordsStocks[location.location_id] = new LineStock(_this.lordManager, lordHolder);
                 div.prepend(lordHolder);
                 div.classList.add("location", "location-".concat(location.location_id), "board");
                 div.dataset.locationId = "".concat(location.location_id);
@@ -1115,7 +1135,9 @@ var LocationManager = /** @class */ (function (_super) {
             },
         }) || this;
         _this.game = game;
+        _this.lordManager = lordManager;
         _this.lootManager = lootManager;
+        _this.lordsStocks = [];
         _this.lootStocks = [];
         return _this;
     }
@@ -1139,6 +1161,9 @@ var LocationManager = /** @class */ (function (_super) {
     LocationManager.prototype.renderTooltip = function (location) {
         var desc = this.makeDesc(location);
         return "<div class=\"abs-tooltip-location\">\n      <h3 style=\"padding-right: 50px;\">".concat(_(location.name), "</h3>\n      <hr>\n      ").concat(desc, "\n    </div>");
+    };
+    LocationManager.prototype.addLords = function (locationId, lords) {
+        this.lordsStocks[locationId].addCards(lords);
     };
     LocationManager.prototype.addLoot = function (locationId, loot) {
         this.lootStocks[locationId].addCard(loot); // TODO GBA add from element 
@@ -1265,6 +1290,12 @@ var PlayerTable = /** @class */ (function () {
     PlayerTable.prototype.addAffiliated = function (ally) {
         this.affiliatedStocks[ally.faction].addCard(ally);
     };
+    PlayerTable.prototype.addLord = function (lord) {
+        this.freeLords.addCard(lord);
+    };
+    PlayerTable.prototype.removeLords = function (lords) {
+        this.freeLords.removeCards(lords);
+    };
     PlayerTable.prototype.getAffiliatedAllies = function () {
         var affiliated = [];
         for (var faction = 0; faction < 5; faction++) {
@@ -1272,17 +1303,9 @@ var PlayerTable = /** @class */ (function () {
         }
         return affiliated;
     };
-    PlayerTable.prototype.placeLocationLords = function (location, lords) {
-        var locationNode = this.game.locationManager.getCardElement(location);
-        for (var i in lords) {
-            var lord = lords[i];
-            var parent_1 = dojo.query('.trapped-lords-holder', locationNode)[0];
-            this.game.lordManager.placeWithTooltip(lord, parent_1);
-        }
-    };
     PlayerTable.prototype.addLocation = function (location, lords) {
         this.locations.addCard(location);
-        this.placeLocationLords(location, lords);
+        this.game.locationManager.addLords(location.location_id, lords);
     };
     PlayerTable.prototype.affiliatedAllyClick = function (ally) {
         if (this.game.gamedatas.gamestate.name === 'lord114multi') {
@@ -1312,7 +1335,7 @@ var Abyss = /** @class */ (function () {
         this.allyManager = new AllyManager(this);
         this.lordManager = new LordManager(this);
         this.lootManager = new LootManager(this);
-        this.locationManager = new LocationManager(this, this.lootManager);
+        this.locationManager = new LocationManager(this, this.lordManager, this.lootManager);
         // Use zoom when not on FF
         this.useZoom = false; //navigator.userAgent.toLowerCase().indexOf('firefox') <= -1;
         var self = this;
@@ -1406,9 +1429,12 @@ var Abyss = /** @class */ (function () {
             }
         }
         // Lords
-        for (var i in gamedatas.lord_slots) {
-            var node = this.lordManager.placeWithTooltip(gamedatas.lord_slots[i], $('lords-track'));
-        }
+        this.visibleLords = new SlotStock(this.lordManager, document.getElementById('visible-lords-stock'), {
+            slotsIds: [1, 2, 3, 4, 5, 6],
+            mapCardToSlot: function (lord) { return lord.place; },
+        });
+        this.visibleLords.addCards(gamedatas.lord_slots);
+        this.visibleLords.onCardClick = function (lord) { return _this.onVisibleLordClick(lord); };
         // Allies
         for (var i in gamedatas.ally_explore_slots) {
             var ally = gamedatas.ally_explore_slots[i];
@@ -1434,7 +1460,6 @@ var Abyss = /** @class */ (function () {
         });
         this.visibleLocations.addCards(gamedatas.location_available);
         this.visibleLocations.onCardClick = function (location) { return _this.onVisibleLocationClick(location); };
-        this.visibleLocations.addCards(gamedatas.location_available);
         this.visibleLocationsOverflow = new LineStock(this.locationManager, document.getElementById('locations-holder-overflow'));
         this.visibleLocationsOverflow.onCardClick = function (location) { return _this.onVisibleLocationClick(location); };
         this.organiseLocations();
@@ -1442,7 +1467,6 @@ var Abyss = /** @class */ (function () {
         // Clickers
         dojo.connect($('explore-track'), 'onclick', this, 'onClickExploreTrack');
         dojo.connect($('council-track'), 'onclick', this, 'onClickCouncilTrack');
-        dojo.connect($('lords-track'), 'onclick', this, 'onClickLordsTrack');
         dojo.connect($('player-hand'), 'onclick', this, 'onClickPlayerHand');
         this.addEventToClass('icon-monster', 'onclick', 'onClickMonsterIcon');
         this.addEventToClass('free-lords', 'onclick', 'onClickPlayerFreeLords');
@@ -2323,21 +2347,21 @@ var Abyss = /** @class */ (function () {
             lord_ids: lord_ids.join(';'),
         });
     };
-    Abyss.prototype.onClickLordsTrack = function (evt) {
-        if (dojo.hasClass(evt.target, 'lord') && !dojo.hasClass(evt.target, 'lord-back')) {
-            // Draw this stack??
-            dojo.stopEvent(evt);
-            var lord_id = dojo.attr(evt.target, 'data-lord-id');
-            if (this.gamedatas.gamestate.name === 'placeSentinel') {
-                this.placeSentinel(1, lord_id);
-            }
-            else {
-                if (!this.checkAction('recruit')) {
-                    return;
-                }
-                this.ajaxcall("/abyss/abyss/recruit.html", { lock: true, lord_id: lord_id }, this, function () { }, function () { });
-            }
+    Abyss.prototype.onVisibleLordClick = function (lord) {
+        if (this.gamedatas.gamestate.name === 'placeSentinel') {
+            this.placeSentinel(1, lord.lord_id);
         }
+        else {
+            this.recruit(lord.lord_id);
+        }
+    };
+    Abyss.prototype.recruit = function (lordId) {
+        if (!this.checkAction('recruit')) {
+            return;
+        }
+        this.takeAction('recruit', {
+            lord_id: lordId,
+        });
     };
     Abyss.prototype.onClickExploreTrack = function (evt) {
         if (dojo.hasClass(evt.target, 'slot-0')) {
@@ -2783,12 +2807,6 @@ var Abyss = /** @class */ (function () {
         var location = notif.args.location;
         var lords = notif.args.lords;
         var player_id = notif.args.player_id;
-        // Delete the location/lords
-        dojo.query('.location.location-' + location.location_id).forEach(function (node) { return dojo.destroy(node); });
-        for (var i in lords) {
-            var lord = lords[i];
-            dojo.query('.lord.lord-' + lord.lord_id).forEach(function (node) { return dojo.destroy(node); });
-        }
         // Add the location to the player board
         this.getPlayerTable(player_id).addLocation(location, lords);
         this.lordManager.updateLordKeys(player_id);
@@ -2805,7 +2823,10 @@ var Abyss = /** @class */ (function () {
     Abyss.prototype.notif_newLocations = function (notif) {
         var locations = notif.args.locations;
         var deck_size = notif.args.deck_size;
-        this.visibleLocations.addCards(locations);
+        this.visibleLocations.addCards(locations, {
+            fromElement: document.querySelector('.location.location-back'),
+            originalSide: 'back',
+        });
         this.organiseLocations();
         this.setDeckSize(dojo.query('#locations-holder .location-back'), deck_size);
     };
@@ -2858,10 +2879,9 @@ var Abyss = /** @class */ (function () {
         var pearls = +notif.args.pearls;
         var old_lord = notif.args.old_lord;
         this.incPearlCount(player_id, -pearls);
-        var node = this.lordManager.placeWithTooltip(lord, $('lords-track'));
-        dojo.setStyle(node, "left", "13px");
-        requestAnimationFrame(function () {
-            dojo.setStyle(node, "left", "");
+        this.visibleLords.addCard(lord, {
+            fromElement: document.querySelector('.lord.lord-back'),
+            originalSide: 'back',
         });
         this.setDeckSize(dojo.query('#lords-track .slot-0'), deck_size);
         if (old_lord) {
@@ -3057,30 +3077,14 @@ var Abyss = /** @class */ (function () {
             delay += 250;
         });
     };
-    Abyss.prototype.notif_moveLordsRight = function () {
-        // Shuffle everything right
-        var num = dojo.query("#lords-track .lord").length - 1;
-        for (var i = 6; i >= 1; i--) {
-            // Go back from here, and move the first lord we find into this slot
-            for (var j = i; j >= 1; j--) {
-                var potential = dojo.query("#lords-track .lord.slot-" + j);
-                if (potential.length > 0) {
-                    dojo.removeClass(potential[0], 'slot-' + j);
-                    dojo.addClass(potential[0], 'slot-' + i);
-                    break;
-                }
-            }
-        }
+    Abyss.prototype.notif_moveLordsRight = function (notif) {
+        this.visibleLords.addCards(notif.args.lords);
     };
     Abyss.prototype.notif_recruit = function (notif) {
         var lord = notif.args.lord;
         var player_id = +notif.args.player_id;
         var spent_lords = notif.args.spent_lords;
         var spent_allies = notif.args.spent_allies;
-        // Remove lord from the track
-        if (lord) {
-            dojo.query("#lords-track .lord[data-lord-id=" + lord.lord_id + "]").forEach(function (node) { return dojo.destroy(node); });
-        }
         // Spend pearls and allies
         if (spent_allies) {
             $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) - spent_allies.length;
@@ -3096,36 +3100,22 @@ var Abyss = /** @class */ (function () {
             this.getCurrentPlayerTable().removeHandAllies(spent_allies);
         }
         if (spent_lords) {
-            for (var i in spent_lords) {
-                var lord2 = spent_lords[i];
-                dojo.query('#player-panel-' + player_id + ' .lord[data-lord-id=' + lord2.lord_id + ']').forEach(function (node) { return dojo.destroy(node); });
-            }
+            this.getPlayerTable(player_id).removeLords(spent_lords);
         }
         // Add the lord
         if (lord) {
-            this.lordManager.placeWithTooltip(lord, dojo.query('#player-panel-' + player_id + ' .free-lords')[0]);
+            this.getPlayerTable(player_id).addLord(lord);
         }
         this.lordManager.updateLordKeys(player_id);
         this.organisePanelMessages();
     };
     Abyss.prototype.notif_refillLords = function (notif) {
         var lords = notif.args.lords;
-        var player_id = +notif.args.player_id;
         var deck_size = notif.args.deck_size;
-        var _loop_8 = function () {
-            lord = lords[i];
-            if (dojo.query("#lords-track .lord[data-lord-id=" + lord.lord_id + "]").length == 0) {
-                var node_1 = this_3.lordManager.placeWithTooltip(lord, $('lords-track'));
-                dojo.setStyle(node_1, "left", "13px");
-                requestAnimationFrame(function () {
-                    dojo.setStyle(node_1, "left", "");
-                });
-            }
-        };
-        var this_3 = this, lord;
-        for (var i in lords) {
-            _loop_8();
-        }
+        this.visibleLords.addCards(lords, {
+            fromElement: document.querySelector('.lord.lord-back'),
+            originalSide: 'back',
+        });
         this.setDeckSize(dojo.query('#lords-track .slot-0'), deck_size);
     };
     Abyss.prototype.notif_diff = function (notif) {

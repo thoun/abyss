@@ -20,8 +20,9 @@ trait ArgsTrait {
 		$lords = Lord::getSlots();
 		$affordableLords = [];
 		
+        $krakenExpansion = $this->isKrakenExpansion();
 		foreach ($lords as $lord) {
-			$canAffordLord = self::canAffordLord($player_id, $hand, $pearls, $lord);
+			$canAffordLord = self::canAffordLord($player_id, $hand, $pearls, $lord, $krakenExpansion);
 			if ($canAffordLord) {
 				if ($this->isKrakenExpansion()) {
 					$guarded = $this->guardedBySentinel('lord', $lord['lord_id']);

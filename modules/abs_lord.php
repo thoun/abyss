@@ -74,15 +74,15 @@ class Lord
     if ($krakenExpansion) {
       $sql .= ",
         (101, 5, 1,  7, 1, NULL, ".self::EFFECT_TURN."),
-        (102, 6, 1,  7, 4, NULL, ".self::EFFECT_PASSIVE."),
-        (103, 5, 1,  7, 4, NULL, ".self::EFFECT_PASSIVE."),
+        (102, 6, 1,  7, 1, NULL, ".self::EFFECT_PASSIVE."),
+        (103, 5, 1,  7, 1, NULL, ".self::EFFECT_PASSIVE."),
         (104, 8, 0,  7, 1, NULL, ".self::EFFECT_ONCE."),
         (105, 7, 1,  7, 1, NULL, ".self::EFFECT_PASSIVE."),
         (106, 4, 0,  5, 2, NULL, ".self::EFFECT_PASSIVE."),
         (107, 4, 0,  5, 2, NULL, ".self::EFFECT_PASSIVE."),  
         (108, 4, 0,  5, 2, NULL, ".self::EFFECT_PASSIVE."),
 
-        (109, 5, 1,  9, 2, ".self::FACTION_GREEN.", ".self::EFFECT_ONCE."),
+        (109, 5, 1,  9, 2, ".self::FACTION_GREEN.", ".self::EFFECT_PASSIVE."),
         (110, 7, 0, 10, 2, ".self::FACTION_GREEN.", ".self::EFFECT_ONCE."),
   
         (111, 5, 1,  9, 2, ".self::FACTION_PURPLE.", ".self::EFFECT_PASSIVE."),
@@ -125,7 +125,7 @@ class Lord
   }
 
   public static function getSlots() {
-    return self::injectText(Abyss::getCollection( "SELECT * FROM lord WHERE place >= 1 AND place <= 6 ORDER BY place ASC" ));
+    return array_values(self::injectText(Abyss::getCollection( "SELECT * FROM lord WHERE place >= 1 AND place <= 6 ORDER BY place ASC" )));
   }
 
   public static function getDeckSize() {
@@ -164,12 +164,12 @@ class Lord
     // Lords should be in slots 1, 2, 3, 4, 5, 6 -- any gaps, move right
     $lords = array_reverse(self::getSlots());
     $max = 6;
-    foreach ($lords as $lord) {
+    foreach ($lords as &$lord) {
       $lord["place"] = $max;
       Abyss::DbQuery( "UPDATE lord SET place = $max WHERE lord_id = $lord[lord_id]" );
       $max--;
     }
-    return self::injectText($lords);
+    return array_values(self::injectText($lords));
   }
 
   public static function refill( ) {
@@ -183,9 +183,9 @@ class Lord
         $lords[$k]["place"] = $slot;
         $slot++;
       }
-      return self::injectText($lords);
+      return array_values(self::injectText($lords));
     }
-    return array();
+    return [];
   }
 
   public static function draw( ) {

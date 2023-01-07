@@ -228,7 +228,9 @@ trait StateTrait {
         $lords = Lord::moveToRight();
         self::setGameStateValue( 'selected_lord', 0 );
 
-        self::notifyAllPlayers( "moveLordsRight", '', []);
+        self::notifyAllPlayers( "moveLordsRight", '', [
+            'lords' => $lords,
+        ]);
 
         if (count($lords) <= 2) {
             // If the PP is showing, add PP, and draw new Lords (here)
@@ -237,8 +239,7 @@ trait StateTrait {
 
             self::notifyAllPlayers( "refillLords", '', [
                 'lords' => $lords,
-                'player_id' => $player_id,
-                'deck_size' => Lord::getDeckSize()
+                'deck_size' => Lord::getDeckSize(),
             ]);
         }
 
