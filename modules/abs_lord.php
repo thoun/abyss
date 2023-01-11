@@ -27,7 +27,7 @@ class Lord
     self::$game = $theGame;
   }
 
-  public static function setup() {
+  public static function setup(bool $krakenExpansion) {
     $sql = "INSERT INTO lord (lord_id, points, `keys`, cost, diversity, faction, effect) VALUES
       ( 1, 4, 1, 10, 2, ".self::FACTION_RED.", ".self::EFFECT_PASSIVE."),
       ( 2, 7, 0,  6, 3, ".self::FACTION_RED.", ".self::EFFECT_ONCE."),
@@ -70,17 +70,65 @@ class Lord
       (34, 5, 0, 10, 5, NULL, ".self::EFFECT_ONCE."),
       (35, 3, 0, 10, 5, NULL, ".self::EFFECT_ONCE.")
     ";
+
+    if ($krakenExpansion) {
+      $sql .= ",
+        (101, 5, 1,  7, 1, NULL, ".self::EFFECT_TURN."),
+        (102, 6, 1,  7, 1, NULL, ".self::EFFECT_PASSIVE."),
+        (103, 5, 1,  7, 1, NULL, ".self::EFFECT_PASSIVE."),
+        (104, 8, 0,  7, 1, NULL, ".self::EFFECT_ONCE."),
+        (105, 7, 1,  7, 1, NULL, ".self::EFFECT_PASSIVE."),
+        (106, 4, 0,  5, 2, NULL, ".self::EFFECT_PASSIVE."),
+        (107, 4, 0,  5, 2, NULL, ".self::EFFECT_PASSIVE."),  
+        (108, 4, 0,  5, 2, NULL, ".self::EFFECT_PASSIVE."),
+
+        (109, 5, 1,  9, 2, ".self::FACTION_GREEN.", ".self::EFFECT_PASSIVE."),
+        (110, 7, 0, 10, 2, ".self::FACTION_GREEN.", ".self::EFFECT_ONCE."),
+  
+        (111, 5, 1,  9, 2, ".self::FACTION_PURPLE.", ".self::EFFECT_PASSIVE."),
+        (112, 7, 0,  7, 1, ".self::FACTION_PURPLE.", ".self::EFFECT_ONCE."),
+
+        (113, 4, 1,  9, 2, ".self::FACTION_RED.", ".self::EFFECT_PASSIVE."),
+        (114, 5, 0,  9, 3, ".self::FACTION_RED.", ".self::EFFECT_ONCE."),
+  
+        (115, 5, 1,  7, 2, ".self::FACTION_BLUE.", ".self::EFFECT_TURN."),
+        (116, 8, 0,  9, 2, ".self::FACTION_BLUE.", ".self::EFFECT_ONCE."),
+  
+        (117, 7, 1,  9, 2, ".self::FACTION_YELLOW.", ".self::EFFECT_NONE."),
+        (118,13, 0, 12, 1, ".self::FACTION_YELLOW.", ".self::EFFECT_NONE.")
+      ";
+    }
+
     Abyss::DbQuery( $sql );
 
     self::refill();
   }
 
+  public function typedLord(array $dbResult) {
+    $dbResult['lord_id'] = intval($dbResult['lord_id']);
+    $dbResult['points'] = intval($dbResult['points']);
+    $dbResult['keys'] = intval($dbResult['keys']);
+    $dbResult['cost'] = intval($dbResult['cost']);
+    $dbResult['diversity'] = intval($dbResult['diversity']);
+    $dbResult['used'] = boolval($dbResult['used']);
+    $dbResult['turned'] = boolval($dbResult['turned']);
+    $dbResult['faction'] = $dbResult['faction'] == null ? null : intval($dbResult['faction']);
+    $dbResult['place'] = intval($dbResult['place']);
+    $dbResult['location'] = $dbResult['location'] == null ? null : intval($dbResult['location']);
+
+    return $dbResult;
+  }
+
+  public function typedLords(array $dbResults) {
+    return array_values(array_map(fn($dbResult) => self::typedLord($dbResult), $dbResults));
+  }
+
   public static function getSlots() {
-    return self::injectText(Abyss::getCollection( "SELECT * FROM lord WHERE place >= 1 AND place <= 6 ORDER BY place ASC" ));
+    return array_values(self::injectText(Abyss::getCollection( "SELECT * FROM lord WHERE place >= 1 AND place <= 6 ORDER BY place ASC" )));
   }
 
   public static function getDeckSize() {
-    return Abyss::getValue( "SELECT COUNT(*) FROM lord WHERE place = 0" );
+    return intval(Abyss::getValue( "SELECT COUNT(*) FROM lord WHERE place = 0"));
   }
 
   public static function getInTrack(int $lord_id ) {
@@ -93,6 +141,10 @@ class Lord
 
   public static function giveToPlayer(int $lord_id, int $player_id ) {
     Abyss::DbQuery( "UPDATE lord SET place = ".(-1 * $player_id)." WHERE lord_id = $lord_id" );
+  }
+
+  public static function freeLord(int $lord_id) {
+    Abyss::DbQuery( "UPDATE lord SET location = NULL WHERE lord_id = $lord_id" );
   }
 
   public static function playerProtected(int $player_id ) {
@@ -111,12 +163,12 @@ class Lord
     // Lords should be in slots 1, 2, 3, 4, 5, 6 -- any gaps, move right
     $lords = array_reverse(self::getSlots());
     $max = 6;
-    foreach ($lords as $lord) {
+    foreach ($lords as &$lord) {
       $lord["place"] = $max;
       Abyss::DbQuery( "UPDATE lord SET place = $max WHERE lord_id = $lord[lord_id]" );
       $max--;
     }
-    return self::injectText($lords);
+    return array_values(self::injectText($lords));
   }
 
   public static function refill( ) {
@@ -130,9 +182,9 @@ class Lord
         $lords[$k]["place"] = $slot;
         $slot++;
       }
-      return self::injectText($lords);
+      return array_values(self::injectText($lords));
     }
-    return array();
+    return [];
   }
 
   public static function draw( ) {
@@ -156,7 +208,7 @@ class Lord
   }
 
   public static function getPlayerHand(int $player_id ) {
-    return self::injectText(Abyss::getCollection( "SELECT * FROM lord WHERE place = -" . $player_id . "" ));
+    return array_values(self::injectText(Abyss::getCollection( "SELECT * FROM lord WHERE place = -" . $player_id . "" )));
   }
 
   public static function getKeys(int $player_id ) {
@@ -179,16 +231,13 @@ class Lord
     Abyss::DbQuery( "UPDATE lord SET used = 0 WHERE 1" );
   }
 
-  public static function injectText( $lords ) {
-    $result = array();
-    foreach ($lords as $l) {
-      $result[] = self::injectTextSingle( $l );
-    }
-    return $result;
+  public static function injectText(array $lords) {
+    return array_map(fn($lord) => self::injectTextSingle($lord), $lords);
   }
 
-  public static function injectTextSingle( $lord ) {
+  public static function injectTextSingle($lord) {
     if (isset($lord)) {
+      $lord = self::typedLord($lord);
       $lord["name"] = self::$game->lords[$lord["lord_id"]]["name"];
       $lord["desc"] = self::$game->lords[$lord["lord_id"]]["desc"];
     }

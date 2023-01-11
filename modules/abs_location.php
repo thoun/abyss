@@ -8,7 +8,7 @@ class Location
     self::$game = $theGame;
   }
 
-  public static function setup() {
+  public static function setup(bool $krakenExpansion) {
 
     $sql = "INSERT INTO location (`location_id`) VALUES
       ( 1 ),
@@ -32,14 +32,37 @@ class Location
       (19 ),
       (20 )
     ";
-    Abyss::DbQuery( $sql );
+
+    if ($krakenExpansion) {
+      $sql .= ",
+      ( 101 ),
+      ( 102 ),
+      ( 103 ),
+      ( 104 ),
+      ( 105 ),
+      ( 106 )
+    ";
+    }
+
+    Abyss::DbQuery($sql);
 
     // Reveal the top one
     self::draw();
   }
 
+  public function typedLocation(array $dbResult) {
+    $dbResult['location_id'] = intval($dbResult['location_id']);
+    $dbResult['place'] = intval($dbResult['place']);
+
+    return $dbResult;
+  }
+
+  public function typedLocations(array $dbResults) {
+    return array_values(array_map(fn($dbResult) => self::typedLocation($dbResult), $dbResults));
+  }
+
   public static function draw() {
-    $location = Abyss::getObject( "SELECT * FROM location WHERE place = 0 ORDER BY RAND() LIMIT 1" );
+    $location = self::typedLocation(Abyss::getObject( "SELECT * FROM location WHERE place = 0 ORDER BY RAND() LIMIT 1"));
     if (! $location) return null;
     Abyss::DbQuery( "UPDATE location SET place = 1 WHERE location_id = $location[location_id]" );
     $location["place"] = 1;
@@ -54,23 +77,23 @@ class Location
     return self::injectText(Abyss::getCollection( "SELECT * FROM location WHERE place = 0" ));
   }
 
-  public static function get( $location_id ) {
+  public static function get(int $location_id) {
     return self::injectTextSingle(Abyss::getObject( "SELECT * FROM location WHERE location_id = $location_id" ));
   }
 
   public static function getDeckSize() {
-    return Abyss::getValue( "SELECT COUNT(*) FROM location WHERE place = 0" );
+    return intval(Abyss::getValue("SELECT COUNT(*) FROM location WHERE place = 0"));
   }
 
-  public static function getPlayerHand( $player_id ) {
+  public static function getPlayerHand(int $player_id) {
     return self::injectText(Abyss::getCollection( "SELECT * FROM location WHERE place = -" . $player_id . "" ));
   }
 
-  public static function getAllOpponents( $player_id ) {
+  public static function getAllOpponents(int $player_id) {
     return self::injectText(Abyss::getCollection( "SELECT * FROM location WHERE place != -" . $player_id . " AND place < 0" ));
   }
 
-  public static function baseScore( $location_id ) {
+  public static function baseScore(int $location_id) {
     $base_scores = array(
       1 => 5,
       2 => 6,
@@ -92,11 +115,14 @@ class Location
       18 => 3,
       19 => 3,
       20 => 20,
+
+      101 => 5,
+      102 => 15,
     );
     return isset($base_scores[$location_id]) ? $base_scores[$location_id] : 0;
   }
 
-  public static function factionScore( $location_id, $lords, $allies ) {
+  public static function factionScore(int $location_id, $lords, $allies ) {
     $faction_scores = array(
       1 => array(2, 2, "lord"),
       2 => array(2, 0, "lord"),
@@ -127,8 +153,9 @@ class Location
     return $score;
   }
 
-  public static function bonusScore( $location_id, $lords, $allies ) {
-    switch ($location_id) {
+  public static function bonusScore($location, $lords, $allies, int $playerNebulis = 0) {
+    $locationId = $location['location_id'];
+    switch ($locationId) {
       case 8; // 2$ for each Guild you have at least 1 Lord from.
         $guilds = array();
         foreach ($lords as $lord) {
@@ -188,13 +215,32 @@ class Location
         return $score;
       case 20; // --- minus the number of affiliated Allies you have.
         return -1 * count($allies);
+      
+      case 101: // + 2 for each of your Smuggler Lords
+        $score = 0;
+        foreach ($lords as $lord) {
+          if ($lord["faction"] == 10) {
+            $score += 2;
+          }
+        }
+        return $score;
+      case 102; // --- minus 3 x the number of Nebulis.
+        return -3 * $playerNebulis;
+      case 103: case 104: case 105: case 106: // points of each loot on the location
+        $loots = $location['loots'];
+        $score = 0;
+        foreach ($loots as $loot) {
+          $score += $loot->value;
+        }
+        return $score;
       default;
         return 0;
     }
   }
 
-  public static function score( $location_id, $lords, $allies ) {
-    return self::baseScore( $location_id ) + self::factionScore( $location_id, $lords, $allies ) + self::bonusScore( $location_id, $lords, $allies );
+  public static function score($location, $lords, $allies, int $playerNebulis = 0) {
+    $locationId = $location['location_id'];
+    return self::baseScore($locationId) + self::factionScore($locationId, $lords, $allies) + self::bonusScore($location, $lords, $allies, $playerNebulis);
   }
 
   public static function injectText( $locs ) {
@@ -206,8 +252,15 @@ class Location
   }
 
   public static function injectTextSingle( $loc ) {
-    $loc["name"] = self::$game->locations[$loc["location_id"]]["name"];
-    $loc["desc"] = self::$game->locations[$loc["location_id"]]["desc"];
+    $loc = self::typedLocation($loc);
+    $locationId = $loc["location_id"];
+    $loc["name"] = self::$game->locations[$locationId]["name"];
+    $loc["desc"] = self::$game->locations[$locationId]["desc"];
+
+    if (in_array($locationId, [103, 104, 105, 106])) {
+      $loc["loots"] = LootManager::getLootOnLocation($locationId);
+    }
+
     return $loc;
   }
 }

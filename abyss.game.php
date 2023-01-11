@@ -145,9 +145,9 @@ class Abyss extends Table {
 		self::initStat( 'player', "pearls_spent_purchasing_allies", 0 );
 
         // Setup decks
-		Lord::setup();
-		Ally::setup();
-		Location::setup();
+		Lord::setup(false);
+		Ally::setup(false);
+		Location::setup(false);
 		Monster::setup();
 
         // Activate first player (which is in general a good idea :) )

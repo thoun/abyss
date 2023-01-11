@@ -1,7 +1,6 @@
 <?php
 
-class Monster
-{
+class Monster {
   public static function setup() {
     $sql = "INSERT INTO monster (`value`) VALUES ";
     $values = array();
@@ -16,8 +15,20 @@ class Monster
     Abyss::DbQuery( $sql );
   }
 
-  public static function draw( $player_id ) {
-    $monster = Abyss::getObject( "SELECT * FROM monster WHERE place = 0 ORDER BY RAND() LIMIT 1" );
+  public function typedMonster(array $dbResult) {
+    $dbResult['monster_id'] = intval($dbResult['monster_id']);
+    $dbResult['value'] = intval($dbResult['value']);
+    $dbResult['place'] = intval($dbResult['place']);
+
+    return $dbResult;
+  }
+
+  public function typedMonsters(array $dbResults) {
+    return array_values(array_map(fn($dbResult) => self::typedMonster($dbResult), $dbResults));
+  }
+
+  public static function draw(int $player_id) {
+    $monster = self::typedMonster(Abyss::getObject( "SELECT * FROM monster WHERE place = 0 ORDER BY RAND() LIMIT 1"));
     if (isset($monster)) {
       self::giveToPlayer( $player_id, $monster['monster_id'] );
       Abyss::DbQuery( "UPDATE monster SET place = ".(-1 * $player_id)." WHERE monster_id = " . $monster['monster_id'] );
@@ -26,19 +37,19 @@ class Monster
     return $monster;
   }
 
-  public static function getDeckSize( ) {
+  public static function getDeckSize() {
     return Abyss::getValue( "SELECT COUNT(*) FROM monster WHERE place = 0" );
   }
 
-  public static function giveToPlayer( $player_id, $monster_id ) {
+  public static function giveToPlayer(int $player_id, int $monster_id) {
     Abyss::DbQuery( "UPDATE monster SET place = ".(-1 * $player_id)." WHERE monster_id = " . $monster_id );
   }
 
-  public static function getPlayerHandSize( $player_id ) {
-    return Abyss::getValue( "SELECT COUNT(*) FROM monster WHERE place = -" . $player_id );
+  public static function getPlayerHandSize(int $player_id) {
+    return intval(Abyss::getValue("SELECT COUNT(*) FROM monster WHERE place = -" . $player_id));
   }
 
-  public static function getPlayerHand( $player_id ) {
-    return Abyss::getCollection( "SELECT * FROM monster WHERE place = -" . $player_id );
+  public static function getPlayerHand(int $player_id) {
+    return self::typedMonsters(Abyss::getCollection( "SELECT * FROM monster WHERE place = -" . $player_id));
   }
 }
