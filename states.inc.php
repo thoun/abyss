@@ -305,7 +305,7 @@ $machinestates = array(
  			"descriptionmyturn" => clienttranslate('${you} must choose an Ally to affiliate'),
  			"type" => "activeplayer",
   		"args" => "argAffiliate",
-  		"action" => "stAffiliate",
+  		// "action" => "stAffiliate",
   		"possibleactions" => array( "affiliate", "lordEffect" ),
  			"transitions" => array( "affiliate" => ST_PLAYER_LORD_EFFECT, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_AFFILIATE )
  	),

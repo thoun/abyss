@@ -42,12 +42,12 @@ $this->locations = array(
   "20" => array( "name" => clienttranslate('The Coral Barrier'), "desc" => clienttranslate('20$ minus the number of affiliated Allies you have.')),
 
   // kraken locations
-  "101" => array( "name" => clienttranslate('The Gambling Den'), "desc" => clienttranslate('2$ for each of your Smuggler Lords + 3$')), // TODOTEST
-  "102" => array( "name" => clienttranslate('The Kraken’s Lair'), "desc" => clienttranslate('15$ - 3$ for each of your Nebulis.')), // TODOTEST
-  "103" => array( "name" => clienttranslate('The Cetacean Graveyard'), "desc" => clienttranslate('Grants immediate access to the Loot deck.')), // TODOTEST
-  "104" => array( "name" => clienttranslate('The Abandoned Convoy'), "desc" => clienttranslate('Grants immediate access to the Loot deck.')), // TODOTEST
-  "105" => array( "name" => clienttranslate('The Megalodon'), "desc" => clienttranslate('Grants immediate access to the Loot deck.')), // TODOTEST
-  "106" => array( "name" => clienttranslate('The Battlefield'), "desc" => clienttranslate('Grants immediate access to the Loot deck.')), // TODOTEST
+  "101" => array( "name" => clienttranslate('The Gambling Den'), "desc" => clienttranslate('2$ for each of your Smuggler Lords + 5$')),
+  "102" => array( "name" => clienttranslate('The Kraken’s Lair'), "desc" => clienttranslate('15$ - 3$ for each of your Nebulis.')),
+  "103" => array( "name" => clienttranslate('The Cetacean Graveyard'), "desc" => clienttranslate('Grants immediate access to the Loot deck.')),
+  "104" => array( "name" => clienttranslate('The Abandoned Convoy'), "desc" => clienttranslate('Grants immediate access to the Loot deck.')),
+  "105" => array( "name" => clienttranslate('The Megalodon'), "desc" => clienttranslate('Grants immediate access to the Loot deck.')),
+  "106" => array( "name" => clienttranslate('The Battlefield'), "desc" => clienttranslate('Grants immediate access to the Loot deck.')),
 );
 
 $this->lords = array(
