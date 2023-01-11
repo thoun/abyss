@@ -298,6 +298,26 @@ class Abyss extends Table {
 			$sql = "ALTER TABLE `player` ADD `player_autopass` VARCHAR(25) NOT NULL DEFAULT '0,0,0,0,0';";
 			self::applyDbUpgradeToAllDB( $sql );
 		}
+
+		if ($from_version <= 2212201335) {
+			$sql = "CREATE TABLE IF NOT EXISTS `DBPREFIX_loot` (
+                `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+                `value` tinyint(1) unsigned NOT NULL,
+                `location_id` int(11),
+                PRIMARY KEY (`id`)
+              ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;";
+			self::applyDbUpgradeToAllDB( $sql );
+            
+			$sql = "CREATE TABLE IF NOT EXISTS `global_variables` (
+                `name` varchar(50) NOT NULL,
+                `value` json,
+                PRIMARY KEY (`name`)
+              ) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+			self::applyDbUpgradeToAllDB( $sql );
+            
+			$sql = "ALTER TABLE `DBPREFIX_player` ADD `player_nebulis` INT unsigned NOT NULL DEFAULT 0";
+			self::applyDbUpgradeToAllDB( $sql );
+		}
     }
 
 	// Hacks

@@ -58,8 +58,22 @@ CREATE TABLE IF NOT EXISTS `monster` (
   PRIMARY KEY (`monster_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
+CREATE TABLE IF NOT EXISTS `loot` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `value` tinyint(1) unsigned NOT NULL,
+  `location_id` int(11),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+CREATE TABLE IF NOT EXISTS `global_variables` (
+  `name` varchar(50) NOT NULL,
+  `value` json,
+  PRIMARY KEY (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 
 ALTER TABLE `player` ADD `player_pearls` INT UNSIGNED NOT NULL DEFAULT 0;
+ALTER TABLE `player` ADD `player_nebulis` INT UNSIGNED NOT NULL DEFAULT 0;
 ALTER TABLE `player` ADD `player_keys` INT UNSIGNED NOT NULL DEFAULT 0;
 ALTER TABLE `player` ADD `player_has_purchased` TINYINT NOT NULL DEFAULT 0;
 ALTER TABLE `player` ADD `player_autopass` VARCHAR(25) NOT NULL DEFAULT '0;0;0;0;0';
