@@ -100,13 +100,17 @@ trait ActionTrait {
 
         $ally = end($slots);
 
+        $nextState = "exploreTakeAlly";
         if ($ally['faction'] === NULL) {
             // If it's a monster, go through the monster rigmarole
-            $this->gamestate->nextState( "exploreTakeMonster" );
+            $nextState = "exploreTakeMonster";
         } else {
             // Otherwise, add it to your hand
             self::DbQuery( "UPDATE ally SET place = ".($player_id * -1)." WHERE ally_id = " . $ally["ally_id"] );
-            $this->gamestate->nextState( "exploreTakeAlly" );
+
+            if ($this->array_some($slots, fn($s) => $s["faction"] == 10 && $s['ally_id'] != $ally["ally_id"])) {
+                $nextState = "exploreTakeAllyRemainingKrakens";
+            }
         }
 
         // If you have the Ship Master, you gain extra Pearls
@@ -114,7 +118,7 @@ trait ActionTrait {
             $factions = array();
             foreach ($slots as $s) {
                 if ($s["ally_id"] == $ally["ally_id"]) continue;
-                if ($s["faction"] === NULL) continue;
+                if ($s["faction"] === NULL || $s["faction"] == 10) continue;
                 $factions[$s["faction"]] = 1;
             }
             if (count($factions) > 0) {
@@ -123,7 +127,7 @@ trait ActionTrait {
         }
 
         // Move each ally to the appropriate council stack and discard monster allies
-        self::DbQuery( "UPDATE ally SET place = 6 WHERE faction IS NOT NULL AND place >= 1 AND place <= 5");
+        self::DbQuery( "UPDATE ally SET place = 6 WHERE faction IS NOT NULL AND place >= 1 AND place <= 5 AND faction <> 10");
         self::DbQuery( "UPDATE ally SET place = 10 WHERE faction IS NULL AND place >= 1");
 
         // Notification
@@ -151,6 +155,8 @@ trait ActionTrait {
                     'player_name' => $players[$player_id]["player_name"],
             ));
         }
+
+        $this->gamestate->nextState($nextState);
     }
     
     function recruit(int $lord_id) {
@@ -1601,5 +1607,34 @@ il est placé.
         $this->incPlayerNebulis($playerId, -count($opponentsIds), "lord_104");
 
         $this->gamestate->nextState('next');
+    }
+
+    function placeKraken(int $faction) {
+        self::checkAction('placeKraken');
+
+        $playerId = intval($this->getActivePlayerId());
+
+        $ally = $this->argPlaceKraken()['ally'];
+
+        self::DbQuery( "UPDATE ally SET place = 100 + $faction WHERE ally_id = ".$ally['ally_id']);
+
+        self::notifyAllPlayers('placeKraken', clienttranslate('${player_name} takes ${card_name} to ${councilFaction} council stack'), [
+            'ally' => $ally,
+            'player_id' => $playerId,
+            'player_name' => $this->getPlayerName($playerId),
+            'card_name' => array( // for logs
+                'log' => '<span style="color:'.$this->factions[$ally["faction"]]["colour"].'">${value} ${faction}</span>',
+                'args' => array(
+                    'value' => $ally["value"],
+                    'faction' => $this->factions[$ally["faction"]]["ally_name"],
+                    'i18n' => ['faction']
+                )
+            ),
+            'faction' => $faction,
+            'councilFaction' => $this->factions[$faction]["ally_name"], // for logs
+            'deckSize' => Ally::getCouncilSlots()[$faction],
+        ]);
+
+        $this->gamestate->nextState(count(Ally::getExploreSlots()) > 0 ? 'nextKraken' : 'next');
     }
 }

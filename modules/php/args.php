@@ -330,4 +330,13 @@ trait ArgsTrait {
 			'possibleLocations' => $possibleLocations,
 		];
 	}
+
+	function argPlaceKraken() {
+		$remainingKrakens = Ally::getExploreSlots();
+		$ally = count($remainingKrakens) > 0 ? $remainingKrakens[0] : null;
+
+		return [
+			'ally' => $ally,
+		];
+	}
 } 

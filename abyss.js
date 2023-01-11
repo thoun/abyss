@@ -730,93 +730,6 @@ var ManualPositionStock = /** @class */ (function (_super) {
     };
     return ManualPositionStock;
 }(CardStock));
-var HiddenDeck = /** @class */ (function (_super) {
-    __extends(HiddenDeck, _super);
-    function HiddenDeck(manager, element, settings) {
-        var _this = _super.call(this, manager, element, settings) || this;
-        _this.manager = manager;
-        _this.element = element;
-        element.classList.add('hidden-deck');
-        _this.element.appendChild(_this.manager.createCardElement({ id: "".concat(element.id, "-hidden-deck-back") }, false));
-        return _this;
-    }
-    HiddenDeck.prototype.addCard = function (card, animation, settings) {
-        var _a;
-        var newSettings = __assign(__assign({}, settings), { visible: (_a = settings === null || settings === void 0 ? void 0 : settings.visible) !== null && _a !== void 0 ? _a : false });
-        return _super.prototype.addCard.call(this, card, animation, newSettings);
-    };
-    return HiddenDeck;
-}(Deck));
-var VisibleDeck = /** @class */ (function (_super) {
-    __extends(VisibleDeck, _super);
-    function VisibleDeck(manager, element, settings) {
-        var _this = _super.call(this, manager, element, settings) || this;
-        _this.manager = manager;
-        _this.element = element;
-        element.classList.add('visible-deck');
-        return _this;
-    }
-    VisibleDeck.prototype.addCard = function (card, animation, settings) {
-        var _this = this;
-        var currentCard = this.cards[this.cards.length - 1];
-        if (currentCard) {
-            // we remove the card under, only when the animation is done. TODO use promise result
-            setTimeout(function () {
-                _this.removeCard(currentCard);
-                // counter the autoUpdateCardNumber as the card isn't really removed, we just remove it from the dom so player cannot see it's content.
-                if (_this.autoUpdateCardNumber) {
-                    _this.setCardNumber(_this.cardNumber + 1);
-                }
-            }, 600);
-        }
-        return _super.prototype.addCard.call(this, card, animation, settings);
-    };
-    return VisibleDeck;
-}(Deck));
-var AllVisibleDeck = /** @class */ (function (_super) {
-    __extends(AllVisibleDeck, _super);
-    function AllVisibleDeck(manager, element, settings) {
-        var _this = this;
-        var _a;
-        _this = _super.call(this, manager, element, settings) || this;
-        _this.manager = manager;
-        _this.element = element;
-        element.classList.add('all-visible-deck');
-        element.style.setProperty('--width', settings.width);
-        element.style.setProperty('--height', settings.height);
-        element.style.setProperty('--shift', (_a = settings.shift) !== null && _a !== void 0 ? _a : '3px');
-        return _this;
-    }
-    AllVisibleDeck.prototype.addCard = function (card, animation, settings) {
-        var promise;
-        var order = this.cards.length;
-        promise = _super.prototype.addCard.call(this, card, animation, settings);
-        var cardId = this.manager.getId(card);
-        var cardDiv = document.getElementById(cardId);
-        cardDiv.style.setProperty('--order', '' + order);
-        this.element.style.setProperty('--tile-count', '' + this.cards.length);
-        return promise;
-    };
-    /**
-     * Set opened state. If true, all cards will be entirely visible.
-     *
-     * @param opened indicate if deck must be always opened. If false, will open only on hover/touch
-     */
-    AllVisibleDeck.prototype.setOpened = function (opened) {
-        this.element.classList.toggle('opened', opened);
-    };
-    AllVisibleDeck.prototype.cardRemoved = function (card) {
-        var _this = this;
-        _super.prototype.cardRemoved.call(this, card);
-        this.cards.forEach(function (c, index) {
-            var cardId = _this.manager.getId(c);
-            var cardDiv = document.getElementById(cardId);
-            cardDiv.style.setProperty('--order', '' + index);
-        });
-        this.element.style.setProperty('--tile-count', '' + this.cards.length);
-    };
-    return AllVisibleDeck;
-}(CardStock));
 var CardManager = /** @class */ (function () {
     /**
      * @param game the BGA game class, usually it will be `this`
@@ -958,10 +871,10 @@ var AllyManager = /** @class */ (function (_super) {
         return allies[faction];
     };
     AllyManager.prototype.renderTooltip = function (ally) {
-        if (ally.faction >= 0 && ally.faction != 100) {
+        if (ally.faction !== null && ally.faction != 100) {
             return "<div class=\"abs-tooltip-ally\">\n        ".concat(this.allyNameText(ally.faction), "\n        <br>\n        <span style=\"font-size: smaller\"><b>").concat(_("Value"), ": </b> ").concat(_(ally.value), "</span>\n      </div>");
         }
-        else { // TODO GBA
+        else {
             return "<div class=\"abs-tooltip-ally\">\n        ".concat(_("Monster"), "\n      </div>");
         }
     };
@@ -1348,7 +1261,6 @@ var PlayerTable = /** @class */ (function () {
 var isDebug = window.location.host == 'studio.boardgamearena.com' || window.location.hash.indexOf('debug') > -1;
 var log = isDebug ? console.log.bind(window.console) : function () { };
 var debounce;
-var FACTION_MONSTER = 100;
 var Abyss = /** @class */ (function () {
     function Abyss() {
         this.playersTables = [];
@@ -1498,7 +1410,7 @@ var Abyss = /** @class */ (function () {
         this.setDeckSize(dojo.query('#locations-holder .location-back'), gamedatas.location_deck);
         // Clickers
         dojo.connect($('explore-track-deck'), 'onclick', this, function (e) { return _this.onClickExploreDeck(e); });
-        dojo.connect($('council-track'), 'onclick', this, 'onClickCouncilTrack');
+        dojo.connect($('council-track'), 'onclick', this, function (e) { return _this.onClickCouncilTrack(e); });
         dojo.connect($('player-hand'), 'onclick', this, 'onClickPlayerHand');
         this.addEventToClass('icon-monster', 'onclick', 'onClickMonsterIcon');
         this.addEventToClass('free-lords', 'onclick', 'onClickPlayerFreeLords');
@@ -1625,12 +1537,16 @@ var Abyss = /** @class */ (function () {
             }
             if (this.checkPossibleActions('exploreTake') || this.checkPossibleActions('purchase')) {
                 for (var i = 5; i >= 1; i--) {
-                    var qr = dojo.query('#explore-track .slot-' + i);
+                    var qr = dojo.query("#visible-allies-stock [data-slot-id=\"".concat(i, "\"] .ally"));
                     if (qr.length > 0) {
                         qr.addClass('card-current-move');
                         break;
                     }
                 }
+            }
+            if (this.gamedatas.gamestate.name == 'placeKraken') {
+                this.allyManager.getCardElement(args.args.ally).classList.add('card-current-move');
+                dojo.query('#council-track .ally-back').addClass('card-current-move');
             }
             if (this.checkPossibleActions('requestSupport')) {
                 dojo.query('#council-track .ally-back').addClass('card-current-move');
@@ -1639,8 +1555,8 @@ var Abyss = /** @class */ (function () {
                 // If affordableLords given, then highlight only affordable lords
                 if (args.args && args.args._private && args.args._private.affordableLords) {
                     var affordableLords = args.args._private.affordableLords;
-                    for (var i_4 in affordableLords) {
-                        var lordId = affordableLords[i_4].lord_id;
+                    for (var i in affordableLords) {
+                        var lordId = affordableLords[i].lord_id;
                         dojo.query('#lords-track .lord.lord-' + lordId).addClass('card-current-move');
                     }
                 }
@@ -1921,10 +1837,10 @@ var Abyss = /** @class */ (function () {
                     var s = _('Draw ${n}');
                     var location_deck = dojo.query('.location.location-back')[0];
                     var location_deck_size = +dojo.attr(location_deck, 'data-size');
-                    for (var i_5 = 1; i_5 <= 4; i_5++) {
-                        if (location_deck_size < i_5)
+                    for (var i_4 = 1; i_4 <= 4; i_4++) {
+                        if (location_deck_size < i_4)
                             continue;
-                        this.addActionButton('button_draw_' + i_5, dojo.string.substitute(s, { n: i_5 }), 'onDrawLocation');
+                        this.addActionButton('button_draw_' + i_4, dojo.string.substitute(s, { n: i_4 }), 'onDrawLocation');
                     }
                     break;
                 case 'martialLaw':
@@ -1970,13 +1886,13 @@ var Abyss = /** @class */ (function () {
                     }
                     break;
                 case 'lord114':
-                    var _loop_5 = function (i_6) {
-                        this_1.addActionButton("selectAllyRace".concat(i_6), this_1.allyManager.allyNameText(i_6), function () { return _this.selectAllyRace(i_6); });
-                        document.getElementById("selectAllyRace".concat(i_6)).classList.add('affiliate-button');
+                    var _loop_5 = function (i_5) {
+                        this_1.addActionButton("selectAllyRace".concat(i_5), this_1.allyManager.allyNameText(i_5), function () { return _this.selectAllyRace(i_5); });
+                        document.getElementById("selectAllyRace".concat(i_5)).classList.add('affiliate-button');
                     };
                     var this_1 = this;
-                    for (var i_6 = 0; i_6 < 5; i_6++) {
-                        _loop_5(i_6);
+                    for (var i_5 = 0; i_5 < 5; i_5++) {
+                        _loop_5(i_5);
                     }
                     break;
                 case 'giveKraken':
@@ -2306,6 +2222,10 @@ var Abyss = /** @class */ (function () {
             var faction = dojo.attr(evt.target, 'data-faction');
             if (this.gamedatas.gamestate.name === 'placeSentinel') {
                 this.placeSentinel(2, faction);
+                return;
+            }
+            else if (this.gamedatas.gamestate.name === 'placeKraken') {
+                this.placeKraken(faction);
                 return;
             }
             if (!this.checkAction('requestSupport')) {
@@ -2679,6 +2599,14 @@ var Abyss = /** @class */ (function () {
             playersIds: playersIds.join(';'),
         });
     };
+    Abyss.prototype.placeKraken = function (faction) {
+        if (!this.checkAction('placeKraken')) {
+            return;
+        }
+        this.takeAction('placeKraken', {
+            faction: faction
+        });
+    };
     Abyss.prototype.takeAction = function (action, data) {
         data = data || {};
         data.lock = true;
@@ -2737,6 +2665,7 @@ var Abyss = /** @class */ (function () {
             ['searchSanctuaryAlly', 500],
             ['kraken', 500],
             ['placeSentinel', 500],
+            ['placeKraken', 500],
             ['endGame_scoring', 5000 * num_players + 3000],
         ];
         notifs.forEach(function (notif) {
@@ -2912,9 +2841,6 @@ var Abyss = /** @class */ (function () {
     };
     Abyss.prototype.notif_explore = function (notif) {
         var ally = notif.args.ally;
-        if (ally.faction == null) {
-            ally.faction = FACTION_MONSTER;
-        }
         this.visibleAllies.addCard(ally, {
             fromElement: document.getElementById('explore-track-deck'),
             originalSide: 'back',
@@ -2949,7 +2875,7 @@ var Abyss = /** @class */ (function () {
             var ally = cards.find(function (ally) { return ally.place == i; });
             if (ally) {
                 var faction = ally.faction;
-                if (faction == FACTION_MONSTER) {
+                if (faction === null) {
                     // Monster just fades out
                     this_2.visibleAllies.removeCard(ally);
                     delay += 200;
@@ -2963,11 +2889,8 @@ var Abyss = /** @class */ (function () {
                     // This is the card that was taken - animate it to hand or player board
                     var theAlly_1 = this_2.allyManager.getCardElement(ally);
                     if (player_id == this_2.getPlayerId()) {
-                        dojo.setStyle(theAlly_1, "zIndex", "1");
-                        dojo.setStyle(theAlly_1, "transition", "none");
                         setTimeout(function () {
                             _this.getPlayerTable(Number(player_id)).addHandAlly(notif.args.ally, theAlly_1);
-                            dojo.destroy(theAlly_1);
                             $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
                         }, delay);
                         delay += 200;
@@ -3200,6 +3123,11 @@ var Abyss = /** @class */ (function () {
     };
     Abyss.prototype.notif_placeSentinel = function (notif) {
         this.placeSentinelToken(notif.args.playerId, notif.args.lordId, notif.args.location, notif.args.locationArg);
+    };
+    Abyss.prototype.notif_placeKraken = function (notif) {
+        this.councilStacks[notif.args.faction].addCard(notif.args.ally);
+        var deck = dojo.query('#council-track .slot-' + notif.args.faction);
+        this.setDeckSize(deck, notif.args.deckSize);
     };
     return Abyss;
 }());

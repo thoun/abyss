@@ -10,8 +10,6 @@ declare const g_gamethemeurl;
 
 let debounce;
 
-const FACTION_MONSTER = 100;
-
 class Abyss implements AbyssGame {
     public allyManager: AllyManager;
     public lordManager: LordManager;
@@ -200,7 +198,7 @@ class Abyss implements AbyssGame {
 
         // Clickers
         dojo.connect($('explore-track-deck'), 'onclick', this, e => this.onClickExploreDeck(e));
-        dojo.connect($('council-track'), 'onclick', this, 'onClickCouncilTrack');
+        dojo.connect($('council-track'), 'onclick', this, e => this.onClickCouncilTrack(e));
         dojo.connect($('player-hand'), 'onclick', this, 'onClickPlayerHand');
         (this as any).addEventToClass('icon-monster', 'onclick', 'onClickMonsterIcon');
         (this as any).addEventToClass('free-lords', 'onclick', 'onClickPlayerFreeLords');
@@ -331,13 +329,17 @@ class Abyss implements AbyssGame {
                 dojo.query('#explore-track-deck').addClass('card-current-move');
             }
             if( (this as any).checkPossibleActions( 'exploreTake' ) || (this as any).checkPossibleActions( 'purchase' ) ) {
-                for (var i = 5; i >= 1; i--) {
-                var qr = dojo.query('#explore-track .slot-' + i);
-                if (qr.length > 0) {
-                    qr.addClass('card-current-move');
-                    break;
+                for (let i = 5; i >= 1; i--) {
+                    const qr = dojo.query(`#visible-allies-stock [data-slot-id="${i}"] .ally`);
+                    if (qr.length > 0) {
+                        qr.addClass('card-current-move');
+                        break;
+                    }
                 }
-                }
+            }
+            if (this.gamedatas.gamestate.name == 'placeKraken') {
+                this.allyManager.getCardElement(args.args.ally).classList.add('card-current-move');
+                dojo.query('#council-track .ally-back').addClass('card-current-move');
             }
             if( (this as any).checkPossibleActions( 'requestSupport' ) ) {
                 dojo.query('#council-track .ally-back').addClass('card-current-move');
@@ -1053,6 +1055,10 @@ class Abyss implements AbyssGame {
         if (this.gamedatas.gamestate.name === 'placeSentinel') {
             this.placeSentinel(2, faction);
             return;
+        } else 
+        if (this.gamedatas.gamestate.name === 'placeKraken') {
+            this.placeKraken(faction);
+            return;
         }
 
         if( ! (this as any).checkAction( 'requestSupport' ) ) {
@@ -1519,6 +1525,16 @@ class Abyss implements AbyssGame {
         });
     }
 
+    private placeKraken(faction: number) {
+        if(!(this as any).checkAction('placeKraken')) {
+            return;
+        }
+
+        this.takeAction('placeKraken', {
+            faction
+        });
+    }
+
     public takeAction(action: string, data?: any) {
         data = data || {};
         data.lock = true;
@@ -1581,6 +1597,7 @@ class Abyss implements AbyssGame {
             ['searchSanctuaryAlly', 500],
             ['kraken', 500],
             ['placeSentinel', 500],
+            ['placeKraken', 500],
             ['endGame_scoring', 5000 * num_players + 3000],
         ];
     
@@ -1795,9 +1812,6 @@ class Abyss implements AbyssGame {
 
     notif_explore( notif: Notif<NotifExploreArgs> ) {
         var ally = notif.args.ally;
-        if (ally.faction == null) {
-            ally.faction = FACTION_MONSTER;
-        }
         this.visibleAllies.addCard(ally, {
             fromElement: document.getElementById('explore-track-deck'),
             originalSide: 'back',
@@ -1837,7 +1851,7 @@ class Abyss implements AbyssGame {
             const ally = cards.find(ally => ally.place == i);
             if (ally) {
                 const faction = ally.faction;
-                if (faction == FACTION_MONSTER) {
+                if (faction === null) {
                     // Monster just fades out
                     this.visibleAllies.removeCard(ally);
                     delay += 200;
@@ -1849,11 +1863,8 @@ class Abyss implements AbyssGame {
                     // This is the card that was taken - animate it to hand or player board
                     const theAlly = this.allyManager.getCardElement(ally);
                     if (player_id == this.getPlayerId()) {
-                        dojo.setStyle(theAlly, "zIndex", "1");
-                        dojo.setStyle(theAlly, "transition", "none");
                         setTimeout(() => {
                             this.getPlayerTable(Number(player_id)).addHandAlly(notif.args.ally, theAlly);
-                            dojo.destroy(theAlly);
                             $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
                         }, delay);
                         delay += 200;
@@ -2118,6 +2129,13 @@ class Abyss implements AbyssGame {
 
     notif_placeSentinel(notif: Notif<NotifPlaceSentinelArgs>) {
         this.placeSentinelToken(notif.args.playerId, notif.args.lordId, notif.args.location, notif.args.locationArg);
+    }
+
+    notif_placeKraken(notif: Notif<NotifPlaceKrakenArgs>) {
+        this.councilStacks[notif.args.faction].addCard(notif.args.ally);
+
+        var deck = dojo.query('#council-track .slot-' + notif.args.faction);
+        this.setDeckSize(deck, notif.args.deckSize);
     }
 
 }

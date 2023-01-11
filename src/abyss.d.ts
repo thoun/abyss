@@ -327,3 +327,10 @@ interface NotifPlaceSentinelArgs {
     location: string;
     locationArg: number;
 }
+
+interface NotifPlaceKrakenArgs {
+    playerId: number;
+    ally: AbyssAlly;
+    faction: number;
+    deckSize: number;
+}

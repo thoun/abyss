@@ -57,23 +57,23 @@ class Ally {
 
   public static function getCouncilSlots() {
     return array(
-      0 => Abyss::getValue( "SELECT COUNT(*) FROM ally WHERE place = 6 AND faction = 0" ),
-      1 => Abyss::getValue( "SELECT COUNT(*) FROM ally WHERE place = 6 AND faction = 1" ),
-      2 => Abyss::getValue( "SELECT COUNT(*) FROM ally WHERE place = 6 AND faction = 2" ),
-      3 => Abyss::getValue( "SELECT COUNT(*) FROM ally WHERE place = 6 AND faction = 3" ),
-      4 => Abyss::getValue( "SELECT COUNT(*) FROM ally WHERE place = 6 AND faction = 4" ),
+      0 => Abyss::getValue( "SELECT COUNT(*) FROM ally WHERE (place = 6 AND faction = 0) OR place = 100" ),
+      1 => Abyss::getValue( "SELECT COUNT(*) FROM ally WHERE (place = 6 AND faction = 1) OR place = 101" ),
+      2 => Abyss::getValue( "SELECT COUNT(*) FROM ally WHERE (place = 6 AND faction = 2) OR place = 102" ),
+      3 => Abyss::getValue( "SELECT COUNT(*) FROM ally WHERE (place = 6 AND faction = 3) OR place = 103" ),
+      4 => Abyss::getValue( "SELECT COUNT(*) FROM ally WHERE (place = 6 AND faction = 4) OR place = 104" ),
     );
   }
 
-  public static function drawCouncilSlot( $faction, int $player_id) {
-    $allies = Abyss::getCollection( "SELECT * FROM ally WHERE place = 6 AND faction = $faction" );
-    Abyss::DbQuery( "UPDATE ally SET place = ".(-1 * $player_id)." WHERE place = 6 AND faction = $faction" );
+  public static function drawCouncilSlot(int $faction, int $player_id) {
+    $allies = Abyss::getCollection( "SELECT * FROM ally WHERE (place = 6 AND faction = $faction) OR place = 100 + $faction " );
+    Abyss::DbQuery( "UPDATE ally SET place = ".(-1 * $player_id)." WHERE (place = 6 AND faction = $faction) OR place = 100 + $faction" );
     return self::typedAllies($allies);
   }
 
-  public static function discardCouncilSlot($faction) {
-    $num = intval(Abyss::getValue( "SELECT COUNT(*) FROM ally WHERE place = 6 AND faction = $faction"));
-    Abyss::DbQuery( "UPDATE ally SET place = 10 WHERE place = 6 AND faction = $faction" );
+  public static function discardCouncilSlot(int $faction) {
+    $num = intval(Abyss::getValue( "SELECT COUNT(*) FROM ally WHERE (place = 6 AND faction = $faction) OR place = 100 + $faction"));
+    Abyss::DbQuery( "UPDATE ally SET place = 10 WHERE (place = 6 AND faction = $faction) OR place = 100 + $faction" );
     return $num;
   }
 

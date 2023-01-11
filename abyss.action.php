@@ -309,4 +309,14 @@
         self::ajaxResponse( );
     }
 
+    public function placeKraken() {
+        self::setAjaxMode();
+
+        $faction = self::getArg("faction", AT_posint, true);
+
+        $this->game->placeKraken($faction);
+
+        self::ajaxResponse();
+    }
+
 }

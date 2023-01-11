@@ -149,7 +149,17 @@ $machinestates = array(
  			"type" => "activeplayer",
  			"args" => "argPurchase",
  			"possibleactions" => array( "explore", "exploreTake", "lordEffect" ),
- 			"transitions" => array( "explore" => ST_PRE_PURCHASE, "exploreTakeAlly" => ST_PRE_CONTROL, "exploreTakeMonster" => ST_PLAYER_CHOOSE_MONSTER_REWARD, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_EXPLORE )
+ 			"transitions" => [
+				"explore" => ST_PRE_PURCHASE, 
+				"exploreTakeAlly" => ST_PRE_CONTROL,  
+				"exploreTakeAllyRemainingKrakens" => ST_PLAYER_PLACE_KRAKEN,
+				"exploreTakeMonster" => ST_PLAYER_CHOOSE_MONSTER_REWARD, 
+				"lord_17" => ST_PLAYER_LORD17, 
+				"lord_21" => ST_PLAYER_LORD21, 
+				"lord_12" => ST_PLAYER_LORD12, 
+				"zombiePass" => ST_PRE_CONTROL, 
+				"loopback" => ST_PLAYER_EXPLORE, 
+			],
  	),
 
  	ST_PLAYER_EXPLORE2 => array(
@@ -164,15 +174,40 @@ $machinestates = array(
  	),
 
  	ST_PLAYER_EXPLORE3 => array(
- 			"name" => "explore3",
- 			"description" => clienttranslate('${actplayer} must take the last card'),
- 			"descriptionmyturn" => clienttranslate('${you} must take the last card'),
- 			"type" => "activeplayer",
- 			"args" => "argPurchase",
- 			"action" => "stMustExploreTake",
- 			"possibleactions" => array( "exploreTake", "lordEffect" ),
- 			"transitions" => array( "exploreTakeAlly" => ST_PRE_CONTROL, "exploreTakeMonster" => ST_PLAYER_CHOOSE_MONSTER_REWARD, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_EXPLORE3 )
+		"name" => "explore3",
+		"description" => clienttranslate('${actplayer} must take the last card'),
+		"descriptionmyturn" => clienttranslate('${you} must take the last card'),
+		"type" => "activeplayer",
+		"args" => "argPurchase",
+		"action" => "stMustExploreTake",
+		"possibleactions" => array( "exploreTake", "lordEffect" ),
+		"transitions" => [
+			"exploreTakeAlly" => ST_PRE_CONTROL, 
+			"exploreTakeAllyRemainingKrakens" => ST_PLAYER_PLACE_KRAKEN,
+			"exploreTakeMonster" => ST_PLAYER_CHOOSE_MONSTER_REWARD, 
+			"lord_17" => ST_PLAYER_LORD17, 
+			"lord_21" => ST_PLAYER_LORD21, 
+			"lord_12" => ST_PLAYER_LORD12, 
+			"zombiePass" => ST_PRE_CONTROL, 
+			"loopback" => ST_PLAYER_EXPLORE3,
+		],
  	),
+
+	ST_PLAYER_PLACE_KRAKEN => [
+		"name" => "placeKraken",
+		"description" => clienttranslate('${actplayer} must choose a council stack for the remaining Kraken'),
+		"descriptionmyturn" => clienttranslate('${you} must choose a council stack for the remaining Kraken'),
+		"type" => "activeplayer",
+		"args" => "argPlaceKraken",
+		"possibleactions" => [
+			"placeKraken",
+		],
+		"transitions" => [
+			"nextKraken" => ST_PLAYER_PLACE_KRAKEN, 
+			"next" => ST_PRE_CONTROL,
+			"zombiePass" => ST_PRE_CONTROL, 
+		],
+	],
 
  	ST_PRE_CONTROL => array(
 		"name" => "precontrol",
