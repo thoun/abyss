@@ -69,29 +69,31 @@ $machinestates = array(
  	),
 
  	ST_PLAYER_PLOT_AT_COURT => array(
- 			"name" => "plotAtCourt", // Also in $state_ids
+ 			"name" => "plotAtCourt",
  			"description" => clienttranslate('${actplayer} may spend a Pearl to bring a new Lord to Court'),
  			"descriptionmyturn" => clienttranslate('${you} may spend a Pearl to bring a new Lord to Court'),
  			"type" => "activeplayer",
 			"args" => "argAffordableLords",
 			"action" => "stPlotAtCourt",
- 			"possibleactions" => array( "plot", "pass", "explore", "requestSupport", "recruit", "lordEffect" ),
- 			"transitions" => array( "plot" => ST_PLAYER_PLOT_AT_COURT, "pass" => ST_PLAYER_ACTION, "explore" => ST_PRE_PURCHASE, "requestSupport" => ST_PRE_CONTROL, "requestSupport2" => ST_PLAYER_SECOND_STACK, "recruit" => ST_PLAYER_RECRUIT_PAY, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PLAYER_ACTION, "loopback" => ST_PLAYER_PLOT_AT_COURT )
+ 			"possibleactions" => array( "plot", "pass", "explore", "requestSupport", "recruit", "lordEffect", "goToPlaceSentinel" ),
+ 			"transitions" => array( "plot" => ST_PLAYER_PLOT_AT_COURT, "pass" => ST_PLAYER_ACTION, "explore" => ST_PRE_PURCHASE, "requestSupport" => ST_PRE_CONTROL, "requestSupport2" => ST_PLAYER_SECOND_STACK, "recruit" => ST_PLAYER_RECRUIT_PAY, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PLAYER_ACTION, "loopback" => ST_PLAYER_PLOT_AT_COURT
+			, "placeSentinel" => ST_PLAYER_PLACE_SENTINEL, )
  	),
 
  	ST_PLAYER_ACTION => array(
- 			"name" => "action", // Also in $state_ids
+ 			"name" => "action",
  			"description" => clienttranslate('${actplayer} must explore, request support or recruit a Lord'),
  			"descriptionmyturn" => clienttranslate('${you} must explore, request support or recruit a Lord'),
  			"type" => "activeplayer",
 			"args" => "argAffordableLords",
 			"action" => "stAction",
- 			"possibleactions" => array( "explore", "requestSupport", "recruit", "lordEffect" ),
- 			"transitions" => array( "explore" => ST_PRE_PURCHASE, "requestSupport" => ST_PRE_CONTROL, "requestSupport2" => ST_PLAYER_SECOND_STACK, "recruit" => ST_PLAYER_RECRUIT_PAY, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_ACTION )
+ 			"possibleactions" => array( "explore", "requestSupport", "recruit", "lordEffect", "goToPlaceSentinel" ),
+ 			"transitions" => array( "explore" => ST_PRE_PURCHASE, "requestSupport" => ST_PRE_CONTROL, "requestSupport2" => ST_PLAYER_SECOND_STACK, "recruit" => ST_PLAYER_RECRUIT_PAY, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_ACTION 
+			 , "placeSentinel" => ST_PLAYER_PLACE_SENTINEL, )
  	),
 
  	ST_PLAYER_SECOND_STACK => array(
- 			"name" => "secondStack", // Also in $state_ids
+ 			"name" => "secondStack",
  			"description" => clienttranslate('${actplayer} must take a second stack from the Council'),
  			"descriptionmyturn" => clienttranslate('${you} must take a second stack from the Council'),
  			"type" => "activeplayer",
@@ -124,7 +126,7 @@ $machinestates = array(
  	),
 
 	 ST_PLAYER_POST_PURCHASE_DISCARD => array(
-      "name" => "postpurchaseDiscard", // Also in $state_ids
+      "name" => "postpurchaseDiscard",
       "description" => clienttranslate('${actplayer} must discard down to 6 Allies'),
        "descriptionmyturn" => clienttranslate('${you} must discard down to 6 Allies'),
        "type" => "activeplayer",
@@ -141,17 +143,27 @@ $machinestates = array(
  	),
 
  	ST_PLAYER_EXPLORE => array(
- 			"name" => "explore", // Also in $state_ids
+ 			"name" => "explore",
  			"description" => clienttranslate('${actplayer} must take the last card or explore'),
  			"descriptionmyturn" => clienttranslate('${you} must take the last card or explore'),
  			"type" => "activeplayer",
  			"args" => "argPurchase",
  			"possibleactions" => array( "explore", "exploreTake", "lordEffect" ),
- 			"transitions" => array( "explore" => ST_PRE_PURCHASE, "exploreTakeAlly" => ST_PRE_CONTROL, "exploreTakeMonster" => ST_PLAYER_CHOOSE_MONSTER_REWARD, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_EXPLORE )
+ 			"transitions" => [
+				"explore" => ST_PRE_PURCHASE, 
+				"exploreTakeAlly" => ST_PRE_CONTROL,  
+				"exploreTakeAllyRemainingKrakens" => ST_PLAYER_PLACE_KRAKEN,
+				"exploreTakeMonster" => ST_PLAYER_CHOOSE_MONSTER_REWARD, 
+				"lord_17" => ST_PLAYER_LORD17, 
+				"lord_21" => ST_PLAYER_LORD21, 
+				"lord_12" => ST_PLAYER_LORD12, 
+				"zombiePass" => ST_PRE_CONTROL, 
+				"loopback" => ST_PLAYER_EXPLORE, 
+			],
  	),
 
  	ST_PLAYER_EXPLORE2 => array(
- 			"name" => "explore2", // Also in $state_ids
+ 			"name" => "explore2",
  			"description" => clienttranslate('${actplayer} must explore'),
  			"descriptionmyturn" => clienttranslate('${you} must explore'),
  			"type" => "activeplayer",
@@ -162,32 +174,86 @@ $machinestates = array(
  	),
 
  	ST_PLAYER_EXPLORE3 => array(
- 			"name" => "explore3", // Also in $state_ids
- 			"description" => clienttranslate('${actplayer} must take the last card'),
- 			"descriptionmyturn" => clienttranslate('${you} must take the last card'),
- 			"type" => "activeplayer",
- 			"args" => "argPurchase",
- 			"action" => "stMustExploreTake",
- 			"possibleactions" => array( "exploreTake", "lordEffect" ),
- 			"transitions" => array( "exploreTakeAlly" => ST_PRE_CONTROL, "exploreTakeMonster" => ST_PLAYER_CHOOSE_MONSTER_REWARD, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_EXPLORE3 )
+		"name" => "explore3",
+		"description" => clienttranslate('${actplayer} must take the last card'),
+		"descriptionmyturn" => clienttranslate('${you} must take the last card'),
+		"type" => "activeplayer",
+		"args" => "argPurchase",
+		"action" => "stMustExploreTake",
+		"possibleactions" => array( "exploreTake", "lordEffect" ),
+		"transitions" => [
+			"exploreTakeAlly" => ST_PRE_CONTROL, 
+			"exploreTakeAllyRemainingKrakens" => ST_PLAYER_PLACE_KRAKEN,
+			"exploreTakeMonster" => ST_PLAYER_CHOOSE_MONSTER_REWARD, 
+			"lord_17" => ST_PLAYER_LORD17, 
+			"lord_21" => ST_PLAYER_LORD21, 
+			"lord_12" => ST_PLAYER_LORD12, 
+			"zombiePass" => ST_PRE_CONTROL, 
+			"loopback" => ST_PLAYER_EXPLORE3,
+		],
  	),
+
+	ST_PLAYER_PLACE_KRAKEN => [
+		"name" => "placeKraken",
+		"description" => clienttranslate('${actplayer} must choose a council stack for the remaining Kraken'),
+		"descriptionmyturn" => clienttranslate('${you} must choose a council stack for the remaining Kraken'),
+		"type" => "activeplayer",
+		"args" => "argPlaceKraken",
+		"possibleactions" => [
+			"placeKraken",
+		],
+		"transitions" => [
+			"nextKraken" => ST_PLAYER_PLACE_KRAKEN, 
+			"next" => ST_PRE_CONTROL,
+			"zombiePass" => ST_PRE_CONTROL, 
+		],
+	],
 
  	ST_PRE_CONTROL => array(
- 			"name" => "precontrol",
- 			"type" => "game",
+		"name" => "precontrol",
+		"type" => "game",
   		"action" => "stPreControl",
- 			"transitions" => array( "control" => ST_PLAYER_CONTROL, "next" => ST_PLAYER_UNUSED_LORDS )
+ 		"transitions" => array( "control" => ST_PLAYER_CONTROL, "next" => ST_PLAYER_UNUSED_LORDS )
  	),
 
- 	ST_PLAYER_CONTROL => array(
- 		"name" => "control", // Also in $state_ids
+ 	ST_PLAYER_CONTROL => [
+ 		"name" => "control",
   		"description" => clienttranslate('${actplayer} must choose a Location to control'),
  		"descriptionmyturn" => clienttranslate('${you} must choose a face-up Location to control or draw some from the deck'),
  		"type" => "activeplayer",
   		"args" => "argControlPostDraw",
-  		"possibleactions" => array( "chooseLocation", "drawLocations"/*, "lordEffect"*/ ),
- 			"transitions" => array( "chooseLocation" => ST_PRE_CONTROL, "drawLocations" => ST_PLAYER_CONTROL_POST_DRAW, "locationEffectBlackSmokers" => ST_PLAYER_LOCATION_EFFECT_BLACK_SMOKERS, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PLAYER_MARTIAL_LAW, "loopback" => ST_PLAYER_CONTROL )
- 	),
+  		"possibleactions" => [
+			"chooseLocation", 
+			"drawLocations",
+		],
+ 		"transitions" => [
+			"chooseLocation" => ST_PRE_CONTROL, 
+			"drawLocations" => ST_PLAYER_CONTROL_POST_DRAW, 
+			"locationEffectBlackSmokers" => ST_PLAYER_LOCATION_EFFECT_BLACK_SMOKERS, 
+			"fillSanctuary" => ST_PLAYER_FILL_SANCTUARY,
+			"lord_17" => ST_PLAYER_LORD17, 
+			"lord_21" => ST_PLAYER_LORD21, 
+			"lord_12" => ST_PLAYER_LORD12, 
+			"zombiePass" => ST_PLAYER_MARTIAL_LAW, 
+			"loopback" => ST_PLAYER_CONTROL,
+		],
+	],
+
+	ST_PLAYER_FILL_SANCTUARY => [
+		"name" => "fillSanctuary",
+		"description" => clienttranslate('${actplayer} must choose to continue or stop searching'),
+		"descriptionmyturn" => clienttranslate('${you} must choose to continue or stop searching'),
+		"type" => "activeplayer",
+		"action" => "stFillSanctuary",
+		"possibleactions" => [
+		    "searchSanctuary", 
+		    "stopSanctuarySearch",
+	    ],
+		"transitions" => [
+			"stay" => ST_PLAYER_FILL_SANCTUARY,
+		    "next" => ST_PRE_CONTROL,
+	    ],
+   ],
 
  	ST_PLAYER_MARTIAL_LAW => [
  		"name" => "martialLaw",
@@ -213,7 +279,7 @@ $machinestates = array(
  	),
 
  	ST_PLAYER_CHOOSE_MONSTER_REWARD => array(
- 			"name" => "chooseMonsterReward", // Also in $state_ids
+ 			"name" => "chooseMonsterReward",
   		"description" => clienttranslate('${actplayer} must choose a reward'),
  			"descriptionmyturn" => clienttranslate('${you} must choose a reward'),
  			"type" => "activeplayer",
@@ -224,7 +290,7 @@ $machinestates = array(
  	),
 
  	ST_PLAYER_RECRUIT_PAY => array(
- 			"name" => "recruitPay", // Also in $state_ids
+ 			"name" => "recruitPay",
   		"description" => clienttranslate('${actplayer} must pay for the chosen Lord'),
  			"descriptionmyturn" => clienttranslate('${you} must pay for the chosen Lord'),
  			"type" => "activeplayer",
@@ -234,11 +300,12 @@ $machinestates = array(
  	),
 
  	ST_PLAYER_AFFILIATE => array(
- 			"name" => "affiliate", // Also in $state_ids
+ 			"name" => "affiliate",
   		"description" => clienttranslate('${actplayer} must choose an Ally to affiliate'),
  			"descriptionmyturn" => clienttranslate('${you} must choose an Ally to affiliate'),
  			"type" => "activeplayer",
   		"args" => "argAffiliate",
+  		"action" => "stAffiliate",
   		"possibleactions" => array( "affiliate", "lordEffect" ),
  			"transitions" => array( "affiliate" => ST_PLAYER_LORD_EFFECT, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_AFFILIATE )
  	),
@@ -250,14 +317,33 @@ $machinestates = array(
  			"type" => "activeplayer",
   		"args" => "argLordEffect",
   		"action" => "stLordEffect",
-  		"possibleactions" => array( "pass" ),
- 			"transitions" => array( "done" => ST_PRE_CONTROL, "lord_2" => ST_MULTI_LORD2, "lord_4" => ST_PLAYER_LORD4, "lord_5" => ST_MULTI_LORD5,
-  										"lord_7" => ST_PLAYER_LORD7, "lord_16" => ST_PLAYER_LORD16, "lord_19" => ST_PLAYER_LORD19, "lord_22" => ST_PLAYER_LORD22,
-  										"lord_26" => ST_PLAYER_LORD26, "lord_23" => ST_PLAYER_LORD23, "lord_ambassador" => ST_PLAYER_CONTROL_POST_DRAW, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_LORD_EFFECT )
+  		"possibleactions" => [
+			"pass",
+		],
+		"transitions" => [ 
+			"done" => ST_PRE_CONTROL, 
+			"lord_2" => ST_MULTI_LORD2, 
+			"lord_4" => ST_PLAYER_LORD4, 
+			"lord_5" => ST_MULTI_LORD5,
+			"lord_7" => ST_PLAYER_LORD7, 
+			"lord_16" => ST_PLAYER_LORD16, 
+			"lord_19" => ST_PLAYER_LORD19, 
+			"lord_22" => ST_PLAYER_LORD22,
+			"lord_26" => ST_PLAYER_LORD26, 
+			"lord_23" => ST_PLAYER_LORD23, 
+			"lord_104" => ST_PLAYER_LORD104,
+			"lord_112" => ST_PLAYER_LORD112,
+			"lord_114" => ST_PLAYER_LORD114, 
+			"lord_116" => ST_PLAYER_LORD116, 
+			"lord_ambassador" => ST_PLAYER_CONTROL_POST_DRAW, 
+			"lord_sentinel" => ST_PLAYER_PLACE_SENTINEL,
+			"zombiePass" => ST_PRE_CONTROL, 
+			"loopback" => ST_PLAYER_LORD_EFFECT,
+		],
  	),
 
  	ST_PLAYER_CLEANUP_DISCARD => array(
- 			"name" => "cleanupDiscard", // Also in $state_ids
+ 			"name" => "cleanupDiscard",
   		"description" => clienttranslate('${actplayer} must discard down to 6 Allies'),
  			"descriptionmyturn" => clienttranslate('${you} must discard down to 6 Allies'),
  			"type" => "activeplayer",
@@ -267,7 +353,7 @@ $machinestates = array(
  	),
 
  	ST_PLAYER_CONTROL_POST_DRAW => array(
- 			"name" => "controlPostDraw", // Also in $state_ids
+ 			"name" => "controlPostDraw",
   		"description" => clienttranslate('${actplayer} must choose a Location to control'),
  			"descriptionmyturn" => clienttranslate('${you} must choose a Location to control'),
  			"type" => "activeplayer",
@@ -287,15 +373,57 @@ $machinestates = array(
 		"transitions" => array( "chooseLocation" => ST_PRE_CONTROL, "pass" => ST_PRE_CONTROL, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_LOCATION_EFFECT_BLACK_SMOKERS )
  	),
 
- 	ST_PLAYER_UNUSED_LORDS => array(
+ 	ST_PLAYER_UNUSED_LORDS => [
 		"name" => "unusedLords",
 		"description" => clienttranslate('${actplayer} may use the abilities of their unused Lords'),
 		"descriptionmyturn" => clienttranslate('${you} may use the abilities of your unused Lords'),
 		"type" => "activeplayer",
 		"action" => "stUnusedLords",
-		"possibleactions" => array( "lordEffect", "pass" ),
-		"transitions" => array( "pass" => ST_PLAYER_CLEANUP_DISCARD, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_UNUSED_LORDS )
- 	),
+		"possibleactions" => [
+			"lordEffect", 
+			"pass",
+		],
+		"transitions" => [
+			"giveKraken" => ST_MULTIPLAYER_GIVE_KRAKEN,
+			"pass" => ST_PLAYER_CLEANUP_DISCARD, 
+			"lord_17" => ST_PLAYER_LORD17, 
+			"lord_21" => ST_PLAYER_LORD21, 
+			"lord_12" => ST_PLAYER_LORD12, 
+			"zombiePass" => ST_PRE_CONTROL, 
+			"loopback" => ST_PLAYER_UNUSED_LORDS
+		],
+	],
+
+ 	ST_MULTIPLAYER_GIVE_KRAKEN => [
+ 		"name" => "giveKraken",
+  		"description" => clienttranslate('The player with the Kraken must give it to another player'),
+		"descriptionmyturn" => clienttranslate('${you} must give the Kraken to another player'),
+		"type" => "multipleactiveplayer",
+  		"action" => "stGiveKraken",
+		"args" => "argGiveKraken",
+  		"possibleactions" => [
+			"giveKraken"
+		],
+ 		"transitions" => [
+			"next" => ST_PLAYER_UNUSED_LORDS,
+		],
+	],
+
+	ST_PLAYER_PLACE_SENTINEL => [
+		"name" => "placeSentinel",
+		"description" => clienttranslate('${actplayer} must place the sentinel'),
+		"descriptionmyturn" => clienttranslate('${you} must place the sentinel'),
+		"type" => "activeplayer",
+		"args" => "argPlaceSentinel",
+		"possibleactions" => [
+			"placeSentinel",
+		],
+		"transitions" => [
+			"nextSentinel" => ST_PLAYER_PLACE_SENTINEL,
+			"next1" => ST_PRE_CONTROL, 
+			"next2" => ST_PLAYER_MARTIAL_LAW, 
+		],
+	],
 
  	/* Lord effect (1xx) */
  	ST_MULTI_LORD2 => array(
@@ -420,23 +548,103 @@ $machinestates = array(
   										"return_12" => ST_PLAYER_RECRUIT_PAY, "return_13" => ST_PLAYER_AFFILIATE, "return_15" => ST_PLAYER_CLEANUP_DISCARD, "return_16" => ST_PLAYER_CONTROL_POST_DRAW, "return_18" => ST_PLAYER_UNUSED_LORDS, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_LORD21 )
  	),
 
-	 ST_FINAL_SCORING => array(
+ 	ST_PLAYER_LORD104 => [
+ 		"name" => "lord104",
+  		"description" => clienttranslate('${actplayer} must choose opponent(s) to give Nebulis to'),
+		"descriptionmyturn" => clienttranslate('${you} must choose opponent(s) to give Nebulis to'),
+		"type" => "activeplayer",
+		"args" => "argLord104",
+  		"possibleactions" => [
+			"giveNebulisTo",
+		],
+ 		"transitions" => [
+			"next" => ST_PRE_CONTROL, 
+			"zombiePass" => ST_PRE_CONTROL, 
+			"loopback" => ST_PLAYER_LORD116,
+		],
+	],
+
+ 	ST_PLAYER_LORD112 => [
+ 		"name" => "lord112",
+  		"description" => clienttranslate('${actplayer} must take an Ally from the discard'),
+		"descriptionmyturn" => clienttranslate('${you} must take an Ally from the discard'),
+		"type" => "activeplayer",
+		"args" => "argLord112",
+  		"possibleactions" => [
+			"takeAllyFromDiscard",
+		],
+ 		"transitions" => [
+			"next" => ST_PRE_CONTROL, 
+			"zombiePass" => ST_PRE_CONTROL, 
+			"loopback" => ST_PLAYER_LORD116,
+		],
+	],
+
+ 	ST_PLAYER_LORD114 => [
+ 		"name" => "lord114",
+  		"description" => clienttranslate('${actplayer} must choose a Race of Allies'),
+		"descriptionmyturn" => clienttranslate('${you} must choose a Race of Allies'),
+		"type" => "activeplayer",
+  		"possibleactions" => [
+			"selectAllyRace",
+		],
+ 		"transitions" => [
+			"next" => ST_MULTI_LORD114, 
+			"zombiePass" => ST_PRE_CONTROL, 
+			"loopback" => ST_PLAYER_LORD116,
+		],
+	],
+
+	ST_MULTI_LORD114 => [
+		"name" => "lord114multi",
+		"description" => clienttranslate('Other players must discard a ${faction} Ally'),
+		"descriptionmyturn" => clienttranslate('${you} must discard a ${faction} Ally'),
+		"type" => "multipleactiveplayer",
+		"action" => "stLord114",
+		"args" => "argLord114",
+		"possibleactions" => [
+			"discard",
+		],
+		"transitions" => [
+			"next" => ST_PRE_CONTROL,
+		],
+	],
+
+ 	ST_PLAYER_LORD116 => [
+ 		"name" => "lord116",
+  		"description" => clienttranslate('${actplayer} must choose a Lord to free from its Location'),
+		"descriptionmyturn" => clienttranslate('${you} must choose a Lord to free from its Location'),
+		"type" => "activeplayer",
+		"args" => "argLord116",
+  		"possibleactions" => [
+			"freeLord",
+		],
+ 		"transitions" => [
+			"freeLord" => ST_PRE_CONTROL, 
+			"zombiePass" => ST_PRE_CONTROL, 
+			"loopback" => ST_PLAYER_LORD116,
+		],
+	],
+
+	 ST_FINAL_SCORING => [
  		"name" => "finalScoring",
  		"description" => clienttranslate("Final scoring"),
   		"descriptionmyturn" => clienttranslate("Final scoring"),
  		"type" => "game",
  		"action" => "stFinalScoring",
- 		"transitions" => array( "" => ST_END_GAME )
- ),
+ 		"transitions" => [
+			"" => ST_END_GAME,
+		],
+	],
 
  	// Final state.
  	// Please do not modify (and do not overload action/args methods).
- 	ST_END_GAME => array(
+ 	ST_END_GAME => [
   		"name" => "gameEnd",
   		"description" => clienttranslate("End of game"),
   		"type" => "manager",
   		"action" => "stGameEnd",
-  		"args" => "argGameEnd"
- 	)
+  		"args" => "argGameEnd",
+	],
 
 );
