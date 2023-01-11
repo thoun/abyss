@@ -1888,3 +1888,11 @@ html a.bgabutton.affiliate-button:hover {
   left: 115px;
   width: 604px;
 }
+
+.location .front .icon-laurel {
+  width: 25px;
+  height: 20px;
+  vertical-align: middle;
+  text-align: center;
+  font-style: normal;
+}

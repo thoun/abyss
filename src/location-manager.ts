@@ -38,6 +38,7 @@ class LocationManager extends CardManager<AbyssLocation> {
         const lordHolder = document.createElement('div');
         lordHolder.classList.add('trapped-lords-holder');
         this.lordsStocks[location.location_id] = new LineStock<AbyssLord>(this.lordManager, lordHolder);
+        this.lordsStocks[location.location_id].onCardClick = card => this.game.onClickPlayerLockedLord(card);
         div.prepend(lordHolder);
 
         div.classList.add(`location`, `location-${location.location_id}`, `board`);
@@ -58,7 +59,6 @@ class LocationManager extends CardManager<AbyssLocation> {
         if ([103, 104, 105, 106].includes(location.location_id)) {
           div.insertAdjacentHTML('beforeend', `<div id="loot-stock-${location.location_id}" class="loot-stock"></div>`);
 
-          // TODO GBA replace by compress stock
           this.lootStocks[location.location_id] = new CompressedLineStock<AbyssLoot>(lootManager, document.getElementById(`loot-stock-${location.location_id}`));
           if (location.loots?.length) {
             this.lootStocks[location.location_id].addCards(location.loots);
@@ -69,9 +69,7 @@ class LocationManager extends CardManager<AbyssLocation> {
   }
 
   makeDesc(location: AbyssLocation, laurel?: boolean): string {
-    let pointsReplacement = laurel ? '<i class="icon icon-laurel"></i>' : ' <i class="fa fa-star"></i>';
-    // TODO : Wrap points in nobr to avoid line breaks
-    var desc = dojo.replace(_(location.desc).replace(/\$/g, pointsReplacement), {
+    const TEXT_HIGHLIGHT = {
       farmer: '<span style="background-color: rgba(0,0,0,0.7); color: #999900">' + _('Farmer') + '</span>',
       soldier: '<span style="background-color: rgba(0,0,0,0.7); color: red">' + _('Soldier') + '</span>',
       merchant: '<span style="background-color: rgba(0,0,0,0.7); color: green">' + _('Merchant') + '</span>',
@@ -82,7 +80,17 @@ class LocationManager extends CardManager<AbyssLocation> {
       shellfish: '<span style="background-color: rgba(0,0,0,0.7); color: green">' + _('Shellfish') + '</span>',
       squid: '<span style="background-color: rgba(255,255,255,0.7); color: blue">' + _('Squid') + '</span>',
       jellyfish: '<span style="background-color: rgba(255,255,255,0.7); color: purple">' + _('Jellyfish') + '</span>',
-    });
+    };
+    // TODO : Wrap points in nobr to avoid line breaks
+    let desc = dojo.replace(_(location.desc), TEXT_HIGHLIGHT);
+    if (laurel) {
+      desc = desc.replace(/(\d+)\$/g, (_, points) => {
+        return `<i class="icon icon-laurel">${points}</i>`; 
+      });
+    } else {
+      desc = desc.replace(/\$/g, '<i class="fa fa-star"></i>');
+    }
+
     return desc;
   }
 
@@ -100,7 +108,7 @@ class LocationManager extends CardManager<AbyssLocation> {
   }
 
   public addLoot(locationId: number, loot: AbyssLoot) {
-    this.lootStocks[locationId].addCard(loot); // TODO GBA add from element 
+    this.lootStocks[locationId].addCard(loot); // TODO add from an element ?
   }
 
   public highlightLootsToDiscard(locationId: number, loots: AbyssLoot[]) {

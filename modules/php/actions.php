@@ -601,15 +601,6 @@ trait ActionTrait {
             throw new BgaVisibleSystemException( "You can't pay with Nebulis if you still have Pearls" );
         }
 
-
-        // TODO GBA
-        /*
-        A la fin d’une Exploration, si un Allié
-kraken reste sur la piste d’Exploration, c’est le
-joueur actif qui décide dans quelle pile du Conseil
-il est placé.
-*/
-
         // Are there any superfluous cards?
         if ($shortfall < 0) {
             $surplus = -$shortfall;

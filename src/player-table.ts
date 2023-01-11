@@ -36,6 +36,7 @@ class PlayerTable {
                 center: false,
                 sort: PlayerTable.sortAllies,
             });
+            this.hand.onCardClick = card => this.game.onClickPlayerHand(card);
             this.hand.addCards(player.hand);
         }
         
@@ -46,12 +47,14 @@ class PlayerTable {
         this.freeLords = new LineStock<AbyssLord>(this.game.lordManager, document.getElementById(`player-panel-${player.id}-free-lords`), {
             center: false,
         });
+        this.freeLords.onCardClick = card => this.game.onClickPlayerFreeLord(card);
         this.freeLords.addCards(player.lords.filter(lord => lord.location == null));
         
         // Add locations
         this.locations = new LineStock<AbyssLocation>(this.game.locationManager, document.getElementById(`player-panel-${player.id}-locations`), {
             center: false,
         });
+        this.locations.onCardClick = card => this.game.onClickPlayerLocation(card);
         player.locations.forEach(location => this.addLocation(location, player.lords.filter(lord => lord.location == location.location_id)));
 
         this.game.lordManager.updateLordKeys(this.playerId);

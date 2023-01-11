@@ -105,6 +105,10 @@ interface AbyssGame extends Game {
     getPlayerId(): number;
     organisePanelMessages(): void;
     discardAllies(ids: number[]): void;
+    onClickPlayerHand(ally: AbyssAlly): void;
+    onClickPlayerFreeLord(lord: AbyssLord): void;
+    onClickPlayerLockedLord(lord: AbyssLord): void;
+    onClickPlayerLocation(location: AbyssLocation): void;
 }
 
 type WithNebulis = { [nebulis: number]: boolean };

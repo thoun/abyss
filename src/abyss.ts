@@ -197,12 +197,9 @@ class Abyss implements AbyssGame {
         this.setDeckSize(dojo.query('#locations-holder .location-back'), gamedatas.location_deck);
 
         // Clickers
-        dojo.connect($('explore-track-deck'), 'onclick', this, e => this.onClickExploreDeck(e));
-        dojo.connect($('council-track'), 'onclick', this, e => this.onClickCouncilTrack(e));
-        dojo.connect($('player-hand'), 'onclick', this, 'onClickPlayerHand');
+        document.getElementById('explore-track-deck').addEventListener('click', e => this.onClickExploreDeck(e));
+        document.getElementById('council-track').addEventListener('click', e => this.onClickCouncilTrack(e));
         (this as any).addEventToClass('icon-monster', 'onclick', 'onClickMonsterIcon');
-        (this as any).addEventToClass('free-lords', 'onclick', 'onClickPlayerFreeLords');
-        (this as any).addEventToClass('locations', 'onclick', 'onClickLocation');
 
         // Tooltips
         // Hide this one, because it doesn't line up due to Zoom
@@ -945,7 +942,7 @@ class Abyss implements AbyssGame {
                 }
                 break;
             case 'lord':
-                const lordElement = this.lordManager.getCardElement({ lord_id: locationArg } as AbyssLord) ?? document.querySelector(`.lord[data-lord-id="${locationArg}"]`); // TODO GBA remove ??
+                const lordElement = this.lordManager.getCardElement({ lord_id: locationArg } as AbyssLord);
                 lordElement.appendChild(sentinel);
                 if (parentElement) {
                     stockSlideAnimation({
@@ -965,7 +962,7 @@ class Abyss implements AbyssGame {
                 }
                 break;
             case 'location':
-                const locationElement = this.locationManager.getCardElement({ location_id: locationArg } as AbyssLocation) ?? document.querySelector(`.location[data-location-id="${locationArg}"]`); // TODO GBA remove ??
+                const locationElement = this.locationManager.getCardElement({ location_id: locationArg } as AbyssLocation);
                 locationElement.appendChild(sentinel);
                 if (parentElement) {
                     stockSlideAnimation({
@@ -1039,55 +1036,42 @@ class Abyss implements AbyssGame {
 
         var ally_id = +evt.currentTarget.id.replace('button_affiliate_', '');
 
-        (this as any).ajaxcall( "/abyss/abyss/affiliate.html", { lock: true, ally_id: ally_id }, this,
-        () => {},
-        () => {}
-        );
+        this.takeAction('affiliate', {
+            ally_id,
+        });
     }
 
     onClickCouncilTrack(evt) {
         if (dojo.hasClass(evt.target, 'ally')) {
-        // Draw this stack??
-        dojo.stopEvent( evt );
+            // Draw this stack??
+            dojo.stopEvent( evt );
 
-        var faction = dojo.attr(evt.target, 'data-faction');
+            var faction = dojo.attr(evt.target, 'data-faction');
 
-        if (this.gamedatas.gamestate.name === 'placeSentinel') {
-            this.placeSentinel(2, faction);
-            return;
-        } else 
-        if (this.gamedatas.gamestate.name === 'placeKraken') {
-            this.placeKraken(faction);
-            return;
-        }
+            if (this.gamedatas.gamestate.name === 'placeSentinel') {
+                this.placeSentinel(2, faction);
+                return;
+            } else if (this.gamedatas.gamestate.name === 'placeKraken') {
+                this.placeKraken(faction);
+                return;
+            }
 
-        if( ! (this as any).checkAction( 'requestSupport' ) ) {
-            return;
-        }
+            if( ! (this as any).checkAction( 'requestSupport' ) ) {
+                return;
+            }
 
-        (this as any).ajaxcall( "/abyss/abyss/requestSupport.html", { lock: true, faction: faction }, this,
-        () => {},
-        () => {}
-        );
+            this.takeAction('requestSupport', {
+                faction,
+            });
         }
     }
 
-    onClickLocation ( evt ) {
-        if ((evt.target as HTMLDivElement).classList.contains('lord') && (evt.target as HTMLDivElement).classList.contains('selectable') && this.gamedatas.gamestate.name === 'lord116') {
-            this.freeLord(evt.target.dataset.lordId);
-            return;
-        }
-
-        var locations = dojo.query(evt.target).closest('.location');
-        if (locations.length > 0) {
-        var target = locations[0];
-        if (dojo.hasClass(target, 'location') && ! dojo.hasClass(target, 'location-back')) {
-            dojo.stopEvent( evt );
-
-            let location_id = dojo.attr(target, 'data-location-id');
+    onClickPlayerLocation(location: AbyssLocation): void {
+        var target = this.locationManager.getCardElement(location);
+        if (!dojo.hasClass(target, 'location-back')) {
 
             if (this.gamedatas.gamestate.name === 'placeSentinel') {
-                this.placeSentinel(3, location_id);
+                this.placeSentinel(3, location.location_id);
                 return;
             }
 
@@ -1096,19 +1080,18 @@ class Abyss implements AbyssGame {
             }
             
             // If you select Black Smokers with an empty deck, warn!
-            if (location_id == 10) {
+            if (location.location_id == 10) {
                 let location_deck = dojo.query('.location.location-back')[0];
                 let location_deck_size = +dojo.attr(location_deck, 'data-size');
                 if (location_deck_size == 0) {
                 (this as any).confirmationDialog( _('Are you sure you want to select this Location? There are no Locations left in the deck.'), dojo.hitch( this, function() {
-                    this.chooseLocation(location_id);
+                    this.chooseLocation(location.location_id);
                     } ) );
                     return;
                 }
             }
             
-            this.chooseLocation(location_id);
-        }
+            this.chooseLocation(location.location_id);
         }
     }
 
@@ -1211,10 +1194,7 @@ class Abyss implements AbyssGame {
         return;
         }
 
-        (this as any).ajaxcall( "/abyss/abyss/pass.html", { lock: true }, this,
-        () => {},
-        () => {}
-        );
+        this.takeAction('pass');
     }
 
     onPlot( evt ) {
@@ -1224,10 +1204,7 @@ class Abyss implements AbyssGame {
         return;
         }
 
-        (this as any).ajaxcall( "/abyss/abyss/plot.html", { lock: true }, this,
-        () => {},
-        () => {}
-        );
+        this.takeAction('plot');
     }
 
     onChooseMonsterReward( evt ) {
@@ -1239,30 +1216,12 @@ class Abyss implements AbyssGame {
 
         var option = +evt.currentTarget.id.replace("button_reward_", '');
 
-        (this as any).ajaxcall( "/abyss/abyss/chooseReward.html", { lock: true, option: option }, this,
-        () => {},
-        () => {}
-        );
+        this.takeAction('chooseReward', {
+            option,
+        });
     }
 
-    onClickPlayerHand( evt ) {
-        if (dojo.hasClass(evt.target, 'ally') || evt.target.closest('.ally')) {
-            const elem = dojo.hasClass(evt.target, 'ally') ? evt.target : evt.target.closest('.ally');
-            const allyId = Number(elem.dataset.allyId);
-            if( (this as any).checkAction( 'pay', true ) ) {
-                dojo.stopEvent( evt );
-                this.onClickPlayerHandAlly({ ally_id: allyId } as AbyssAlly);
-            } else if( (this as any).checkAction( 'discard', true ) ) {
-                dojo.stopEvent( evt );
-                this.onClickPlayerHandAlly({ ally_id: allyId } as AbyssAlly);
-            } else if( (this as any).checkAction( 'selectAlly', true ) ) {
-                dojo.stopEvent( evt );
-                this.onClickPlayerHandAlly({ ally_id: allyId } as AbyssAlly);
-            }
-        }
-    }
-
-    onClickPlayerHandAlly(ally: AbyssAlly) {
+    onClickPlayerHand(ally: AbyssAlly) {
         if( (this as any).checkAction( 'pay', true ) ) {
             this.allyManager.getCardElement(ally).classList.toggle('selected');
 
@@ -1326,10 +1285,9 @@ class Abyss implements AbyssGame {
 
             // Discard this card...
             var player_id: Number = dojo.attr(dojo.query(evt.target).closest('.cp_board')[0], 'data-player-id');
-            (this as any).ajaxcall( "/abyss/abyss/chooseMonsterTokens.html", { lock: true, player_id: player_id }, this,
-            () => {},
-            () => {}
-            );
+            this.takeAction('chooseMonsterTokens', {
+                player_id,
+            });
         }
         } else {
             if( (this as any).checkAction( 'chooseMonsterTokens' ) ) {
@@ -1337,30 +1295,9 @@ class Abyss implements AbyssGame {
 
             // Discard this card...
             var player_id: Number = +evt.target.id.replace("button_steal_monster_token_", "");
-            (this as any).ajaxcall( "/abyss/abyss/chooseMonsterTokens.html", { lock: true, player_id: player_id }, this,
-            () => {},
-            () => {}
-            );
-            }
-        }
-    }
-
-    onClickPlayerFreeLords( evt ) {
-        if (dojo.hasClass(evt.target, 'lord') || evt.target.closest('.lord')) {
-            const elem = dojo.hasClass(evt.target, 'lord') ? evt.target : evt.target.closest('.lord');
-            const lordId = Number(elem.dataset.lordId);
-            if( (this as any).checkAction( 'selectLord', true ) ) {
-                dojo.stopEvent( evt );
-
-                this.onClickPlayerFreeLord({ lord_id: lordId } as AbyssLord);
-            } else if( (this as any).checkAction( 'lordEffect', true ) ) {
-                dojo.stopEvent( evt );
-
-                this.onClickPlayerFreeLord({ lord_id: lordId } as AbyssLord);
-            } else if( (this as any).checkAction( 'chooseLocation', true ) ) {
-                dojo.stopEvent( evt );
-
-                this.onClickPlayerFreeLord({ lord_id: lordId } as AbyssLord);
+            this.takeAction('chooseMonsterTokens', {
+                player_id,
+            });
             }
         }
     }
@@ -1384,6 +1321,14 @@ class Abyss implements AbyssGame {
             }
         }
     }
+
+    onClickPlayerLockedLord(lord: AbyssLord) {
+        const target = this.lordManager.getCardElement(lord);
+        if (target.classList.contains('selectable') && this.gamedatas.gamestate.name === 'lord116') {
+            this.freeLord(lord.lord_id);
+            return;
+        }
+    }
     
     onUpdateAutopass() {
         let autopass = "";
@@ -1401,10 +1346,10 @@ class Abyss implements AbyssGame {
         }
         autopass += "" + max;
         }
-        (this as any).ajaxcall( "/abyss/abyss/setAutopass.html", { autopass }, this,
-        () => {},
-        () => {}
-    );
+
+        this.takeNoLockAction('setAutopass', {
+            autopass,
+        });
     }
 
     onDrawLocation( evt ) {
@@ -1416,10 +1361,9 @@ class Abyss implements AbyssGame {
 
         var num = +evt.currentTarget.id.replace('button_draw_', '');
 
-        (this as any).ajaxcall( "/abyss/abyss/drawLocations.html", { lock: true, num: num }, this,
-        () => {},
-        () => {}
-        );
+        this.takeAction('drawLocations', {
+            num,
+        });
     }
 
     private payMartialLaw() {
@@ -1900,7 +1844,6 @@ class Abyss implements AbyssGame {
 
     notif_purchase( notif: Notif<NotifPurchaseArgs> ) {
         let player_id = notif.args.player_id;
-        let theAlly = dojo.query('#explore-track .slot-' + notif.args.slot)[0];
 
         // Update handsize and pearls of purchasing player
         this.incPearlCount(player_id, -notif.args.incPearls);
@@ -1911,10 +1854,10 @@ class Abyss implements AbyssGame {
         }
 
         if (player_id == this.getPlayerId()) {
-            this.getPlayerTable(Number(player_id)).addHandAlly(notif.args.ally, theAlly);
-            dojo.destroy(theAlly);
+            this.getPlayerTable(Number(player_id)).addHandAlly(notif.args.ally);
             $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
         } else {
+            const theAlly = this.allyManager.getCardElement(notif.args.ally);
             dojo.setStyle(theAlly, "zIndex", "1");
             dojo.setStyle(theAlly, "transition", "none");
             var animation = (this as any).slideToObject( theAlly, $('player_board_' + player_id), 600 );
