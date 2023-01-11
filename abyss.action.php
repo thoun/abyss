@@ -46,10 +46,13 @@
         self::ajaxResponse( );
     }
 
-    public function purchase()
-    {
+    public function purchase() {
         self::setAjaxMode();
-        $this->game->purchase( );
+
+        $withNebulis = self::getArg( "withNebulis", AT_posint, false );
+
+        $this->game->purchase($withNebulis);
+
         self::ajaxResponse( );
     }
 
@@ -99,8 +102,7 @@
         self::ajaxResponse( );
     }
 
-    public function pay()
-    {
+    public function pay() {
         self::setAjaxMode();
         $ally_ids_raw = self::getArg( "ally_ids", AT_numberlist, true );
         if( substr( $ally_ids_raw, -1 ) == ';' )
@@ -109,8 +111,12 @@
             $ally_ids = array();
         else
             $ally_ids = explode( ';', $ally_ids_raw );
-        $this->game->pay( $ally_ids );
-        self::ajaxResponse( );
+
+        $withNebulis = self::getArg("withNebulis", AT_posint, false);
+
+        $this->game->pay($ally_ids, $withNebulis);
+
+        self::ajaxResponse();
     }
 
     public function affiliate()
@@ -209,7 +215,108 @@
 
         $this->game->payMartialLaw();
 
+        self::ajaxResponse();
+    }
+
+    public function searchSanctuary() {
+        self::setAjaxMode();
+
+        $this->game->searchSanctuary();
+
+        self::ajaxResponse();
+    }
+
+    public function stopSanctuarySearch() {
+        self::setAjaxMode();
+
+        $this->game->stopSanctuarySearch();
+
+        self::ajaxResponse();
+    }
+
+    public function freeLord() {
+        self::setAjaxMode();
+
+        $id = self::getArg("id", AT_posint, true);
+
+        $this->game->freeLord($id);
+
+        self::ajaxResponse();
+    }
+
+    public function selectAllyRace() {
+        self::setAjaxMode();
+
+        $faction = self::getArg("faction", AT_posint, true);
+
+        $this->game->selectAllyRace($faction);
+
+        self::ajaxResponse();
+    }
+
+    public function takeAllyFromDiscard() {
+        self::setAjaxMode();
+
+        $id = self::getArg("id", AT_posint, true);
+
+        $this->game->takeAllyFromDiscard($id);
+
+        self::ajaxResponse();
+    }
+
+    public function giveKraken() {
+        self::setAjaxMode();
+
+        $playerId = self::getArg("playerId", AT_posint, true);
+
+        $this->game->giveKraken($playerId);
+
+        self::ajaxResponse();
+    }
+
+    public function goToPlaceSentinel() {
+        self::setAjaxMode();
+
+        $this->game->goToPlaceSentinel();
+
+        self::ajaxResponse();
+    }
+
+    public function placeSentinel() {
+        self::setAjaxMode();
+
+        $location = self::getArg("location", AT_posint, true);
+        $locationArg = self::getArg("locationArg", AT_posint, true);
+
+        $this->game->placeSentinel($location, $locationArg);
+
+        self::ajaxResponse();
+    }
+
+    public function giveNebulisTo() {
+        self::setAjaxMode();
+
+        $playersIds_raw = self::getArg( "playersIds", AT_numberlist, true );
+        if( substr( $playersIds_raw, -1 ) == ';' )
+            $playersIds_raw = substr( $playersIds_raw, 0, -1 );
+        if( $playersIds_raw == '' )
+            $playersIds = array();
+        else
+            $playersIds = explode( ';', $playersIds_raw );
+
+        $this->game->giveNebulisTo($playersIds);
+
         self::ajaxResponse( );
+    }
+
+    public function placeKraken() {
+        self::setAjaxMode();
+
+        $faction = self::getArg("faction", AT_posint, true);
+
+        $this->game->placeKraken($faction);
+
+        self::ajaxResponse();
     }
 
 }
