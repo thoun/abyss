@@ -610,4 +610,97 @@ trait UtilTrait {
             $this->incPlayerPearls($highwaymanOwner, 1, "lord_113");
         }
     }
+
+    
+        
+    function combinations(array $in_values, int $number) {
+        $values = $in_values;
+        $result = array();
+        
+        if (count($values) >= $number && $number > 0) {
+            foreach ($values as $k => $v) {
+                # Remove values and find combinations of v + combinations of 
+                unset($values[$k]);
+                
+                if ($number == 1) {
+                    $cs = array($v);
+                } else {
+                    $cs = self::combinations($values, $number - 1);
+                    # Add v to all the results
+                    foreach ($cs as $k => $c) {
+                        $cs[$k] = $cs[$k] + $v;
+                    }
+                }
+                
+                $result = array_merge($result, $cs);
+            }
+        }
+        
+        return $result;
+    }
+    
+    function hasCombination(array $values, int $number, int $required) {
+        $combinations = self::combinations($values, $number);
+        foreach ($combinations as $c) {
+            if ($c >= $required) {
+                return true;
+            }
+        }
+        return false;
+    }
+        
+    function canAffordLord(int $player_id, array $hand, int $pearls, $lord, bool $krakenExpansion = false) {
+        $potentialFound = false;
+        
+        $hasDiplomat = Lord::playerHas( 24 , $player_id );
+        $cost = self::getLordCost( $lord, $player_id );
+        $requiredDiversity = $lord["diversity"];
+        
+        $krakens = 0;
+        $diversity = [];
+        foreach ($hand as $ally) {
+            if (! isset($diversity[$ally["faction"]])) {
+                $diversity[$ally["faction"]] = 0;
+            }
+            $diversity[$ally["faction"]] += $ally["value"];
+
+            if ($ally["faction"] == 10) {
+                $krakens++;
+                $hasDiplomat = true; // the kraken can replace the required color, so it behaves as the diplomat
+            }
+        }
+        //throw new BgaUserException( self::_(join(", ", array_keys($diversity)) . " : " . join(", ", array_values($diversity))) );
+        $potentialFound = true;
+        
+        if ((count($diversity) + $krakens) < $requiredDiversity) {
+            // Total diversity of hand...
+            $potentialFound = false;
+        } else if (isset($lord["faction"]) && ! $hasDiplomat && ! isset($diversity[$lord["faction"]])) {
+            // Required faction
+            $potentialFound = false;
+        } else {
+            // Can you get the required value?
+            $cost -= (self::getPlayerPearls( $player_id ) + ($krakenExpansion ? self::getPlayerNebulis($player_id) : 0));
+            if ($hasDiplomat || ! isset($lord["faction"]) || $requiredDiversity == 5) {
+                // Using any $requiredDiversity different groups, can you get the value required?
+                $values = array_values($diversity);
+                if (! self::hasCombination($values, $requiredDiversity, $cost)) {
+                    $potentialFound = false;
+                }
+            } else {
+                // Using n different groups, can you get the value required?
+                $cost -= $diversity[$lord["faction"]];
+                $requiredDiversity -= 1;
+                if ($requiredDiversity > 0 || $cost > 0) {
+                    unset($diversity[$lord["faction"]]);
+                    $values = array_values($diversity);
+                    if (! self::hasCombination($values, $requiredDiversity, $cost)) {
+                        $potentialFound = false;
+                    }
+                }
+            }
+        }
+        
+        return $potentialFound;
+    }
 }

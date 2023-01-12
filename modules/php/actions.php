@@ -245,262 +245,177 @@ trait ActionTrait {
     
                     $this->gamestate->nextState( "recruit" );
         }
-        
-        function combinations(array $in_values, int $number) {
-            $values = $in_values;
-            $result = array();
-            
-            if (count($values) >= $number && $number > 0) {
-                foreach ($values as $k => $v) {
-                    # Remove values and find combinations of v + combinations of 
-                    unset($values[$k]);
-                    
-                    if ($number == 1) {
-                        $cs = array($v);
-                    } else {
-                        $cs = self::combinations($values, $number - 1);
-                        # Add v to all the results
-                        foreach ($cs as $k => $c) {
-                            $cs[$k] = $cs[$k] + $v;
-                        }
-                    }
-                    
-                    $result = array_merge($result, $cs);
-                }
-            }
-            
-            return $result;
-        }
-        
-        function hasCombination(array $values, int $number, int $required) {
-            $combinations = self::combinations($values, $number);
-            foreach ($combinations as $c) {
-                if ($c >= $required) {
-                    return true;
-                }
-            }
-            return false;
-        }
-        
-        function canAffordLord(int $player_id, array $hand, int $pearls, $lord) {
-            $potentialFound = false;
-            
-            $hasDiplomat = Lord::playerHas( 24 , $player_id );
-            $cost = self::getLordCost( $lord, $player_id );
-            $requiredDiversity = $lord["diversity"];
-            
-            $diversity = array();
-            foreach ($hand as $ally) {
-                if (! isset($diversity[$ally["faction"]])) {
-                    $diversity[$ally["faction"]] = 0;
-                }
-                $diversity[$ally["faction"]] += $ally["value"];
-            }
-            //throw new BgaUserException( self::_(join(", ", array_keys($diversity)) . " : " . join(", ", array_values($diversity))) );
-            $potentialFound = true;
-            
-            if (count($diversity) < $requiredDiversity) {
-                // Total diversity of hand...
-                $potentialFound = false;
-            } else if (isset($lord["faction"]) && ! $hasDiplomat && ! isset($diversity[$lord["faction"]])) {
-                // Required faction
-                $potentialFound = false;
-            } else {
-                // Can you get the required value?
-                $cost -= self::getPlayerPearls( $player_id );
-                if ($hasDiplomat || ! isset($lord["faction"]) || $requiredDiversity == 5) {
-                    // Using any $requiredDiversity different groups, can you get the value required?
-                    $values = array_values($diversity);
-                    if (! self::hasCombination($values, $requiredDiversity, $cost)) {
-                        $potentialFound = false;
-                    }
-                } else {
-                    // Using n different groups, can you get the value required?
-                    $cost -= $diversity[$lord["faction"]];
-                    $requiredDiversity -= 1;
-                    if ($requiredDiversity > 0 || $cost > 0) {
-                        unset($diversity[$lord["faction"]]);
-                        $values = array_values($diversity);
-                        if (! self::hasCombination($values, $requiredDiversity, $cost)) {
-                            $potentialFound = false;
-                        }
-                    }
-                }
-            }
-            
-            return $potentialFound;
-        }
     
-            function affiliate(int $ally_id ) {
-                self::checkAction( 'affiliate' );
-    
+        function affiliate(int $ally_id ) {
+            self::checkAction( 'affiliate' );
+
+            $player_id = self::getActivePlayerId();
+
+            $allies = array_values(Ally::getJustSpent());
+            $min = 9999;
+            $found = null;
+            foreach ($allies as $ally) {
+                if ($ally["ally_id"] == $ally_id) {
+                    $found = $ally;
+                }
+                if ($ally['value'] < $min) {
+                    $min = $ally['value'];
+                }
+            }
+
+            if (! isset($found)) {
+                throw new BgaVisibleSystemException( "You cannot affiliate that Ally (it wasn't used to buy the Lord)." );
+            }
+
+            $lord_id = self::getGameStateValue( 'selected_lord' );
+            if (($lord_id == 20 || ! Lord::playerHas( 20 , $player_id )) && $found['value'] != $min) {
+                throw new BgaVisibleSystemException( "You cannot affiliate that Ally (it does not have the lowest value)." );
+            }
+
+            Ally::affiliate( $player_id, $found["ally_id"]);
+
+            // Notify all
+            self::notifyAllPlayers( "affiliate", clienttranslate('${player_name} affiliates ${card_name}'), array(
+                    'ally' => $found,
+                    'player_id' => $player_id,
+                    'player_name' => self::getActivePlayerName(),
+                    'card_name' => array(
+                        'log' => '<span style="color:'.$this->factions[$found["faction"]]["colour"].'">${value} ${faction}</span>',
+                        'args' => array(
+                            'value' => $found["value"],
+                            'faction' => $this->factions[$found["faction"]]["ally_name"],
+                            'i18n' => ['faction']
+                        )
+                    ),
+            ) );
+
+            self::updatePlayerScore( $player_id, false );
+
+            // Next state: Deal with ONCE effect of the last lord...
+            $this->gamestate->nextState( 'affiliate' );
+        }
+
+        function chooseReward(int $option ) {
+            self::checkAction( 'chooseReward' );
+
+            $player_id = self::getActivePlayerId();
+            $rewards = self::argChooseMonsterReward()['rewards'];
+
+            if ($option >= count($rewards) || $option < 0)
+                throw new BgaVisibleSystemException( "Invalid reward choice ($option out of ".count($rewards).")." );
+
+            // Give the player this option
+            $reward_bits = str_split($rewards[$option]);
+            $pearls = 0;
+            $keys = 0;
+            $monsters = array();
+            $message = "";
+            foreach ($reward_bits as $r) {
+                if ($r == "M") {
+                    // Draw a monster tile!!!
+                    $monster = Monster::draw( $player_id );
+                    if (isset($monster)) {
+                        $monsters[] = $monster;
+                        $message .= '<i class="icon icon-monster"></i>';
+                    }
+                } else if ($r == "P") {
+                    $pearls++;
+                    $message .= '<i class="icon icon-pearl"></i>';
+                } else if ($r == "K") {
+                    $keys++;
+                    $message .= '<i class="icon icon-key"></i>';
+                }
+            }
+
+            if (($keys + $pearls) > 0) {
+                self::DbQuery( "UPDATE player SET player_pearls = player_pearls + $pearls, player_keys = player_keys + $keys WHERE player_id = " . $player_id );
+            }
+
+            // Move the threat back to 0
+            self::setGameStateValue( 'threat_level', 0 );
+
+            self::notifyAllPlayers( "monsterReward", clienttranslate('${player_name} earns ${rewards} for defeating a Monster'), array(
+                    'keys' => $keys,
+                    'pearls' => $pearls,
+                    'monsters' => count($monsters),
+                    'player_id' => $player_id,
+                    'player_name' => self::getActivePlayerName(),
+                    'rewards' => $message
+            ) );
+
+            self::notifyPlayer( $player_id, "monsterTokens", '', array(
+                    'monsters' => $monsters
+            ) );
+
+            $this->gamestate->nextState( "next" );
+        }
+
+        function purchase( )
+        {
+                // Check that this is the player's turn and that it is a "possible action" at this game state (see states.inc.php)
+                self::checkAction( 'purchase' );
+
                 $player_id = self::getActivePlayerId();
-    
-                $allies = array_values(Ally::getJustSpent());
-                $min = 9999;
-                $found = null;
-                foreach ($allies as $ally) {
-                    if ($ally["ally_id"] == $ally_id) {
-                        $found = $ally;
-                    }
-                    if ($ally['value'] < $min) {
-                        $min = $ally['value'];
-                    }
+
+                // Do you have enough pearls?
+                // Have you already purchased a card?
+                $first_player_id = self::getGameStateValue( 'first_player_id' );
+                $purchase_cost = self::getGameStateValue( 'purchase_cost' );
+                $player_pearls = self::getPlayerPearls( $player_id );
+                $has_purchased = self::getUniqueValueFromDB( "SELECT player_has_purchased FROM player WHERE player_id = " . $player_id );
+                if ($player_pearls < $purchase_cost) {
+                    throw new BgaVisibleSystemException( "You don't have enough Pearls. You must pass." );
                 }
-    
-                if (! isset($found)) {
-                    throw new BgaVisibleSystemException( "You cannot affiliate that Ally (it wasn't used to buy the Lord)." );
+                if ($has_purchased) {
+                    throw new BgaVisibleSystemException( "You have already purchased a card. You must pass." );
                 }
-    
-                $lord_id = self::getGameStateValue( 'selected_lord' );
-                if (($lord_id == 20 || ! Lord::playerHas( 20 , $player_id )) && $found['value'] != $min) {
-                    throw new BgaVisibleSystemException( "You cannot affiliate that Ally (it does not have the lowest value)." );
-                }
-    
-                Ally::affiliate( $player_id, $found["ally_id"]);
-    
-                // Notify all
-                self::notifyAllPlayers( "affiliate", clienttranslate('${player_name} affiliates ${card_name}'), array(
-                        'ally' => $found,
+
+                // Remove the pearls.
+                self::DbQuery( "UPDATE player SET player_has_purchased = 1, player_pearls = player_pearls - ".$purchase_cost." WHERE player_id = " . $player_id );
+                self::DbQuery( "UPDATE player SET player_pearls = player_pearls + ".$purchase_cost." WHERE player_id = " . $first_player_id );
+                self::incGameStateValue( 'purchase_cost', 1 );
+
+                // Add the card to your hand
+                $slots = Ally::getExploreSlots();
+                $ally = end($slots);
+                self::DbQuery( "UPDATE ally SET place = ".($player_id * -1)." WHERE ally_id = " . $ally["ally_id"] );
+
+                // Notify that the card has gone to that player
+                $players = self::loadPlayersBasicInfos();
+                self::notifyAllPlayers( "purchase", clienttranslate('${player_name} purchases ${card_name} for ${cost} Pearl(s)'), array(
+                        'ally' => $ally,
+                        'slot' => $ally["place"],
+                        'cost' => $purchase_cost,
                         'player_id' => $player_id,
-                        'player_name' => self::getActivePlayerName(),
+                        'player_name' => $players[$player_id]["player_name"],
+                        'first_player_id' => $first_player_id,
                         'card_name' => array(
-                            'log' => '<span style="color:'.$this->factions[$found["faction"]]["colour"].'">${value} ${faction}</span>',
+                            'log' => '<span style="color:'.$this->factions[$ally["faction"]]["colour"].'">${value} ${faction}</span>',
                             'args' => array(
-                                'value' => $found["value"],
-                                'faction' => $this->factions[$found["faction"]]["ally_name"],
+                                'value' => $ally["value"],
+                                'faction' => $this->factions[$ally["faction"]]["ally_name"],
                                 'i18n' => ['faction']
                             )
                         ),
                 ) );
-    
-                self::updatePlayerScore( $player_id, false );
-    
-                // Next state: Deal with ONCE effect of the last lord...
-                $this->gamestate->nextState( 'affiliate' );
-            }
-    
-            function chooseReward(int $option ) {
-                self::checkAction( 'chooseReward' );
-    
-                $player_id = self::getActivePlayerId();
-                $rewards = self::argChooseMonsterReward()['rewards'];
-    
-                if ($option >= count($rewards) || $option < 0)
-                    throw new BgaVisibleSystemException( "Invalid reward choice ($option out of ".count($rewards).")." );
-    
-                // Give the player this option
-                $reward_bits = str_split($rewards[$option]);
-                $pearls = 0;
-                $keys = 0;
-                $monsters = array();
-                $message = "";
-                foreach ($reward_bits as $r) {
-                    if ($r == "M") {
-                        // Draw a monster tile!!!
-                        $monster = Monster::draw( $player_id );
-                        if (isset($monster)) {
-                            $monsters[] = $monster;
-                            $message .= '<i class="icon icon-monster"></i>';
-                        }
-                    } else if ($r == "P") {
-                        $pearls++;
-                        $message .= '<i class="icon icon-pearl"></i>';
-                    } else if ($r == "K") {
-                        $keys++;
-                        $message .= '<i class="icon icon-key"></i>';
-                    }
-                }
-    
-                if (($keys + $pearls) > 0) {
-                    self::DbQuery( "UPDATE player SET player_pearls = player_pearls + $pearls, player_keys = player_keys + $keys WHERE player_id = " . $player_id );
-                }
-    
-                // Move the threat back to 0
-                self::setGameStateValue( 'threat_level', 0 );
-    
-                self::notifyAllPlayers( "monsterReward", clienttranslate('${player_name} earns ${rewards} for defeating a Monster'), array(
-                        'keys' => $keys,
-                        'pearls' => $pearls,
-                        'monsters' => count($monsters),
-                        'player_id' => $player_id,
-                        'player_name' => self::getActivePlayerName(),
-                        'rewards' => $message
-                ) );
-    
-                self::notifyPlayer( $player_id, "monsterTokens", '', array(
-                        'monsters' => $monsters
-                ) );
-    
-                $this->gamestate->nextState( "next" );
-            }
-    
-            function purchase( )
-            {
-                    // Check that this is the player's turn and that it is a "possible action" at this game state (see states.inc.php)
-                    self::checkAction( 'purchase' );
-    
-                    $player_id = self::getActivePlayerId();
-    
-                    // Do you have enough pearls?
-                    // Have you already purchased a card?
-                    $first_player_id = self::getGameStateValue( 'first_player_id' );
-                    $purchase_cost = self::getGameStateValue( 'purchase_cost' );
-                    $player_pearls = self::getPlayerPearls( $player_id );
-                    $has_purchased = self::getUniqueValueFromDB( "SELECT player_has_purchased FROM player WHERE player_id = " . $player_id );
-                    if ($player_pearls < $purchase_cost) {
-                        throw new BgaVisibleSystemException( "You don't have enough Pearls. You must pass." );
-                    }
-                    if ($has_purchased) {
-                        throw new BgaVisibleSystemException( "You have already purchased a card. You must pass." );
-                    }
-    
-                    // Remove the pearls.
-                    self::DbQuery( "UPDATE player SET player_has_purchased = 1, player_pearls = player_pearls - ".$purchase_cost." WHERE player_id = " . $player_id );
-                    self::DbQuery( "UPDATE player SET player_pearls = player_pearls + ".$purchase_cost." WHERE player_id = " . $first_player_id );
-                    self::incGameStateValue( 'purchase_cost', 1 );
-    
-                    // Add the card to your hand
-                    $slots = Ally::getExploreSlots();
-                    $ally = end($slots);
-                    self::DbQuery( "UPDATE ally SET place = ".($player_id * -1)." WHERE ally_id = " . $ally["ally_id"] );
-    
-                    // Notify that the card has gone to that player
-                    $players = self::loadPlayersBasicInfos();
-                    self::notifyAllPlayers( "purchase", clienttranslate('${player_name} purchases ${card_name} for ${cost} Pearl(s)'), array(
-                            'ally' => $ally,
-                            'slot' => $ally["place"],
-                            'cost' => $purchase_cost,
-                            'player_id' => $player_id,
-                            'player_name' => $players[$player_id]["player_name"],
-                            'first_player_id' => $first_player_id,
-                            'card_name' => array(
-                                'log' => '<span style="color:'.$this->factions[$ally["faction"]]["colour"].'">${value} ${faction}</span>',
-                                'args' => array(
-                                    'value' => $ally["value"],
-                                    'faction' => $this->factions[$ally["faction"]]["ally_name"],
-                                    'i18n' => ['faction']
-                                )
-                            ),
-                    ) );
-                    
-                    self::incStat( $purchase_cost, "pearls_spent_purchasing_allies", $player_id );
-    
-                    // Go back to the first player's explore action...
-                    $this->gamestate->nextState( "purchase" );
+                
+                self::incStat( $purchase_cost, "pearls_spent_purchasing_allies", $player_id );
+
+                // Go back to the first player's explore action...
+                $this->gamestate->nextState( "purchase" );
         }
     
-            function pass( )
+        function pass( )
         {
-                    self::checkAction( 'pass' );
-    
-                    // Now... to find the right transition ;)
-                    $state = $this->gamestate->state();
-                    if (isset($state["transitions"]["pass"])) {
-                        $this->gamestate->nextState( "pass" );
-                    } else {
-                        self::returnToPrevious();
-                    }
+            self::checkAction( 'pass' );
+
+            // Now... to find the right transition ;)
+            $state = $this->gamestate->state();
+            if (isset($state["transitions"]["pass"])) {
+                $this->gamestate->nextState( "pass" );
+            } else {
+                self::returnToPrevious();
+            }
         }
     
         function pay(array $ally_ids) {
