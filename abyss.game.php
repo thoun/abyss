@@ -81,10 +81,13 @@ class Abyss extends Table {
 				"previous_state" => 21,
 
                 MARTIAL_LAW_ACTIVATED => 22,
+
+                // game options
+                KRAKEN_EXPANSION => KRAKEN_EXPANSION,
         ]);
 
-				Lord::init( $this );
-				Location::init( $this );
+        Lord::init($this);
+        Location::init($this);
 	}
 
     protected function getGameName() {

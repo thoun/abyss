@@ -30,7 +30,7 @@ trait DebugUtilTrait {
 	function debugPickAllies(int $playerId, int $number = 12) {
 		for ($i=0; $i<$number; $i++) {
 			$ally = Ally::draw();
-			self::DbQuery( "UPDATE ally SET place = ".($playerId * -1)." WHERE ally_id = " . $ally["ally_id"] );
+			self::DbQuery( "UPDATE ally SET place = ".($ally['faction'] == null ? 0 : ($playerId * -1))." WHERE ally_id = " . $ally["ally_id"] );
 		}
 	}
 
