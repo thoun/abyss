@@ -18,30 +18,70 @@ trait ArgsTrait {
 		$pearls = self::getPlayerPearls( $player_id );
 		
 		$lords = Lord::getSlots();
-		$affordableLords = array();
+		$affordableLords = [];
 		
+        $krakenExpansion = $this->isKrakenExpansion();
 		foreach ($lords as $lord) {
-			$canAffordLord = self::canAffordLord($player_id, $hand, $pearls, $lord);
+			$canAffordLord = self::canAffordLord($player_id, $hand, $pearls, $lord, $krakenExpansion);
 			if ($canAffordLord) {
-				$affordableLords[] = $lord;
+				if ($this->isKrakenExpansion()) {
+					$guarded = $this->guardedBySentinel('lord', $lord['lord_id']);
+					if ($guarded !== null) {
+						if ($guarded->playerId == $player_id) {
+							$affordableLords[] = $lord;
+						}
+					} else {
+						$affordableLords[] = $lord;
+					}
+				} else {
+					$affordableLords[] = $lord;
+				}
 			}
 		}
 		
-		return array(
-			'_private' => array(
-				'active' => array(
+		return [
+			'_private' => [
+				'active' => [
 					'affordableLords' => $affordableLords
-				)
-			)
-		);
+				],
+			],
+			'canPlaceSentinel' => $this->mustPlaceSentinel($player_id) != null,
+		];
+	}
+
+	function getWithNebulis(int $playerId, int $cost) {
+		$withNebulis = null;
+
+		if ($this->isKrakenExpansion()) {
+			$withNebulis = [];
+
+			$maxNebulis = Lord::playerHas(102, $playerId) ? 2 : 1;
+
+			for ($i = 1; $i <= $maxNebulis; $i++) {
+				$withNebulis[$i] = $this->canPayWithNebulis($playerId, $cost - $i, $i);
+			}
+		}
+
+		return $withNebulis;
 	}
 	
 	function argPurchase() {
+		$playerId = self::getActivePlayerId();
+
 		$passed_players = self::getObjectListFromDB( "SELECT player_id id FROM player WHERE player_has_purchased", true );
+
+		$cost = intval(self::getGameStateValue('purchase_cost'));
+		
+		$pearls = self::getPlayerPearls($playerId);
+
+		$withNebulis = $this->getWithNebulis($playerId, $cost);
+
 		return [
 			'passed_players' => array_map(fn($pId) => intval($pId), $passed_players), 
 			'first_player' => intval(self::getGameStateValue( "first_player_id")),
-			'cost' => intval(self::getGameStateValue( 'purchase_cost' )),
+			'cost' => $cost,
+			'canPayWithPearls' => $pearls >= $cost,
+			'withNebulis' => $withNebulis,
 		];
 	}
 
@@ -154,10 +194,23 @@ trait ArgsTrait {
 	}
 
 	function argRecruitPay() {
+		$playerId = self::getActivePlayerId();
+		
 		$lord_id = intval(self::getGameStateValue( 'selected_lord' ));
+
+		$cost = self::getLordCost(Lord::get($lord_id), self::getCurrentPlayerId());
+		
+		$pearls = self::getPlayerPearls($playerId);
+		$nebulis = $this->isKrakenExpansion() ? $this->getPlayerNebulis($playerId) : null;
+
+		$withNebulis = $this->getWithNebulis($playerId, $cost);
+
 		return [
 			'lord_id' => $lord_id, 
-			'cost' => self::getLordCost(Lord::get($lord_id), self::getCurrentPlayerId()),
+			'cost' => $cost,
+			'pearls' => $pearls,
+			'nebulis' => $nebulis,
+			'withNebulis' => $withNebulis,
 		];
 	}
 
@@ -212,6 +265,78 @@ trait ArgsTrait {
 		return [
 			'canPay' => $diff <= $playerPearls,
 			'diff' => $diff,
+		];
+	}
+
+	function argGiveKraken() {
+		return [
+			'playersIds' => $this->getGlobalVariable(MUST_SELECT_NEW_PLAYER_FOR_KRAKEN),
+		];
+    }
+
+	function argLord104() {
+		$playerId = self::getActivePlayerId();
+
+		return [
+			'nebulis' => $this->getPlayerNebulis($playerId),
+			'playersIds' => $this->getOpponentsIds($playerId),
+		];
+	}
+
+	function argLord112() {
+		return [
+			'allies' => Ally::getDiscard(),
+		];
+	}
+
+	function argLord114() {
+		$faction = intval($this->getGameStateValue(SELECTED_FACTION));
+
+		return [
+			'faction' => $this->factions[$faction]["ally_name"],
+            'i18n' => ['faction']
+		];
+	}
+
+	function argLord116() {
+		$playerId = self::getActivePlayerId();
+		
+		$lords = Lord::getPlayerHand($playerId);
+		$lords = array_values(array_filter($lords, fn($lord) => $lord["location"] != null));
+
+		return [
+			'lords' => $lords,
+		];
+	}
+
+	function argPlaceSentinel() {
+		$sentinels = $this->getSentinels();
+
+		$lords = Lord::getSlots();
+		$possibleLords = array_values(array_filter($lords, 
+			fn($lord) => !$this->array_some($sentinels, fn($sentinel) => $sentinel->location == 'lord' && $sentinel->locationArg == $lord['lord_id'])
+		));
+		$possibleCouncil = array_values(array_filter([0,1,2,3,4], 
+			fn($stack) => !$this->array_some($sentinels, fn($sentinel) => $sentinel->location == 'council' && $sentinel->locationArg == $stack)
+		));
+		$locations = Location::getAvailable();
+		$possibleLocations = array_values(array_filter($locations, 
+			fn($location) => !$this->array_some($sentinels, fn($sentinel) => $sentinel->location == 'location' && $sentinel->locationArg == $location['location_id'])
+		));
+
+		return [
+			'possibleLords' => $possibleLords,
+			'possibleCouncil' => $possibleCouncil,
+			'possibleLocations' => $possibleLocations,
+		];
+	}
+
+	function argPlaceKraken() {
+		$remainingKrakens = Ally::getExploreSlots();
+		$ally = count($remainingKrakens) > 0 ? $remainingKrakens[0] : null;
+
+		return [
+			'ally' => $ally,
 		];
 	}
 } 
