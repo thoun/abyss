@@ -449,7 +449,7 @@ trait ActionTrait {
             self::incStat($pearlCost, "pearls_spent_purchasing_allies", $player_id);
         }
         if ($nebulisCost > 0) {
-            // TODO GBA self::incStat($nebulisCost, "nebulis_spent_purchasing_allies", $player_id);
+            self::incStat($nebulisCost, "nebulis_spent_purchasing_allies", $player_id);
         }
 
         // Go back to the first player's explore action...

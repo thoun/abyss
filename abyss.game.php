@@ -22,6 +22,7 @@ require_once('modules/abs_lord.php');
 require_once('modules/abs_ally.php');
 require_once('modules/abs_monster.php');
 require_once('modules/abs_location.php');
+require_once('modules/abs_loot.php');
 
 require_once('modules/php/constants.inc.php');
 require_once('modules/php/utils.php');
@@ -37,23 +38,6 @@ class Abyss extends Table {
     use ArgsTrait;
     use DebugUtilTrait;
 
-	public $state_ids = array(
-		"plotAtCourt" => ST_PLAYER_PLOT_AT_COURT,
-		"action" => ST_PLAYER_ACTION,
-		"secondStack" => ST_PLAYER_SECOND_STACK,
-		"explore" => ST_PLAYER_EXPLORE,
-		"explore2" => ST_PLAYER_EXPLORE2,
-		"explore3" => ST_PLAYER_EXPLORE3,
-		"control" => ST_PLAYER_CONTROL,
-		"chooseMonsterReward" => ST_PLAYER_CHOOSE_MONSTER_REWARD,
-		"recruitPay" => ST_PLAYER_RECRUIT_PAY,
-		"affiliate" => ST_PLAYER_AFFILIATE,
-		"cleanupDiscard" => ST_PLAYER_CLEANUP_DISCARD,
-		"controlPostDraw" => ST_PLAYER_CONTROL_POST_DRAW,
-		"unusedLords" => ST_PLAYER_UNUSED_LORDS,
-		"postpurchaseDiscard" => ST_POST_PURCHASE,
-	);
-
 	function __construct() {
         // Your global variables labels:
         //  Here, you can assign labels to global variables you are using for this game.
@@ -64,30 +48,34 @@ class Abyss extends Table {
         parent::__construct();
 
         self::initGameStateLabels([
-                "threat_level" => 10,
-				"purchase_cost" => 11,
-				"first_player_id" => 12,
-				"selected_lord" => 13,
-				"extra_turn" => 14,
+            "threat_level" => 10,
+            "purchase_cost" => 11,
+            "first_player_id" => 12,
+            "selected_lord" => 13,
+            "extra_turn" => 14,
 
-				"location_drawn_1" => 15,
-				"location_drawn_2" => 16,
-				"location_drawn_3" => 17,
-				"location_drawn_4" => 18,
+            "location_drawn_1" => 15,
+            "location_drawn_2" => 16,
+            "location_drawn_3" => 17,
+            "location_drawn_4" => 18,
 
-				"game_ending_player" => 19,
+            "game_ending_player" => 19,
 
-				"temp_value" => 20,
-				"previous_state" => 21,
+            "temp_value" => 20,
+            "previous_state" => 21,
 
-                MARTIAL_LAW_ACTIVATED => 22,
+            MARTIAL_LAW_ACTIVATED => 22,
+            LAST_LOCATION => 23,
+            KRAKEN => 24,
+            SELECTED_FACTION => 25,
+            AFTER_PLACE_SENTINEL => 26,
 
-                // game options
-                KRAKEN_EXPANSION => KRAKEN_EXPANSION,
+            // game options
+            KRAKEN_EXPANSION => KRAKEN_EXPANSION,
         ]);
 
-        Lord::init($this);
-        Location::init($this);
+        Lord::init( $this );
+        Location::init( $this );
 	}
 
     protected function getGameName() {
@@ -124,6 +112,8 @@ class Abyss extends Table {
 
         /************ Start the game initialization *****/
 
+        $krakenExpansion = $this->isKrakenExpansion();
+
         // Init global values with their initial values
 		self::setGameStateInitialValue( 'temp_value', 0 );
 		self::setGameStateInitialValue( 'threat_level', 0 );
@@ -133,7 +123,7 @@ class Abyss extends Table {
 		self::setGameStateInitialValue( 'extra_turn', 0 );
 		self::setGameStateInitialValue( 'game_ending_player', -1 );
 		$this->setGameStateInitialValue(MARTIAL_LAW_ACTIVATED, 1);
-
+		$this->setGameStateInitialValue(KRAKEN, 0);
         // Init game statistics
         // (note: statistics used in this file must be defined in your stats.inc.php file)
 		self::initStat( 'table', "turns_number", 0 );
@@ -147,11 +137,18 @@ class Abyss extends Table {
 		self::initStat( 'player', "times_council", 0 );
 		self::initStat( 'player', "pearls_spent_purchasing_allies", 0 );
 
+        if ($krakenExpansion) {
+            self::initStat( 'player', "nebulis_spent_purchasing_allies", 0 );
+        }
+
         // Setup decks
-		Lord::setup(false);
-		Ally::setup(false);
-		Location::setup(false);
+		Lord::setup($krakenExpansion);
+		Ally::setup($krakenExpansion);
+		Location::setup($krakenExpansion);
 		Monster::setup();
+        if ($krakenExpansion) {
+            LootManager::setup();
+        }
 
         // TODO TEMP
         $this->debugSetup();
@@ -176,16 +173,28 @@ class Abyss extends Table {
 
         $current_player_id = self::getCurrentPlayerId();    // !! We must only return informations visible by this player !!
 
+        $krakenExpansion = $this->isKrakenExpansion();
+
         // Get information about players
         // Note: you can retrieve some extra field you added for "player" table in "dbmodel.sql" if you need it.
-        $sql = "SELECT player_id id, player_score score, player_name name, player_pearls pearls, player_keys `keys`, player_autopass autopass FROM player ";
+        $sql = "SELECT player_id id, player_score score, player_name name, player_pearls pearls, player_keys `keys`, player_autopass autopass";
+        if ($krakenExpansion) {
+            $sql .= ", player_nebulis `nebulis`";
+        }
+        $sql .= " FROM player ";
         $result['players'] = self::getCollectionFromDb( $sql );
-		foreach ($result['players'] as &$player) {
+		foreach ($result['players'] as $playerId => &$player) {
+            $player['keys'] = intval($player['keys']);
+            $player['pearls'] = intval($player['pearls']);
+            if ($krakenExpansion) {
+                $player['nebulis'] = intval($player['nebulis']);
+            }
+
 			$player['hand_size'] = Ally::getPlayerHandSize( $player['id'] );
 			$player['num_monsters'] = Monster::getPlayerHandSize( $player['id'] );
 			$player['affiliated'] = Ally::getPlayerAffiliated( $player['id'] );
 			$player['lords'] = Lord::getPlayerHand( $player['id'] );
-			$player['locations'] = Location::getPlayerHand( $player['id'] );
+			$player['locations'] = Location::getPlayerHand($playerId);
 
 			if ($player['id'] == $current_player_id) {
 				$player['hand'] = Ally::getPlayerHand( $player['id'] );
@@ -205,10 +214,17 @@ class Abyss extends Table {
 		$result['ally_explore_slots'] = Ally::getExploreSlots();
 		$result['ally_council_slots'] = Ally::getCouncilSlots();
 		$result['ally_deck'] = Ally::getDeckSize();
-		$result['threat_level'] = self::getGameStateValue( 'threat_level' );
+		$result['threat_level'] = intval(self::getGameStateValue('threat_level'));
 		$result['location_deck'] = Location::getDeckSize();
 		$result['location_available'] = Location::getAvailable();
-		$result['game_ending_player'] = self::getGameStateValue( 'game_ending_player' );
+		$result['game_ending_player'] = intval(self::getGameStateValue('game_ending_player'));
+
+		$result['krakenExpansion'] = $krakenExpansion;
+
+        if ($krakenExpansion) {
+            $result['sentinels'] = $this->getSentinels();
+            $result['kraken'] = intval(self::getGameStateValue(KRAKEN));
+        }
 
         return $result;
     }

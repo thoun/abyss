@@ -86,6 +86,11 @@ $stats_type = array(
         "pearls_spent_purchasing_allies" => array("id"=> 17,
             "name" => totranslate("Pearls spent purchasing Allies"),
             "type" => "int" ),
+        "nebulis_spent_purchasing_allies" => [
+            "id" => 18,
+            "name" => totranslate("Nebulis spent purchasing Allies"),
+            "type" => "int"
+        ],
     )
 
 );
