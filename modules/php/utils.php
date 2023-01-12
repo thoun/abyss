@@ -204,7 +204,7 @@ trait UtilTrait {
                     $max = 0;
                     $imitate_location = null;
                     foreach ($enemy_locations as $el) {
-                        $els = Location::score( $el["location_id"], $lords, $affiliated );
+                        $els = Location::score( $el, $lords, $affiliated );
                         if ($els > $max) {
                             $max = $els;
                             $imitate_location = $el;
@@ -224,7 +224,7 @@ trait UtilTrait {
                     $location_points += $max;
                 }
             } else {
-                $lscore = Location::score( $l["location_id"], $lords, $affiliated );
+                $lscore = Location::score( $l, $lords, $affiliated );
                 $location_points += $lscore;
                 if ($final_scoring && $log) {
                     self::notifyAllPlayers( "message", '${player_name} scores ${num} points from ${location_name}', array(

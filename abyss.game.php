@@ -150,6 +150,9 @@ class Abyss extends Table {
 		Location::setup(false);
 		Monster::setup();
 
+        // TODO TEMP
+        $this->debugSetup();
+
         // Activate first player (which is in general a good idea :) )
         $this->activeNextPlayer();
 
