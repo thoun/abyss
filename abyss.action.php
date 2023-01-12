@@ -49,7 +49,7 @@
     public function purchase() {
         self::setAjaxMode();
 
-        $withNebulis = self::getArg( "withNebulis", AT_posint, false );
+        $withNebulis = self::getArg( "withNebulis", AT_posint, false ) ?? 0;
 
         $this->game->purchase($withNebulis);
 
@@ -112,7 +112,7 @@
         else
             $ally_ids = explode( ';', $ally_ids_raw );
 
-        $withNebulis = self::getArg("withNebulis", AT_posint, false);
+        $withNebulis = self::getArg("withNebulis", AT_posint, false) ?? 0;
 
         $this->game->pay($ally_ids, $withNebulis);
 
