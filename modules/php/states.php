@@ -35,7 +35,7 @@ trait StateTrait {
     }
 
     function doFinalScoring() {
-        $breakdowns = array();
+        $breakdowns = [];
 
         $players = self::loadPlayersBasicInfos();
         $max_score = 0;
@@ -74,7 +74,7 @@ trait StateTrait {
         }
 
         // TODO : In theory there can be multiple...
-        $winner_id = self::getUniqueValueFromDB( "SELECT player_id FROM player ORDER BY player_score DESC, player_score_aux DESC LIMIT 1" );
+        $winner_id = intval(self::getUniqueValueFromDB("SELECT player_id FROM player ORDER BY player_score DESC, player_score_aux DESC LIMIT 1"));
 
         // Send a notification to delay the endGame
         self::notifyAllPlayers( "endGame_scoring", '',
@@ -124,6 +124,13 @@ trait StateTrait {
     }
 
     function stUnusedLords() {
+        // if a player must give the kraken, we do this right now!
+        $mustSelectNewPlayer = $this->getGlobalVariable(MUST_SELECT_NEW_PLAYER_FOR_KRAKEN) ?? [];
+        if (count($mustSelectNewPlayer) > 0) {
+            $this->gamestate->nextState('giveKraken');
+            return;
+        }
+
         // If the player has no unused Lords, then next!
         $player_id = $this->getActivePlayerId();
 
@@ -171,20 +178,24 @@ trait StateTrait {
                 return;
             }
 
-            $player_pearls = self::getPlayerPearls( $player_id );
+            $playerPearls = self::getPlayerPearls( $player_id );
+            $playerNebulis = $this->isKrakenExpansion() ? $this->getPlayerNebulis($player_id) : 0;
             $player_obj = self::getObjectFromDB( "SELECT player_id id, player_autopass, player_has_purchased FROM player WHERE player_id = " . $player_id );
-            $has_purchased = $player_obj["player_has_purchased"];
+            $has_purchased = intval($player_obj["player_has_purchased"]);
+            $maxPurchase = Lord::playerHas(111, $player_id) ? 2 : 1;
+
             $autopass = $player_obj["player_autopass"];
             if ($autopass) {
                 $values = explode(";", $autopass);
                 if (count($values) >= 5) {
-                    if ($values[$ally["faction"]] >= $ally["value"]) {
+                    $faction = intval($ally["faction"]);
+                    if (in_array($faction, [0,1,2,3,4]) && $values[$faction] >= $ally["value"]) {
                         # The player wishes to autopass this ally
                         continue;
                     }
                 }
             }
-            if ($player_pearls >= $purchase_cost && ! $has_purchased) {
+            if (($playerPearls + $playerNebulis) >= $purchase_cost && $has_purchased < $maxPurchase) {
                 // They have enough money and haven't purchased yet!
                 $this->gamestate->changeActivePlayer( $player_id );
                 $this->gamestate->nextState( 'purchase' );
@@ -211,24 +222,25 @@ trait StateTrait {
     }
 
     function stPreControl() {
-        $player_id = self::getActivePlayerId();
+        $player_id = intval(self::getActivePlayerId());
 
         // Shuffle Lords along to the right
         $lords = Lord::moveToRight();
         self::setGameStateValue( 'selected_lord', 0 );
 
-        self::notifyAllPlayers( "moveLordsRight", '', array() );
+        self::notifyAllPlayers( "moveLordsRight", '', [
+            'lords' => $lords,
+        ]);
 
         if (count($lords) <= 2) {
             // If the PP is showing, add PP, and draw new Lords (here)
             self::incPlayerPearls( $player_id, 2, "recruit" );
             $lords = Lord::refill();
 
-            self::notifyAllPlayers( "refillLords", '', array(
-                    'lords' => $lords,
-                    'player_id' => $player_id,
-                    'deck_size' => Lord::getDeckSize()
-            ) );
+            self::notifyAllPlayers( "refillLords", '', [
+                'lords' => $lords,
+                'deck_size' => Lord::getDeckSize(),
+            ]);
         }
 
         // How many keys does the player have?
@@ -249,7 +261,7 @@ trait StateTrait {
     }
 
     function stNextPlayer() {
-        $player_id = self::getActivePlayerId();
+        $player_id = intval(self::getActivePlayerId());
         $transition = "plot";
 
         $game_ending = self::getGameStateValue( 'game_ending_player' );
@@ -294,7 +306,7 @@ trait StateTrait {
                     $lowest_per_faction = array();
                     foreach ($allies as $ally) {
                         $f = $ally["faction"];
-                        if (! isset($lowest_per_faction[$f]) || $lowest_per_faction[$f]["value"] > $ally["value"]) {
+                        if ($f != 10 && (! isset($lowest_per_faction[$f]) || $lowest_per_faction[$f]["value"] > $ally["value"])) {
                             $lowest_per_faction[$f] = $ally;
                         }
                     }
@@ -303,7 +315,7 @@ trait StateTrait {
                         Ally::affiliate( $pid, $ally["ally_id"] );
                         self::notifyAllPlayers( "affiliate", clienttranslate('${player_name} affiliates ${card_name}'), array(
                                 'ally' => $ally,
-                                'player_id' => $pid,
+                                'player_id' => intval($pid),
                                 'also_discard' => true,
                                 'player_name' => $p["player_name"],
                                 'card_name' => array(
@@ -344,6 +356,15 @@ trait StateTrait {
     function stChooseMonsterReward() {
         // TODO : If there is only one reward possible, automatically award it and progress state?
         // ...
+    }
+
+    function stAffiliate() {
+        $allies = array_values(Ally::getJustSpent());
+
+        // we can't affiliate if we payed only with Krakens
+        if ($this->array_every($allies, fn($ally) => $ally['faction'] == 10)) {
+            $this->gamestate->nextState('affiliate');
+        }
     }
 
     function stLordEffect() {
@@ -429,7 +450,7 @@ trait StateTrait {
                         // The Illusionist - Swap one of your locations for an available one
                         // 1. Do you have a Location?
                         // 2. Is there at least one available Location?
-                        if (count(Location::getPlayerHand( $player_id )) > 0) {
+                        if (count(Location::getPlayerHand($player_id)) > 0) {
                             if (count(Location::getAvailable()) > 0) {
                                 $transition = "lord_19";
                             }
@@ -493,6 +514,45 @@ trait StateTrait {
                             $transition = "lord_ambassador";
                         }
                         break;
+                    case 104:
+                        $playerNebulis = $this->getPlayerNebulis($player_id);
+                        if ($playerNebulis > 0) {
+                            $opponentsIds = $this->getOpponentsIds($player_id);
+                            if ($playerNebulis < count($opponentsIds)) {
+                                $transition = "lord_104";
+                            } else {
+                                foreach ($opponentsIds as $opponentId) {
+                                    $this->incPlayerNebulis($opponentId, 1, "lord_104");
+                                }
+                                $this->incPlayerNebulis($player_id, -count($opponentsIds), "lord_104");
+                            }
+                        }
+                        break;
+                    case 110:
+                        // The Inheritor - Gain 5 Pearls.
+                        $this->incPlayerPearls( $player_id, 5, "lord_110" );
+                        break;
+                    case 112:
+                        if (Ally::getDiscardSize() > 0) {
+                            $transition = "lord_112";
+                        }
+                        break;
+                    case 114:
+                        $opponentsIds = $this->getOpponentsIds($player_id);
+                        $affiliated = $this->array_some($opponentsIds, fn($opponentId) => count(Ally::getPlayerAffiliated($opponentId)) > 0);
+                        if ($affiliated) {
+                            $transition = "lord_114";
+                        }
+                        break;
+                    case 116:
+                        $lords = Lord::getPlayerHand($player_id);
+                        foreach ($lords as $lord) {
+                            if ($lord["location"]) {
+                                $transition = "lord_116";
+                                break;
+                            }
+                        }
+                        break;
                     default;
                         throw new BgaVisibleSystemException( "Not implemented." );
                 }
@@ -502,7 +562,12 @@ trait StateTrait {
                 $transition = "lord_5";
             } else if ($lord['lord_id'] == 11) {
                 self::incPlayerPearls( $player_id, 1, "lord_11" );
-            }
+            } else if (in_array($lord['lord_id'], [106, 107, 108])) {
+                self::incPlayerNebulis($player_id, 1, "lord_$lord_id" );
+                $this->setGameStateValue(AFTER_PLACE_SENTINEL, 1);
+                $this->setSentinel($player_id, $lord_id, 'player', null);
+                $transition = "lord_sentinel";
+            } 
         }
 
         self::updatePlayerScore( $player_id, false );
@@ -534,6 +599,29 @@ trait StateTrait {
         }
     }
 
+    function stLord114() {
+        $player_id = self::getActivePlayerId();
+        $faction = intval($this->getGameStateValue(SELECTED_FACTION));
+
+        $opponentsIds = $this->getOpponentsIds($player_id);
+        $mustDiscard = [];
+        foreach($opponentsIds as $opponentId) {
+            if (!Lord::playerProtected($opponentId)) {
+                $affiliated = Ally::getPlayerAffiliated($opponentId);
+                $affiliatedOfFaction = array_filter($affiliated, fn($ally) => $ally['faction'] == $faction);
+                if (count($affiliatedOfFaction) > 0) {
+                    $mustDiscard[] = $opponentId;
+                }
+            }
+        }
+        
+        if (count($mustDiscard) == 0) {
+            $this->gamestate->nextState('next');
+        } else {
+            $this->gamestate->setPlayersMultiactive($mustDiscard, 'next', true);
+        }        
+    }
+
     function stCleanupDiscard() {
         $player_id = self::getActivePlayerId();
         if (! Lord::opponentHas( 5 , $player_id ) || Lord::playerProtected( $player_id ) || Ally::getPlayerHandSize( $player_id ) <= 6) {
@@ -548,5 +636,17 @@ trait StateTrait {
         if (!boolval($this->getGameStateValue(MARTIAL_LAW_ACTIVATED)) || $args['diff'] <= 0) {
             $this->gamestate->nextState('next');
         }
+    }
+    
+    function stFillSanctuary() {
+        $locationId = intval($this->getGameStateValue(LAST_LOCATION));
+        if (count(LootManager::getLootOnLocation($locationId)) == 0) {
+            $playerId = self::getActivePlayerId();
+            $this->applySearchSanctuary($playerId, $locationId);
+        }
+    }
+
+  	function stGiveKraken() {
+        $this->gamestate->setPlayersMultiactive([intval(self::getGameStateValue(KRAKEN))], 'next', true);
     }
 }
