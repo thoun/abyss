@@ -79,19 +79,19 @@ class LordManager extends CardManager<AbyssLord> {
     let costString = _('Cost');
     let costNumber: number | string = lord.cost;
     let trueCost = costNumber;
-    const playerId = this.game.getPlayerId();
+    const playerTable = this.game.getCurrentPlayerTable();
     
     // Only show true costs for lords in the row
     
     // I have the Treasurer (25) : cost - 2
-    if (dojo.query('#player-panel-'+playerId+' .free-lords .lord-25:not(.disabled)').length > 0) {
+    if (playerTable?.hasLord(25)) {
       trueCost -= 2;
     }
     
     // I don't have the protector (14) ...
-    if (dojo.query('#player-panel-'+playerId+' .free-lords .lord-14:not(.disabled)').length == 0) {
+    if (!playerTable?.hasLord(14)) {
       // Another player has the Recruiter (1) : cost + 2
-      if (dojo.query('.player-panel:not(#player-panel-'+playerId+') .free-lords .lord-1:not(.disabled)').length > 0) {
+      if (this.game.getOpponentsIds(this.game.getPlayerId()).some(opponentId => this.game.getPlayerTable(opponentId)?.hasLord(1))) {
         trueCost = +trueCost + 2;
       }
     }
@@ -111,19 +111,12 @@ class LordManager extends CardManager<AbyssLord> {
     </div>`;
   }
 
-  updateLordKeys(playerId: number | string) {
-    let playerPanel = $('player-panel-' + playerId);
-    let lords = dojo.query('.free-lords .lord', playerPanel);
-    let keys = 0;
-    let numLords = dojo.query('.lord', playerPanel).length;
-    for (let i = 0; i < lords.length; i++) {
-      let lord = lords[i];
-      if (!dojo.hasClass(lord, "disabled")) {
-        const keysStr = lord.getAttribute("data-keys");
-        keys += isNaN(keysStr) ? 0 : Number(keysStr);
-      }
+  public updateLordKeys(playerId: number) {
+    const playerTable = this.game.getPlayerTable(playerId);
+    if (playerTable) {
+      const lords = playerTable.getFreeLords();
+      const keys = lords.map(lord => lord.keys).reduce((a, b) => a + b, 0);
+      $('lordkeycount_p' + playerId).innerHTML = keys;
     }
-    $('lordkeycount_p' + playerId).innerHTML = keys;
-    $('lordcount_p' + playerId).innerHTML = numLords;
   }
 }

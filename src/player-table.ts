@@ -58,6 +58,7 @@ class PlayerTable {
         player.locations.forEach(location => this.addLocation(location, player.lords.filter(lord => lord.location == location.location_id)));
 
         this.game.lordManager.updateLordKeys(this.playerId);
+        $('lordcount_p' + this.playerId).innerHTML = ''+player.lords.length;
     }
     
     public addHandAlly(ally: AbyssAlly, fromElement?: HTMLElement, originalSide?, rotationDelta?: number) {
@@ -114,10 +115,12 @@ class PlayerTable {
     }
     
     public addLord(lord: AbyssLord) {
+        $('lordcount_p' + this.playerId).innerHTML = Number($('lordcount_p' + this.playerId).innerHTML) + 1;
         this.freeLords.addCard(lord);
     }
     
     public removeLords(lords: AbyssLord[]) {
+        $('lordcount_p' + this.playerId).innerHTML = Number($('lordcount_p' + this.playerId).innerHTML) - lords.length;
         this.freeLords.removeCards(lords);
     }
 
@@ -140,5 +143,24 @@ class PlayerTable {
         if ((this.game as any).gamedatas.gamestate.name === 'lord114multi') {
             this.game.discardAllies([ally.ally_id]);
         }
+    }
+
+    public getFreeLords(includeDisabled = false): AbyssLord[] {
+        let lords = this.freeLords.getCards();
+
+        if (!includeDisabled) {
+            lords = lords.filter(lord => !this.freeLords.getCardElement(lord).classList.contains('disabled'));
+        }
+
+        return lords;
+    }
+
+    public hasLord(lordId: number, includeDisabled = false): boolean {
+        return this.getFreeLords(includeDisabled).some(lord => lord.lord_id == lordId);
+    }
+    
+    public removeLocation(location: AbyssLocation) {
+        this.locations.removeCard(location);
+        this.game.locationManager.removeLordsOnLocation(location);
     }
 }

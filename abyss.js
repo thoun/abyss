@@ -934,6 +934,7 @@ var LordManager = /** @class */ (function (_super) {
         return _this;
     }
     LordManager.prototype.renderTooltip = function (lord) {
+        var _this = this;
         var descSection = "";
         if (lord.desc != "") {
             descSection = '<hr>';
@@ -987,16 +988,16 @@ var LordManager = /** @class */ (function (_super) {
         var costString = _('Cost');
         var costNumber = lord.cost;
         var trueCost = costNumber;
-        var playerId = this.game.getPlayerId();
+        var playerTable = this.game.getCurrentPlayerTable();
         // Only show true costs for lords in the row
         // I have the Treasurer (25) : cost - 2
-        if (dojo.query('#player-panel-' + playerId + ' .free-lords .lord-25:not(.disabled)').length > 0) {
+        if (playerTable === null || playerTable === void 0 ? void 0 : playerTable.hasLord(25)) {
             trueCost -= 2;
         }
         // I don't have the protector (14) ...
-        if (dojo.query('#player-panel-' + playerId + ' .free-lords .lord-14:not(.disabled)').length == 0) {
+        if (!(playerTable === null || playerTable === void 0 ? void 0 : playerTable.hasLord(14))) {
             // Another player has the Recruiter (1) : cost + 2
-            if (dojo.query('.player-panel:not(#player-panel-' + playerId + ') .free-lords .lord-1:not(.disabled)').length > 0) {
+            if (this.game.getOpponentsIds(this.game.getPlayerId()).some(function (opponentId) { var _a; return (_a = _this.game.getPlayerTable(opponentId)) === null || _a === void 0 ? void 0 : _a.hasLord(1); })) {
                 trueCost = +trueCost + 2;
             }
         }
@@ -1008,19 +1009,12 @@ var LordManager = /** @class */ (function (_super) {
         return "<div class=\"abs-tooltip-lord\">\n      <span style=\"float: right\">".concat(_(lord.points), " <i class=\"fa fa-star\"></i>").concat(keysString, "</span>\n      <h3 style=\"padding-right: 60px;\">").concat(_(lord.name), "</h3>\n      ").concat(factionSection, "\n      <span style=\"font-size: smaller\"><b>").concat(costString, ": </b> ").concat(costNumber, " ").concat(diversitySection, "</span>\n      ").concat(descSection, "\n    </div>");
     };
     LordManager.prototype.updateLordKeys = function (playerId) {
-        var playerPanel = $('player-panel-' + playerId);
-        var lords = dojo.query('.free-lords .lord', playerPanel);
-        var keys = 0;
-        var numLords = dojo.query('.lord', playerPanel).length;
-        for (var i = 0; i < lords.length; i++) {
-            var lord = lords[i];
-            if (!dojo.hasClass(lord, "disabled")) {
-                var keysStr = lord.getAttribute("data-keys");
-                keys += isNaN(keysStr) ? 0 : Number(keysStr);
-            }
+        var playerTable = this.game.getPlayerTable(playerId);
+        if (playerTable) {
+            var lords = playerTable.getFreeLords();
+            var keys = lords.map(function (lord) { return lord.keys; }).reduce(function (a, b) { return a + b; }, 0);
+            $('lordkeycount_p' + playerId).innerHTML = keys;
         }
-        $('lordkeycount_p' + playerId).innerHTML = keys;
-        $('lordcount_p' + playerId).innerHTML = numLords;
     };
     return LordManager;
 }(CardManager));
@@ -1129,6 +1123,9 @@ var LocationManager = /** @class */ (function (_super) {
     LocationManager.prototype.discardLoots = function (locationId, loots) {
         this.lootStocks[locationId].removeCards(loots);
     };
+    LocationManager.prototype.removeLordsOnLocation = function (location) {
+        this.lordsStocks[location.location_id].removeAll();
+    };
     return LocationManager;
 }(CardManager));
 var LootManager = /** @class */ (function (_super) {
@@ -1199,6 +1196,7 @@ var PlayerTable = /** @class */ (function () {
         this.locations.onCardClick = function (card) { return _this.game.onClickPlayerLocation(card); };
         player.locations.forEach(function (location) { return _this.addLocation(location, player.lords.filter(function (lord) { return lord.location == location.location_id; })); });
         this.game.lordManager.updateLordKeys(this.playerId);
+        $('lordcount_p' + this.playerId).innerHTML = '' + player.lords.length;
     }
     PlayerTable.prototype.addHandAlly = function (ally, fromElement, originalSide, rotationDelta) {
         this.hand.addCard(ally, {
@@ -1247,9 +1245,11 @@ var PlayerTable = /** @class */ (function () {
         this.affiliatedStocks[ally.faction].addCard(ally);
     };
     PlayerTable.prototype.addLord = function (lord) {
+        $('lordcount_p' + this.playerId).innerHTML = Number($('lordcount_p' + this.playerId).innerHTML) + 1;
         this.freeLords.addCard(lord);
     };
     PlayerTable.prototype.removeLords = function (lords) {
+        $('lordcount_p' + this.playerId).innerHTML = Number($('lordcount_p' + this.playerId).innerHTML) - lords.length;
         this.freeLords.removeCards(lords);
     };
     PlayerTable.prototype.getAffiliatedAllies = function () {
@@ -1267,6 +1267,23 @@ var PlayerTable = /** @class */ (function () {
         if (this.game.gamedatas.gamestate.name === 'lord114multi') {
             this.game.discardAllies([ally.ally_id]);
         }
+    };
+    PlayerTable.prototype.getFreeLords = function (includeDisabled) {
+        var _this = this;
+        if (includeDisabled === void 0) { includeDisabled = false; }
+        var lords = this.freeLords.getCards();
+        if (!includeDisabled) {
+            lords = lords.filter(function (lord) { return !_this.freeLords.getCardElement(lord).classList.contains('disabled'); });
+        }
+        return lords;
+    };
+    PlayerTable.prototype.hasLord = function (lordId, includeDisabled) {
+        if (includeDisabled === void 0) { includeDisabled = false; }
+        return this.getFreeLords(includeDisabled).some(function (lord) { return lord.lord_id == lordId; });
+    };
+    PlayerTable.prototype.removeLocation = function (location) {
+        this.locations.removeCard(location);
+        this.game.locationManager.removeLordsOnLocation(location);
     };
     PlayerTable.sortAllies = sortFunction('faction', 'value');
     return PlayerTable;
@@ -2012,6 +2029,9 @@ var Abyss = /** @class */ (function () {
     Abyss.prototype.getPlayerId = function () {
         return Number(this.player_id);
     };
+    Abyss.prototype.getOpponentsIds = function (playerId) {
+        return Object.keys(this.gamedatas.players).map(function (id) { return Number(id); }).filter(function (id) { return id != playerId; });
+    };
     Abyss.prototype.getPlayer = function (playerId) {
         return Object.values(this.gamedatas.players).find(function (player) { return Number(player.id) == playerId; });
     };
@@ -2739,7 +2759,7 @@ var Abyss = /** @class */ (function () {
         var location_id = notif.args.location_id;
         var player_id = notif.args.player_id;
         // Delete the location/lords
-        dojo.query('.location.location-' + location_id).forEach(function (node) { return dojo.destroy(node); });
+        this.getPlayerTable(player_id).removeLocation({ location_id: location_id });
         this.lordManager.updateLordKeys(player_id);
         this.organisePanelMessages();
     };
@@ -2755,9 +2775,9 @@ var Abyss = /** @class */ (function () {
     };
     Abyss.prototype.notif_disable = function (notif) {
         var lord_id = notif.args.lord_id;
-        dojo.query('.lord-' + lord_id).addClass('disabled');
+        this.lordManager.getCardElement({ lord_id: lord_id }).classList.add('disabled');
         for (var player_id in this.gamedatas.players) {
-            this.lordManager.updateLordKeys(player_id);
+            this.lordManager.updateLordKeys(Number(player_id));
         }
     };
     Abyss.prototype.notif_allyDeckShuffle = function (notif) {

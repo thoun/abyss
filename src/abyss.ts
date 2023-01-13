@@ -790,15 +790,19 @@ class Abyss implements AbyssGame {
         return Number((this as any).player_id);
     }
 
+    public getOpponentsIds(playerId: number): number[] {
+        return Object.keys(this.gamedatas.players).map(id => Number(id)).filter(id => id != playerId);
+    }
+
     private getPlayer(playerId: number): AbyssPlayer {
         return Object.values(this.gamedatas.players).find(player => Number(player.id) == playerId);
     }
 
-    private getPlayerTable(playerId: number): PlayerTable {
+    public getPlayerTable(playerId: number): PlayerTable {
         return this.playersTables.find(playerTable => playerTable.playerId === playerId);
     }
 
-    private getCurrentPlayerTable(): PlayerTable | null {
+    public getCurrentPlayerTable(): PlayerTable | null {
         return this.playersTables.find(playerTable => playerTable.playerId === this.getPlayerId());
     }
     
@@ -1645,7 +1649,7 @@ class Abyss implements AbyssGame {
         var player_id = notif.args.player_id;
 
         // Delete the location/lords
-        dojo.query('.location.location-' + location_id).forEach(node => dojo.destroy(node));
+        this.getPlayerTable(player_id).removeLocation({ location_id } as AbyssLocation);
         
         this.lordManager.updateLordKeys(player_id);
         
@@ -1666,9 +1670,9 @@ class Abyss implements AbyssGame {
 
     notif_disable( notif: Notif<NotifDisableArgs> ) {
         var lord_id = notif.args.lord_id;
-        dojo.query('.lord-' + lord_id).addClass('disabled');
+        this.lordManager.getCardElement({ lord_id } as AbyssLord).classList.add('disabled');
         for( var player_id in this.gamedatas.players ) {
-            this.lordManager.updateLordKeys(player_id);
+            this.lordManager.updateLordKeys(Number(player_id));
         }
     }
 

@@ -119,4 +119,8 @@ class LocationManager extends CardManager<AbyssLocation> {
   public discardLoots(locationId: number, loots: AbyssLoot[]) {
     this.lootStocks[locationId].removeCards(loots);
   }
+  
+  public removeLordsOnLocation(location: AbyssLocation) {
+    this.lordsStocks[location.location_id].removeAll();
+  }
 }

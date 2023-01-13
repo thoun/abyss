@@ -1892,6 +1892,7 @@ html a.bgabutton.affiliate-button:hover {
   vertical-align: middle;
   text-align: center;
   font-style: normal;
+  margin: -5px 0;
 }
 .location.card .card-sides .card-side {
   box-shadow: none;

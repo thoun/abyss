@@ -103,6 +103,9 @@ interface AbyssGame extends Game {
 
     connectTooltip(node: any, html: string | Function, offsetType: string): void;
     getPlayerId(): number;
+    getOpponentsIds(playerId: number): number[];
+    getPlayerTable(playerId: number): PlayerTable;
+    getCurrentPlayerTable(): PlayerTable;
     organisePanelMessages(): void;
     discardAllies(ids: number[]): void;
     onClickPlayerHand(ally: AbyssAlly): void;
