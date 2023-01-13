@@ -388,7 +388,7 @@ class Abyss implements AbyssGame {
 
     private onEnteringRecruitPay(args: EnteringRecruitPayArgs) {
         // highlight the given lord
-        dojo.query("#lords-track .lord[data-lord-id=" + args.lord_id + "]").addClass("selected");
+        this.lordManager.getCardElement({ lord_id: args.lord_id } as AbyssLord)?.classList.add('selected');
     }
 
     private onEnteringLord7() {
@@ -438,10 +438,7 @@ class Abyss implements AbyssGame {
 
     private onEnteringControl(args: EnteringControlPostDrawArgs) {
         dojo.query(".free-lords .lord").removeClass("selected");
-        for( var iLordId in args.default_lord_ids ) {
-            var lord_id = args.default_lord_ids[iLordId];
-            dojo.query("#player-panel-" + (this as any).player_id + " .free-lords .lord.lord-" + lord_id).addClass("selected");
-        }
+        args.default_lord_ids.forEach(lord_id => this.lordManager.getCardElement({ lord_id } as AbyssLord).classList.add('selected'));
     }
 
     private onEnteringLocationEffectBlackSmokers(args: EnteringLocationEffectBlackSmokersArgs) {
@@ -1126,10 +1123,9 @@ class Abyss implements AbyssGame {
     }
 
     private chooseLocation(locationId: number) {
-        var lord_ids = [];
-        dojo.query("#player-panel-" + (this as any).player_id + " .free-lords .lord.selected").forEach(node =>
-        lord_ids.push(+dojo.attr(node, 'data-lord-id'))
-        );
+        const lord_ids = this.getCurrentPlayerTable().getFreeLords(true)
+            .filter(lord => this.lordManager.getCardElement(lord).classList.contains('selected'))
+            .map(lord => lord.lord_id);
 
         this.takeAction('chooseLocation', {
             location_id: locationId,
@@ -1804,7 +1800,7 @@ class Abyss implements AbyssGame {
                 } else if (i != slot && faction != 10) {
                     // Animate to the council!
                     let deck = dojo.query('#council-track .slot-' + faction);
-                    this.councilStacks[faction].addCard(ally)
+                    this.councilStacks[faction].addCard(ally, null, { visible: false })
                         .then(() => this.setDeckSize(deck, +dojo.attr(deck[0], 'data-size') + 1));
                     delay += 200;
                 } else {
@@ -1821,7 +1817,7 @@ class Abyss implements AbyssGame {
                         dojo.setStyle(theAlly, "transition", "none");
                         var animation = (this as any).slideToObject( theAlly, $('player_board_' + player_id), 600, delay );
                         animation.onEnd = () => {
-                            dojo.destroy(theAlly);
+                            this.visibleAllies.removeCard(ally);
                             $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
                         };
                         animation.play();
@@ -1848,6 +1844,7 @@ class Abyss implements AbyssGame {
 
     notif_purchase( notif: Notif<NotifPurchaseArgs> ) {
         let player_id = notif.args.player_id;
+        const ally = notif.args.ally;
 
         // Update handsize and pearls of purchasing player
         this.incPearlCount(player_id, -notif.args.incPearls);
@@ -1858,15 +1855,15 @@ class Abyss implements AbyssGame {
         }
 
         if (player_id == this.getPlayerId()) {
-            this.getPlayerTable(Number(player_id)).addHandAlly(notif.args.ally);
+            this.getPlayerTable(Number(player_id)).addHandAlly(ally);
             $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
         } else {
-            const theAlly = this.allyManager.getCardElement(notif.args.ally);
+            const theAlly = this.allyManager.getCardElement(ally);
             dojo.setStyle(theAlly, "zIndex", "1");
             dojo.setStyle(theAlly, "transition", "none");
             var animation = (this as any).slideToObject( theAlly, $('player_board_' + player_id), 600 );
             animation.onEnd = () => {
-                dojo.destroy(theAlly);
+                this.visibleAllies.removeCard(ally);
                 $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
             };
             animation.play();
