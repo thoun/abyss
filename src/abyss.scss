@@ -3,6 +3,8 @@
   src: url(img/TribalGaramond.ttf);
 }
 
+@import '../node_modules/bga-cards/bga-cards';
+
 .board {
   background-repeat: no-repeat;
   background-size: contain;
@@ -88,7 +90,12 @@
 /* DECKS */
 
 .deck-empty {
-  visibility: hidden !important;
+  background: unset !important;
+  box-shadow: none !important;
+
+  &:not(.selectable) {
+    cursor: unset;
+  }
 }
 
 html body #game-holder .slot-fake {
@@ -166,6 +173,12 @@ html body #game-holder .slot-fake {
 .location-19 { background-position: 0 100%; }
 .location-20 { background-position: 12.5% 100%; }
 
+@for $index from 1 through 6 {
+  .location[data-location-id="#{100 + $index}"] {
+      background-position: #{($index + 2) * 100% / 8} 100%;
+  }
+}
+
 .location .location-name {
   font-family: TribalGaramond;
   position: absolute;
@@ -198,14 +211,6 @@ html body #game-holder .slot-fake {
   text-align: center;
 }
 
-.location .trapped-lords-holder .lord {
-  margin-right: 10px;
-}
-
-.location .trapped-lords-holder .lord:last-child {
-  margin-right: 0;
-}
-
 /* LORDS */
 
 #lords-track {
@@ -215,13 +220,7 @@ html body #game-holder .slot-fake {
   height: 136px;
 }
 
-#lords-track .slot-0 {left: 13px; }
-#lords-track .slot-1 {left: 118px; }
-#lords-track .slot-2 {left: 222px; }
-#lords-track .slot-3 {left: 326px; }
-#lords-track .slot-4 {left: 430px; }
-#lords-track .slot-5 {left: 532px; }
-#lords-track .slot-6 {left: 637px; }
+#lords-track .slot-0 {left: 13px; position: absolute; }
 
 #lords-track .lord.selected {
   --scale: scale(1.5);
@@ -249,9 +248,8 @@ html body #game-holder .slot-fake {
   border: 3px solid #2d2;
 }
 
-#game-board .lord {
-  display: block;
-  position: absolute;
+.lord.selectable {
+  border: 3px solid #2d2;
 }
 
 .player-panel {
@@ -262,31 +260,28 @@ html body #game-holder .slot-fake {
       text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black, 0 0 4px black;
     }
   }
-}
 
-.player-panel .lord {
-  display: inline-block;
-}
-
-.player-panel .locations {
-  position: relative;
-  z-index: 1;
-  padding-top: 5px;
-}
-
-.player-panel .locations:empty {
-  display: none;
-}
-
-.player-panel .location {
-  vertical-align: bottom;
-  display: inline-block;
-  pointer-events: none;
-}
-
-.locations-row {
-  padding-top: 50px;
-  pointer-events: none;
+  .lord {
+    display: inline-block;
+  }
+  
+  .locations {
+    position: relative;
+    z-index: 1;
+    padding-top: 5px;
+  
+    &:empty {
+      display: none;
+    }
+  }
+  
+  .location {
+    vertical-align: bottom;
+    display: inline-block;
+    cursor: default;
+  
+    margin-top: 50px;
+  }
 }
 
 #game-extra .location {
@@ -296,22 +291,25 @@ html body #game-holder .slot-fake {
 }
 
 .lord {
+  position: relative;
   width: 88px; /* 370 / 420 */
   height: 136px;
-  background-image: url(img/lords.jpg);
-  background-size: 1100% 400%;
   color: white;
   bottom: 0;
-  border-radius: 3px;
   transition: transform .2s ease-in-out, left .5s ease-in-out, top .5s ease-in-out;
   cursor: pointer;
-  box-shadow: 2px 2px #222;
   user-select: none;
   -webkit-user-select: none;
   -ms-user-select: none;
   -webkit-touch-callout: none;
   /* 10% for each horizontal, 33.33% for each vertical */
   transform: var(--translate,translate(0)) var(--scale,scale(1));
+}
+
+.lord-side {
+  background-image: url(img/lords.jpg);
+  background-size: 1100% 400%;
+  border-radius: 3px;
 }
 
 .lord.disabled {
@@ -336,6 +334,23 @@ html body #game-holder .slot-fake {
 .lord-27 { background-position: 50% 66.66%; } .lord-28 { background-position: 60% 66.66%; } .lord-29 { background-position: 70% 66.66%; } .lord-30 { background-position: 80% 66.66%; } .lord-31 { background-position: 90% 66.66%; } .lord-32 { background-position: 100% 66.66%; }
 /* Ambassadors (grey) */
 .lord-33 { background-position: 0 100%; } .lord-34 { background-position: 10% 100%; } .lord-35 { background-position: 20% 100%; }
+
+
+
+@for $index from 1 through 9 {
+  .lord-side[data-lord-id="#{100 + $index}"] {
+      background-image: url('img/lords-kraken.jpg');
+      background-size: 900% 200%;
+      background-position: #{($index - 1) * 100% / 8} 0%;
+  }
+}
+@for $index from 1 through 9 {
+  .lord-side[data-lord-id="#{109 + $index}"] {
+      background-image: url('img/lords-kraken.jpg');
+      background-size: 900% 200%;
+      background-position: #{($index - 1) * 100% / 8} 100%;
+  }
+}
 
 .lord .lord-name {
   font-family: TribalGaramond;
@@ -367,40 +382,35 @@ html .lord .lord-desc {
   width: 100%;
 }
 
-#game-board #explore-track .slot-0 {left: 9px; }
-#game-board #explore-track .slot-1 {left: 141px; }
-#game-board #explore-track .slot-2 {left: 273px; }
-#game-board #explore-track .slot-3 {left: 406px; }
-#game-board #explore-track .slot-4 {left: 539px; }
-#game-board #explore-track .slot-5 {left: 671px; }
+#game-board #explore-track .slot-0 {left: 9px; position: absolute }
 
 #council-track {
   position: absolute;
+
+  [data-faction] {
+    transform: var(--rotation);
+  }
 }
 
-#game-board #council-track .slot-0 {--rotation: rotate(-40deg); top: 250px; left: 57px;}
+#game-board #council-track .slot-0 {--rotation: rotate(-40deg);  top: 250px; left: 57px;}
 #game-board #council-track .slot-1 {--rotation: rotate(-19deg); top: 193px; left: 177px;}
-#game-board #council-track .slot-2 {left: 348px; top: 177px;}
+#game-board #council-track .slot-2 {--rotation: rotate(0deg); left: 348px; top: 177px;}
 #game-board #council-track .slot-3 {--rotation: rotate(20deg); top: 193px; left: 514px;}
 #game-board #council-track .slot-4 {--rotation: rotate(39deg); top: 249px; left: 627px;}
 
 .ally {
+  position: relative;
   width: 58px;
   height: 86px;
-  background-image: url(img/allies.jpg);
-  background-size: 800% 400%;
   color: white;
-  border-radius: 3px;
-  transition: transform .2s ease-in-out;
   cursor: pointer;
-  /*box-shadow: 2px 2px rgba(0,0,0,0.7);*/
-  box-shadow: 2px 2px #222;
-  /* 100/7% for each horizontal, 33.33% for each vertical */
-  transform: var(--rotation,rotate(0)) var(--translate,translate(0)) var(--scale,scale(1));
 }
 
-#explore-track .ally {
-  transition: transform .2s ease-in-out, left .5s ease-in-out, top .5s ease-in-out;
+.ally-side {
+  background-image: url(img/allies.jpg);
+  background-size: 800% 400%;
+  /*box-shadow: 2px 2px rgba(0,0,0,0.7);*/
+  box-shadow: 2px 2px #222;
 }
 
 #game-board .ally {
@@ -471,10 +481,20 @@ html .lord .lord-desc {
 .ally-back { background-position: 0 0; }
 .ally-4-1 { background-position: 14.286% 0; } .ally-4-2 { background-position: 28.571% 0; } .ally-4-3 { background-position: 42.857% 0; } .ally-4-4 { background-position: 57.143% 0; } .ally-4-5 { background-position: 71.429% 0; }
 .ally-3-1 { background-position: 85.714% 0; } .ally-3-2 { background-position: 100% 0; } .ally-3-3 { background-position: 0 33.33%; } .ally-3-4 { background-position: 14.286% 33.33%; } .ally-3-5 { background-position: 28.571% 33.33%; }
-.ally-monster-0 { background-position: 42.857% 33.33%; }
+.ally-null-0, .ally-monster-0, .ally-100-0 { background-position: 42.857% 33.33%; }
 .ally-0-1 { background-position: 57.143% 33.33%; } .ally-0-2 { background-position: 71.429% 33.33%; } .ally-0-3 { background-position: 85.714% 33.33%; } .ally-0-4 { background-position: 100% 33.33%; } .ally-0-5 { background-position: 0 66.66%; }
 .ally-1-1 { background-position: 14.286% 66.66%; } .ally-1-2 { background-position: 28.571% 66.66%; } .ally-1-3 { background-position: 42.857% 66.66%; } .ally-1-4 { background-position: 57.143% 66.66%; } .ally-1-5 { background-position: 71.429% 66.66%; }
 .ally-2-1 { background-position: 85.714% 66.66%; } .ally-2-2 { background-position: 100% 66.66%; } .ally-2-3 { background-position: 0 100%; } .ally-2-4 { background-position: 14.286% 100%; } .ally-2-5 { background-position: 28.571% 100%; }
+
+.ally-side[data-faction="10"] {
+  background-position-y: 100%;
+
+  @for $index from 2 through 4 {
+    &[data-value="#{$index}"] {
+        background-position-x: #{($index + 1) * 100% / 7};
+    }
+  }
+}
 
 .ally .ally-name {
   font-family: TribalGaramond;
@@ -529,6 +549,7 @@ html .lord .lord-desc {
 i.icon {
   background-image: url(img/icons.png);
   display: inline-block;
+  vertical-align: middle;
 }
 
 i.icon-laurel {
@@ -570,6 +591,13 @@ i.icon-laurel {
 i.icon-pearl {
   background-size: 2226% 202%;
   background-position: 190.2% 0%;
+  width: 16px;
+  height: 16px;
+}
+
+i.icon-nebulis {
+  background-size: 2226% 202%;
+  background-position: 190.2% 100%;
   width: 16px;
   height: 16px;
 }
@@ -863,6 +891,9 @@ i.icon-ally {
 #game-scoring table tr.line-below {
   border-bottom: 2px solid white;
 }
+#game-scoring table tr.line-above {
+  border-top: 2px solid white;
+}
 #game-scoring i.icon {
   width: 48px;
   height: 48px;
@@ -985,4 +1016,153 @@ html a.bgabutton.affiliate-button:hover {
 .wavetext :nth-child( 20n + 19 ) {
   animation-delay : 
     calc(-1s * 2 * 0.3 / 40 );
+}
+
+.loot-stock {
+  position: absolute;
+  right: 0;
+  top: -15px;
+  bottom: 0;
+  left: 50px;
+}
+
+.card.location {
+  .card-side {
+    overflow: unset;
+  }
+}
+
+.card.loot {
+  position: relative;
+  width: 85px;
+  height: 127px;
+  transition: left 0.5s, top 0.5s;
+
+  .card-side {
+    border-radius: 8px;
+    background-image: url('img/loots.jpg');
+    box-shadow: 0 0 3px 2px black;
+    background-size: auto 100%;
+
+    @for $index from 3 through 7 {
+      &[data-value="#{$index}"] {
+          background-position-x: #{($index - 2) * 100% / 5};
+      }
+    }
+  }
+
+  &.selected {
+    .card-side {
+      box-shadow: 0 0 5px 5px red;
+    }
+  }
+}
+
+.krakenWrapper {
+    display: inline-block;
+    position: relative;
+}
+
+#krakenToken {
+  display: inline-block;
+  position: relative;
+  width: 65px;
+  height: 80px;
+  background-image: url('img/kraken.png');
+}
+
+.icon-kraken {
+  display: inline-block;
+  position: relative;
+  width: 48px;
+  height: 48px;
+  background-image: url('img/kraken.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.sentinel-token {
+  position: absolute;
+  top: calc(50% - 38px);
+  left: calc(50% - 38px);
+  width: 75px;
+  height: 75px;
+  z-index: 10;
+  background: url('img/sentinels.png');
+  background-size: auto 100%;
+  border-radius: 50%;
+  box-shadow: 1px 1px 3px 2px black;
+
+  &[data-lord-id="106"] { background-position-y: 0%; }
+  &[data-lord-id="107"] { background-position-y: 50%; }
+  &[data-lord-id="108"] { background-position-y: 100%; }
+}
+
+.sentinels {
+  .sentinel-token {
+    position: relative;
+    left: unset;
+    top: unset;
+  }
+}
+
+#visible-allies-stock {
+  left: 121px;
+  width: 512px;
+  position: absolute;
+  justify-content: space-between;
+
+  .slot {
+    width: 58px;
+    height: 86px;
+  }
+}
+
+#visible-lords-stock {
+  left: 128px;
+  width: 616px;
+  position: absolute;
+  justify-content: space-between;
+
+  .slot {
+    width: 88px;
+    height: 136px;
+  }
+}
+
+.playmat-narrow {
+  #visible-allies-stock {
+    left: 138px;
+    width: 583px;
+  }
+
+  #visible-lords-stock {
+    left: 115px;
+    width: 604px;
+  }
+}
+
+.location {
+  .front {
+    .icon-laurel {
+      width: 25px;
+      height: 20px;
+      vertical-align: middle;
+      text-align: center;
+      font-style: normal;
+    }
+  }
+
+  &.card .card-sides .card-side {
+    box-shadow: none;
+  }
+}
+
+.race-shadow {
+  text-shadow: 0 0 1px var(--race-color), 0 0 5px var(--race-color), 0 0 3px var(--race-color);
+}
+
+.abs-tooltip .race-shadow {
+  text-shadow: 0 0 1px var(--race-color), 0 0 5px var(--race-color);
 }

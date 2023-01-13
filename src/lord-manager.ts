@@ -1,13 +1,33 @@
-class LordManager {
-  private static uniqueId: number = 0;
+class LordManager extends CardManager<AbyssLord> {
+  constructor(public game: AbyssGame) {
+    super(game, {
+      getId: lord => `lord-${lord.lord_id}`,
+      setupDiv: (lord, div) => {
+        div.classList.add(`lord`);
+        if (lord.turned) {
+          div.classList.add(`disabled`);
+        }
+        div.dataset.lordId = `${lord.lord_id}`;
+        div.dataset.cost = `${lord.cost}`;
+        div.dataset.diversity = `${lord.diversity}`;
+        div.dataset.used = `${lord.used}`;
+        div.dataset.turned = `${lord.turned}`;
+        div.dataset.effect = `${lord.effect}`;
+        div.dataset.keys = `${lord.keys}`;
 
-  constructor(private game: AbyssGame) {}
-
-  // TODO : Names need to move outside of PHP and into js for i18n
-  render(lord: AbyssLord) {
-    return `<div id="lord-uid-${++LordManager.uniqueId}" class="lord lord-${lord.lord_id} slot-${lord.place} transition-position ${(lord.turned == 1) ? 'disabled' : ''}" data-lord-id="${lord.lord_id}" data-cost="${lord.cost}" data-diversity="${lord.diversity}" data-used="${lord.used}" data-turned="${lord.turned}" data-effect="${lord.effect}" data-keys="${lord.keys}">
-      <span class="lord-desc"><span class="lord-name">${_(lord.name)}</span>${_(lord.desc)}</span>
-    </div>`;
+        this.game.connectTooltip(div, this.renderTooltip(lord), "lord" );
+      },
+      setupFrontDiv: (lord, div) => {
+        div.dataset.lordId = `${lord.lord_id}`;
+        div.classList.add(`lord-side`, `lord-${lord.lord_id}`);
+        div.innerHTML = `
+          <span class="lord-desc"><span class="lord-name">${_(lord.name)}</span>${_(lord.desc)}</span>
+        `;
+      },
+      setupBackDiv: (lord, div) => {
+        div.classList.add(`lord-side`, `lord-back`);
+      },
+    });
   }
 
   renderTooltip(lord: AbyssLord) {
@@ -19,14 +39,15 @@ class LordManager {
       }
       descSection += _(lord.desc);
     }
-    let guilds = [
+    const guilds = [
       '<span style="color: purple">' + _('Mage') + '</span>',
       '<span style="color: red">' + _('Soldier') + '</span>',
       '<span style="color: #999900">' + _('Farmer') + '</span>',
       '<span style="color: green">' + _('Merchant') + '</span>',
       '<span style="color: blue">' + _('Politician') + '</span>',
-      '<span style="color: gray">' + _('Ambassador') + '</span>'
+      '<span style="color: gray">' + _('Ambassador') + '</span>',
     ];
+    guilds[10] = '<span style="color: gray">' + _('Smuggler') + '</span>';
     let factionSection = "";
     if (lord.faction != null) {
       factionSection = '<span style="font-size: smaller">' + guilds[lord.faction] + "</span><br>";
@@ -56,20 +77,21 @@ class LordManager {
       keysString += ' <i class="icon icon-key"></i>';
     }
     let costString = _('Cost');
-    let costNumber = lord.cost;
+    let costNumber: number | string = lord.cost;
     let trueCost = costNumber;
+    const playerId = this.game.getPlayerId();
     
     // Only show true costs for lords in the row
     
     // I have the Treasurer (25) : cost - 2
-    if (dojo.query('#player-panel-'+(this.game as any).player_id+' .free-lords .lord-25:not(.disabled)').length > 0) {
+    if (dojo.query('#player-panel-'+playerId+' .free-lords .lord-25:not(.disabled)').length > 0) {
       trueCost -= 2;
     }
     
     // I don't have the protector (14) ...
-    if (dojo.query('#player-panel-'+(this.game as any).player_id+' .free-lords .lord-14:not(.disabled)').length == 0) {
+    if (dojo.query('#player-panel-'+playerId+' .free-lords .lord-14:not(.disabled)').length == 0) {
       // Another player has the Recruiter (1) : cost + 2
-      if (dojo.query('.player-panel:not(#player-panel-'+(this.game as any).player_id+') .free-lords .lord-1:not(.disabled)').length > 0) {
+      if (dojo.query('.player-panel:not(#player-panel-'+playerId+') .free-lords .lord-1:not(.disabled)').length > 0) {
         trueCost = +trueCost + 2;
       }
     }
@@ -89,21 +111,16 @@ class LordManager {
     </div>`;
   }
 
-  placeWithTooltip(lord: AbyssLord, parent) {
-    let node = dojo.place( this.render(lord), parent );
-    this.game.connectTooltip( node, this.renderTooltip.bind(this, lord), "lord" );
-    return node;
-  }
-
-  updateLordKeys(playerId) {
+  updateLordKeys(playerId: number | string) {
     let playerPanel = $('player-panel-' + playerId);
     let lords = dojo.query('.free-lords .lord', playerPanel);
     let keys = 0;
     let numLords = dojo.query('.lord', playerPanel).length;
     for (let i = 0; i < lords.length; i++) {
       let lord = lords[i];
-      if (! dojo.hasClass(lord, "disabled")) {
-        keys += +lord.getAttribute("data-keys");
+      if (!dojo.hasClass(lord, "disabled")) {
+        const keysStr = lord.getAttribute("data-keys");
+        keys += isNaN(keysStr) ? 0 : Number(keysStr);
       }
     }
     $('lordkeycount_p' + playerId).innerHTML = keys;

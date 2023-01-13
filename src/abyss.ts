@@ -13,12 +13,19 @@ let debounce;
 class Abyss implements AbyssGame {
     public allyManager: AllyManager;
     public lordManager: LordManager;
+    public lootManager: LootManager;
     public locationManager: LocationManager;
 
     private gamedatas: AbyssGamedatas;
+    private playersTables: PlayerTable[] = [];
     private useZoom: boolean;
     private zoomLevel: number;
     private lastExploreTime: number;
+    private visibleAllies: SlotStock<AbyssAlly>;
+    private councilStacks: VoidStock<AbyssAlly>[] = [];
+    private visibleLords: SlotStock<AbyssLord>;
+    private visibleLocations: LineStock<AbyssLocation>;
+    private visibleLocationsOverflow: LineStock<AbyssLocation>;
 
     constructor() {
     }
@@ -26,13 +33,18 @@ class Abyss implements AbyssGame {
     setup(gamedatas: AbyssGamedatas) {
         log( "Starting game setup" );
         
+        if (!gamedatas.krakenExpansion) {
+            (this as any).dontPreloadImage(`lords-kraken.jpg`);
+        }
+        
         this.gamedatas = gamedatas;
 
         log('gamedatas', gamedatas);
 
         this.allyManager = new AllyManager(this);
         this.lordManager = new LordManager(this);
-        this.locationManager = new LocationManager(this);
+        this.lootManager = new LootManager(this);
+        this.locationManager = new LocationManager(this, this.lordManager, this.lootManager);
 
         // Use zoom when not on FF
         this.useZoom = false; //navigator.userAgent.toLowerCase().indexOf('firefox') <= -1;
@@ -80,52 +92,36 @@ class Abyss implements AbyssGame {
                     height: height
                 });
             }
-            this.locationManager.organise();
+            this.organiseLocations();
         }, 200));
-        
-        // Setting up player boards
-        for( var playerId in gamedatas.players )
-        {
-            var player = gamedatas.players[playerId];
 
-            // Setting up players boards if needed
-            var player_board_div = $('player_board_'+playerId);
-            let html = `
-            <div id="cp_board_p${player.id}" class="cp_board" data-player-id="${player.id}">
-                <span class="pearl-holder spacer" id="pearl-holder_p${player.id}"><i class="icon icon-pearl"></i><span class="spacer" id="pearlcount_p${player.id}">${player.pearls}</span></span>
-                <span class="key-holder spacer" id="key-holder_p${player.id}"><i class="icon icon-key"></i><span class="spacer" id="keycount_p${player.id}">${player.keys}</span><span class="key-addendum">(+<span id="lordkeycount_p${player.id}"></span>)</span></span>
-                <span class="ally-holder spacer" id="ally-holder_p${player.id}"><i class="icon icon-ally"></i><span class="spacer" id="allycount_p${player.id}">${player.hand_size}</span></span>
-                <span class="monster-holder spacer" id="monster-holder_p${player.id}"><i class="icon icon-monster"></i><span class="spacer" id="monstercount_p${player.id}">${player.num_monsters}</span></span>
-                <span class="lordcount-holder spacer"><i class="icon icon-lord"></i><span id="lordcount_p${player.id}">${player.lords.length}</span></span>
-                <div class="monster-hand" id="monster-hand_p${player.id}"></div>
-            </div>`;
-            dojo.place( html, player_board_div );
-            
-            // Set up scoring table in advance (helpful for testing!)
-            let splitPlayerName = '';
-            let chars = player.name.split("");
-            for (let i in chars) {
-                splitPlayerName += `<span>${chars[i]}</span>`;
-            }
-            $('scoring-row-players').innerHTML += `<td><span id="scoring-row-name-p${playerId}" style="color:#${player.color};"><span>${splitPlayerName}</span></span></td>`;
-            
-            $('scoring-row-location').innerHTML += `<td id="scoring-row-location-p${playerId}"></td>`;
-            $('scoring-row-lord').innerHTML += `<td id="scoring-row-lord-p${playerId}"></td>`;
-            $('scoring-row-affiliated').innerHTML += `<td id="scoring-row-affiliated-p${playerId}"></td>`;
-            $('scoring-row-monster').innerHTML += `<td id="scoring-row-monster-p${playerId}"></td>`;
-            
-            $('scoring-row-total').innerHTML += `<td id="scoring-row-total-p${playerId}"></td>`;
+        if (gamedatas.krakenExpansion) {
+            document.getElementById('scoring-row-total').insertAdjacentHTML('beforebegin', `
+                <tr id="scoring-row-nebulis">
+                    <td class="first-column"><span class="arrow">→</span><i id="scoring-nebulis-icon" class="icon icon-nebulis"></i></td>
+                </tr>
+                <tr id="scoring-row-kraken">
+                    <td class="first-column"><span class="arrow">→</span><i id="scoring-kraken-icon" class="icon-kraken"></i></td>
+                </tr>
+            `);
         }
         
+        // Setting up player boards
+        this.createPlayerPanels(gamedatas);
+        
         // Add an extra column at the end, just for padding reasons
-            $('scoring-row-players').innerHTML += `<td></td>`;
-            
-            $('scoring-row-location').innerHTML += `<td></td>`;
-            $('scoring-row-lord').innerHTML += `<td></td>`;
-            $('scoring-row-affiliated').innerHTML += `<td></td>`;
-            $('scoring-row-monster').innerHTML += `<td></td>`;
-            
-            $('scoring-row-total').innerHTML += `<td></td>`;
+        $('scoring-row-players').innerHTML += `<td></td>`;
+        
+        $('scoring-row-location').innerHTML += `<td></td>`;
+        $('scoring-row-lord').innerHTML += `<td></td>`;
+        $('scoring-row-affiliated').innerHTML += `<td></td>`;
+        $('scoring-row-monster').innerHTML += `<td></td>`;
+        if (gamedatas.krakenExpansion) {
+            $('scoring-row-nebulis').innerHTML += `<td></td>`;
+            $('scoring-row-kraken').innerHTML += `<td></td>`;  
+        }
+        
+        $('scoring-row-total').innerHTML += `<td></td>`;
 
         var p = (this as any).player_id;
         if ((this as any).isSpectator) {
@@ -135,62 +131,10 @@ class Abyss implements AbyssGame {
         do {
             if (players_done[p]) break;
             players_done[p] = 1;
-            var player = gamedatas.players[p];
+            const player = gamedatas.players[p];
 
-            var template = `
-            <div id="player-panel-${p}" class="player-panel whiteblock">
-                <h3 class="player-name" style="color: #${player.color};" data-color="${player.color}">${player.name}</h3>
-                ${p == (this as any).player_id ? `<div id="player-hand" class="hand"><i id="no-hand-msg">${_("No Allies in hand")}</i></div>` : ''}
-                <h4>${_("Affiliated Allies")}</h4>
-                <i id="no-affiliated-msg-p${p}">${_("No Affiliated Allies")}</i>
-                <div id="player-panel-${p}-affiliated" class="affiliated"></div>
-                <h4>${_("Lords")}</h4>
-                <i id="no-lords-msg-p${p}">${_("No Lords")}</i>
-                <div class="free-lords"></div>
-                <div class="locations"></div>
-            </div>
-            `;
-            
-            let playerPanel = dojo.place( template, $('player-panel-holder') );
-            
-            // Add a whiteblock for the player
-            if (p == (this as any).player_id) {
-                // Add player hand
-                for (var j in player.hand) {
-                    this.allyManager.placeWithTooltip(player.hand[j], $('player-hand'));
-                }
-                // <h4>${_("Hand")}</h4>
-            }
-            
-            // Add player affiliated
-            this.allyManager.placeAffiliated(player.affiliated, Number(p));
-            
-            // Add locations
-            var locationsHolder = dojo.query(`#player-panel-${p} .locations`)[0];
-            for (var j in player.locations) {
-                var location = player.locations[j];
-                var locations_holder = dojo.query('#player-panel-' + playerId + ' .locations')[0];
-                var lords = [];
-                for (var k in player.lords) {
-                    var lord = player.lords[k];
-                    if (+lord.location == +location.location_id) {
-                        lords.push(lord);
-                    }
-                }
-                let locationNode = this.locationManager.placeWithTooltip( location, locationsHolder );
-                this.locationManager.placeLords(locationNode, lords);
-            }
-            
-            var freeLordHolder = dojo.query(`#player-panel-${p} .free-lords`)[0];
-            for (var j in player.lords) {
-                var lord = player.lords[j];
-                if (lord.location == null) {
-                    this.lordManager.placeWithTooltip(lord, freeLordHolder);
-                }
-            }
-
-            this.lordManager.updateLordKeys(p);
-            this.locationManager.organisePlayerBoard(p);
+            const table = new PlayerTable(this, player);
+            this.playersTables.push(table);
 
             p = gamedatas.turn_order[p];
         } while (p != (this as any).player_id);
@@ -211,20 +155,26 @@ class Abyss implements AbyssGame {
         }
 
         // Lords
-        for ( var i in gamedatas.lord_slots ) {
-            let node = this.lordManager.placeWithTooltip( gamedatas.lord_slots[i], $('lords-track') );
-        }
+        this.visibleLords = new SlotStock<AbyssLord>(this.lordManager, document.getElementById('visible-lords-stock'), {
+            slotsIds: [1,2,3,4,5,6],
+            mapCardToSlot: lord => lord.place,
+        });
+        this.visibleLords.addCards(gamedatas.lord_slots);
+        this.visibleLords.onCardClick = lord => this.onVisibleLordClick(lord);
 
         // Allies
-        for ( var i in gamedatas.ally_explore_slots ) {
-            var ally = gamedatas.ally_explore_slots[i];
-            if (ally.faction == null) ally.faction = 'monster';
-            this.allyManager.placeWithTooltip(ally, $('explore-track'));
-        }
+        this.visibleAllies = new SlotStock<AbyssAlly>(this.allyManager, document.getElementById('visible-allies-stock'), {
+            slotsIds: [1,2,3,4,5],
+            mapCardToSlot: ally => ally.place,
+        });
+        this.visibleAllies.addCards(gamedatas.ally_explore_slots);
+        this.visibleAllies.onCardClick = ally => this.onVisibleAllyClick(ally);
+        
         for ( var i in gamedatas.ally_council_slots ) {
             var num = gamedatas.ally_council_slots[i];
             var deck = dojo.query('#council-track .slot-' + i);
             this.setDeckSize(deck, num);
+            this.councilStacks[i] = new VoidStock<AbyssAlly>(this.allyManager, deck[0]);
         }
         this.setDeckSize(dojo.query('#lords-track .slot-0'), gamedatas.lord_deck);
         this.setDeckSize(dojo.query('#explore-track .slot-0'), gamedatas.ally_deck);
@@ -235,27 +185,27 @@ class Abyss implements AbyssGame {
         dojo.addClass(threat_token, "slot-" + gamedatas.threat_level);
 
         // Locations
-        for ( var i in gamedatas.location_available ) {
-            var location = gamedatas.location_available[i];
-            this.locationManager.placeWithTooltip(location, $('locations-holder'));
-        }
+        this.visibleLocations = new LineStock<AbyssLocation>(this.locationManager, document.getElementById('visible-locations-stock'), {
+            center: false,
+            direction: 'column',
+        });
+        this.visibleLocations.addCards(gamedatas.location_available);
+        this.visibleLocations.onCardClick = location => this.onVisibleLocationClick(location);
+        this.visibleLocationsOverflow = new LineStock<AbyssLocation>(this.locationManager, document.getElementById('locations-holder-overflow'));
+        this.visibleLocationsOverflow.onCardClick = location => this.onVisibleLocationClick(location);
+        this.organiseLocations();
         this.setDeckSize(dojo.query('#locations-holder .location-back'), gamedatas.location_deck);
 
         // Clickers
-        dojo.connect($('explore-track'), 'onclick', this, 'onClickExploreTrack');
-        dojo.connect($('council-track'), 'onclick', this, 'onClickCouncilTrack');
-        dojo.connect($('lords-track'), 'onclick', this, 'onClickLordsTrack');
-        dojo.connect($('player-hand'), 'onclick', this, 'onClickPlayerHand');
+        document.getElementById('explore-track-deck').addEventListener('click', e => this.onClickExploreDeck(e));
+        document.getElementById('council-track').addEventListener('click', e => this.onClickCouncilTrack(e));
         (this as any).addEventToClass('icon-monster', 'onclick', 'onClickMonsterIcon');
-        (this as any).addEventToClass('free-lords', 'onclick', 'onClickPlayerFreeLords');
-        dojo.connect($('locations-holder'), 'onclick', this, 'onClickLocation');
-        dojo.connect($('locations-holder-overflow'), 'onclick', this, 'onClickLocation');
-        (this as any).addEventToClass('locations', 'onclick', 'onClickLocation');
 
         // Tooltips
         // Hide this one, because it doesn't line up due to Zoom
         //(this as any).addTooltip( 'explore-track-deck', '', _('Explore'), 1 );
         (this as any).addTooltipToClass( 'pearl-holder', _( 'Pearls' ), '' );
+        (this as any).addTooltipToClass( 'nebulis-holder', _( 'Nebulis' ), '' );
         (this as any).addTooltipToClass( 'key-holder', _( 'Key tokens (+ Keys from free Lords)' ), '' );
         (this as any).addTooltipToClass( 'ally-holder', _( 'Ally cards in hand' ), '' );
         (this as any).addTooltipToClass( 'monster-holder', _( 'Monster tokens' ), '' );
@@ -265,6 +215,10 @@ class Abyss implements AbyssGame {
         (this as any).addTooltip( 'scoring-lords-icon', _( 'Lords' ), '' );
         (this as any).addTooltip( 'scoring-affiliated-icon', _( 'Affiliated Allies' ), '' );
         (this as any).addTooltip( 'scoring-monster-tokens-icon', _( 'Monster tokens' ), '' );
+        if (gamedatas.krakenExpansion) {
+            (this as any).addTooltip('scoring-nebulis-icon', _( 'Nebulis' ), '');
+            (this as any).addTooltip('scoring-kraken-icon', _( 'Kraken' ), '');
+        }
         
         // Localisation of options box
         $('option-desc').innerHTML = _('Which Ally cards do you want to automatically pass on?');
@@ -290,6 +244,8 @@ class Abyss implements AbyssGame {
             dojo.style($('last-round'), { 'display': 'block' });
         }
 
+        this.gamedatas.sentinels?.filter(sentinel => sentinel.playerId).forEach(sentinel => this.placeSentinelToken(sentinel.playerId, sentinel.lordId, sentinel.location, sentinel.locationArg));
+
         // Insert options into option box
         let me = gamedatas.players[(this as any).player_id];
         if (me) {
@@ -297,7 +253,7 @@ class Abyss implements AbyssGame {
                 me.autopass = "0;0;0;0;0";
             }
             if (me.autopass) {
-                let pieces = me.autopass.split(";");
+                let pieces: any[] = me.autopass.split(";");
                 if (pieces.length > 5) {
                     pieces = [0, 0, 0, 0, 0];
                 }
@@ -353,52 +309,6 @@ class Abyss implements AbyssGame {
         // Setup game notifications to handle (see "setupNotifications" method below)
         this.setupNotifications();
     }
-    
-    organisePanelMessages() {
-        // For each player, show/hide message based on if there are allies about
-        for (let i in this.gamedatas.players) {
-            let player = this.gamedatas.players[i];
-            // Do they have any Lords?
-            const lords = dojo.query('.lord', $('player-panel-' + i));
-            $('no-lords-msg-p' + i).style.display = lords.length > 0 ? 'none' : 'block';
-            
-            // Affiliated?
-            const affiliated = dojo.query('.affiliated .ally', $('player-panel-' + i));
-            $('no-affiliated-msg-p' + i).style.display = affiliated.length > 0 ? 'none' : 'block';
-            
-            if (i == (this as any).player_id) {
-                // Hand?
-                const hand = dojo.query('.ally', $('player-hand'));
-                $('no-hand-msg').style.display = hand.length > 0 ? 'none' : 'block';
-            }
-        }
-    }
-
-    setDeckSize(deck /*dojo query result*/, num: number) {
-        deck.removeClass("deck-empty deck-low deck-medium deck-full");
-        if (num == 0) {
-            deck.addClass("deck-empty");
-        } else if (num <= 2) {
-            deck.addClass("deck-low");
-        } else if (num <= 5) {
-            deck.addClass("deck-medium");
-        } else {
-            deck.addClass("deck-full");
-        }
-
-        // Set deck-size data
-        deck.attr("data-size", num);
-
-        // If it's a council stack, then add tooltip
-        for (let i = 0; i < deck.length; i++) {
-            var node = deck[i];
-            let deckSize = dojo.query('.deck-size', node);
-            if (deckSize.length > 0) {
-                let n = deckSize[0];
-                n.innerHTML = num > 0 ? num : "";
-            }
-        }
-    }
 
     ///////////////////////////////////////////////////
     //// Game & client states
@@ -407,7 +317,7 @@ class Abyss implements AbyssGame {
     //                  You can use this method to perform some user interface changes at this moment.
     //
     onEnteringState(stateName: string, args: any) {
-        log('onEnteringState', stateName, args);
+        log('onEnteringState', stateName, args.args);
 
         // Remove all current move indicators
         dojo.query('.card-current-move').removeClass('card-current-move');
@@ -416,13 +326,17 @@ class Abyss implements AbyssGame {
                 dojo.query('#explore-track-deck').addClass('card-current-move');
             }
             if( (this as any).checkPossibleActions( 'exploreTake' ) || (this as any).checkPossibleActions( 'purchase' ) ) {
-                for (var i = 5; i >= 1; i--) {
-                var qr = dojo.query('#explore-track .slot-' + i);
-                if (qr.length > 0) {
-                    qr.addClass('card-current-move');
-                    break;
+                for (let i = 5; i >= 1; i--) {
+                    const qr = dojo.query(`#visible-allies-stock [data-slot-id="${i}"] .ally`);
+                    if (qr.length > 0) {
+                        qr.addClass('card-current-move');
+                        break;
+                    }
                 }
-                }
+            }
+            if (this.gamedatas.gamestate.name == 'placeKraken') {
+                this.allyManager.getCardElement(args.args.ally).classList.add('card-current-move');
+                dojo.query('#council-track .ally-back').addClass('card-current-move');
             }
             if( (this as any).checkPossibleActions( 'requestSupport' ) ) {
                 dojo.query('#council-track .ally-back').addClass('card-current-move');
@@ -430,13 +344,12 @@ class Abyss implements AbyssGame {
             if( (this as any).checkPossibleActions( 'recruit' ) ) {
                 // If affordableLords given, then highlight only affordable lords
                 if (args.args && args.args._private && args.args._private.affordableLords) {
-                let affordableLords = args.args._private.affordableLords;
-                for (let i in affordableLords) {
-                    let lordId = affordableLords[i].lord_id;
-                    dojo.query('#lords-track .lord.lord-'+lordId).addClass('card-current-move');
-                }
+                    args.args._private.affordableLords?.forEach(lord => {
+                        const div = this.lordManager.getCardElement(lord);
+                        div.classList.add('card-current-move')
+                    });
                 } else {
-                dojo.query('#lords-track .lord:not(.lord-back)').addClass('card-current-move');
+                    dojo.query('#lords-track .lord:not(.lord-back)').addClass('card-current-move');
                 }
             }
             if( (this as any).checkPossibleActions( 'chooseLocation' ) && stateName != 'locationEffectBlackSmokers' ) {
@@ -450,7 +363,7 @@ class Abyss implements AbyssGame {
                 this.onEnteringRecruitPay(args.args);
                 break;
             case 'lord7':
-                this.onEnterinLord7();
+                this.onEnteringLord7();
                 break;
             case 'controlPostDraw':
                 this.onEnteringControlPostDraw(args.args);
@@ -464,22 +377,21 @@ class Abyss implements AbyssGame {
             case 'purchase': case 'explore': case 'explore2': case 'explore3':
                 this.onEnteringPurchaseExplore(args.args);
                 break;
+            case 'lord112':
+                this.onEnteringLord112(args.args);
+                break;
+            case 'lord116':
+                this.onEnteringLord116(args.args);
+                break;
         }
     }
 
     private onEnteringRecruitPay(args: EnteringRecruitPayArgs) {
         // highlight the given lord
         dojo.query("#lords-track .lord[data-lord-id=" + args.lord_id + "]").addClass("selected");
-
-        if ((this as any).isCurrentPlayerActive()) {
-            var lord = dojo.query("#lords-track .lord.selected")[0];
-            var cost = +args.cost;
-            $('button_recruit').innerHTML = _('Recruit') + ' ('+cost+' <i class="icon icon-pearl"></i>)';
-            dojo.setAttr($('button_recruit'), "data-base-cost", cost);
-        }
     }
 
-    private onEnterinLord7() {
+    private onEnteringLord7() {
         // Put a red border around the player monster tokens (who aren't me)
         if ((this as any).isCurrentPlayerActive()) {
             for( var player_id in this.gamedatas.players ) {
@@ -487,6 +399,27 @@ class Abyss implements AbyssGame {
                     dojo.query("#cp_board_p" + player_id + " .icon.icon-monster").addClass("clickable");
                 }
             }
+        }
+    }
+
+    private onEnteringLord112(args: EnteringLord112Args) {
+        if ((this as any).isCurrentPlayerActive()) {
+            dojo.place('<div id="ally-discard"></div>', 'game-extra');
+            dojo.style($('game-extra'), "display", "block");
+            const stock = new LineStock<AbyssAlly>(this.allyManager, document.getElementById(`ally-discard`));
+            stock.addCards(args.allies);
+            stock.onCardClick = ally => this.takeAllyFromDiscard(ally.ally_id);
+        }
+    }
+
+    private onEnteringLord116(args: EnteringLord116Args) {
+        // Put a green border around selectable lords
+        if ((this as any).isCurrentPlayerActive()) {
+            console.log(args.lords);
+            args.lords.forEach(lord => 
+                dojo.query(`.lord[data-lord-id="${lord.lord_id}"]`).addClass('selectable')
+                //this.lordManager.getCardElement(lord).classList.add('selectable')
+            );
         }
     }
 
@@ -514,13 +447,13 @@ class Abyss implements AbyssGame {
     private onEnteringLocationEffectBlackSmokers(args: EnteringLocationEffectBlackSmokersArgs) {
         // Draw all the locations in a div at the top. Register to each an onclick to select it.
         if ((this as any).isCurrentPlayerActive()) {
-            for( var iLocation in args._private.locations ) {
-                var location = args._private.locations[iLocation];
-                var location_element = this.locationManager.placeWithTooltip(location, $('game-extra'));
-                dojo.addClass(location_element, 'card-current-move');
-                dojo.connect(location_element, 'onclick', this, 'onClickLocation');
-            }
+            dojo.place('<div id="ally-discard"></div>', 'game-extra');
             dojo.style($('game-extra'), "display", "block");
+            const stock = new LineStock<AbyssLocation>(this.locationManager, document.getElementById(`ally-discard`), {
+                direction: 'column',
+            });
+            stock.addCards(args._private.locations);
+            stock.onCardClick = location => this.onVisibleLocationClick(location);
         }
     }
 
@@ -564,7 +497,14 @@ class Abyss implements AbyssGame {
                 (this as any).enableAllPlayerPanels();
                 dojo.query('.player-name a').style('text-decoration', '');
                 break;
+            case 'lord116':
+                this.onLeavingLord116();
+                break;
         }
+    }
+
+    private onLeavingLord116() {
+        dojo.query(`.lord.selectable`).removeClass('selectable');
     }
 
     // onUpdateActionButtons: in this method you can manage "action buttons" that are displayed in the
@@ -591,8 +531,20 @@ class Abyss implements AbyssGame {
         if( (this as any).isCurrentPlayerActive() ) {
             switch( stateName ) {
                 case 'purchase':
-                    var cost = args.cost;
-                    (this as any).addActionButton( 'button_purchase', _('Purchase') + ` (${cost} <i class="icon icon-pearl"></i>)`, 'onPurchase' );
+                    const purchageArgs = args as EnteringPurchaseArgs;
+                    const cost = purchageArgs.cost;
+                    (this as any).addActionButton('button_purchase', _('Purchase') + ` (${cost} <i class="icon icon-pearl"></i>)`, () => this.onPurchase(0));
+                    if (!purchageArgs.canPayWithPearls) {
+                        document.getElementById('button_purchase').classList.add('disabled');
+                    }
+                    if (purchageArgs.withNebulis) {
+                        Object.keys(purchageArgs.withNebulis).forEach(i => {
+                            (this as any).addActionButton(`button_purchase_with${i}Nebulis`, _('Purchase') + ` (${ cost - Number(i) > 0 ? `${cost - Number(i)} <i class="icon icon-pearl"></i> ` : ''}${i} <i class="icon icon-nebulis"></i>)`, event => this.onPurchase(Number(i)));
+                            if (!purchageArgs.withNebulis[i]) {
+                                document.getElementById(`button_purchase_with${i}Nebulis`).classList.add('disabled');
+                            }
+                        });
+                    }
                     (this as any).addActionButton( 'button_pass', _('Pass'), 'onPass' );
                     break;
                 case 'chooseMonsterReward':
@@ -605,13 +557,30 @@ class Abyss implements AbyssGame {
                     }
                     break;
                 case 'recruitPay':
-                    (this as any).addActionButton( 'button_recruit', _('Recruit'), 'onRecruit' );
-                    (this as any).addActionButton( 'button_pass', _('Cancel'), 'onPass' );
+                    const recruitArgs = args as EnteringRecruitPayArgs;
+                    (this as any).addActionButton( 'button_recruit', _('Recruit'), () => this.onRecruit(0));
+
+                    const recruitButton = document.getElementById('button_recruit');
+                    recruitButton.innerHTML = _('Recruit') + ' ('+recruitArgs.cost+' <i class="icon icon-pearl"></i>)';
+                    recruitButton.classList.toggle('disabled', recruitArgs.cost > recruitArgs.pearls);
+                    recruitButton.dataset.baseCost = '' + recruitArgs.cost;
+                    recruitButton.dataset.pearls = '' + recruitArgs.pearls;
+                    recruitButton.dataset.nebulis = '' + recruitArgs.nebulis;
+
+                    if (recruitArgs.withNebulis) {
+                        Object.keys(recruitArgs.withNebulis).forEach(i => {
+                            (this as any).addActionButton(`button_recruit_with${i}Nebulis`, _('Recruit') + ` (${ args.cost - Number(i) > 0 ? `${args.cost - Number(i)} <i class="icon icon-pearl"></i> ` : ''}${i} <i class="icon icon-nebulis"></i>)`, () => this.onRecruit(Number(i)));
+                            const button = document.getElementById(`button_recruit_with${i}Nebulis`);
+                            button.classList.toggle('disabled', recruitArgs.nebulis < Number(i) || (recruitArgs.cost - Number(i)) > recruitArgs.pearls);
+                        });
+                    }
+
+                    (this as any).addActionButton( 'button_pass', _('Cancel'), event => this.onPass(event));
                     break;
                 case 'affiliate':
                     for (var i in args.allies) {
                         var ally = args.allies[i];
-                        var r: string = ally.value + ' ' + this.allyManager.allyNameText(ally);
+                        var r: string = ally.value + ' ' + this.allyManager.allyNameText(ally.faction);
                         var btnId = 'button_affiliate_' + ally.ally_id;
                         (this as any).addActionButton( btnId, r, 'onChooseAffiliate' );
                         dojo.addClass($(btnId), 'affiliate-button')
@@ -619,7 +588,15 @@ class Abyss implements AbyssGame {
                     break;
                 case 'plotAtCourt':
                     (this as any).addActionButton( 'button_plot', _('Plot') + ` (1 <i class="icon icon-pearl"></i>)`, 'onPlot' );
+                    if (args.canPlaceSentinel) {
+                        (this as any).addActionButton( 'button_place_sentinel', _('Place sentinel'), () => this.goToPlaceSentinel());
+                    }
                     (this as any).addActionButton( 'button_pass', _('Pass'), 'onPass' );
+                    break;
+                case 'action':
+                    if (args.canPlaceSentinel) {
+                        (this as any).addActionButton( 'button_place_sentinel', _('Place sentinel'), () => this.goToPlaceSentinel());
+                    }
                     break;
                 case 'lord23': case 'lord26': case 'locationEffectBlackSmokers': case 'lord19': case 'lord22': case 'lord19b': case 'unusedLords':
                     (this as any).addActionButton( 'button_pass', _('Pass'), 'onPass' );
@@ -653,7 +630,7 @@ class Abyss implements AbyssGame {
                 case 'martialLaw':
                     const martialLawArgs = args as EnteringMartialLawArgs;
                     if (martialLawArgs?.diff > 0) {
-                        (this as any).addActionButton( 'button_discard', _('Discard selected allies'), () => this.onDiscard() );
+                        (this as any).addActionButton('button_discard', _('Discard selected allies'), () => this.onDiscard());
 
                         var ally_ids = [];
                         dojo.query("#player-hand .ally.selected").forEach(node => 
@@ -663,11 +640,49 @@ class Abyss implements AbyssGame {
                             document.getElementById('button_discard').classList.add('disabled');
                         }
 
-                        (this as any).addActionButton( 'button_payMartialLaw', _('Pay') + ` ${martialLawArgs.diff} <i class="icon icon-pearl"></i>`, () => this.payMartialLaw());
+                        (this as any).addActionButton('button_payMartialLaw', _('Pay') + ` ${martialLawArgs.diff} <i class="icon icon-pearl"></i>`, () => this.payMartialLaw());
                         if (!martialLawArgs.canPay) {
                             document.getElementById('button_payMartialLaw').classList.add('disabled');
                         }
                     }
+                    break;
+                case 'fillSanctuary':
+                    (this as any).addActionButton('button_continue', _('Continue searching'), () => this.searchSanctuary());
+                    (this as any).addActionButton('button_stop', _('Stop searching'), () => this.stopSanctuarySearch());
+                    break;
+                case 'lord104':
+                    const lord104Args = args as EnteringLord104Args;   
+                    if (lord104Args.nebulis == 1) {   
+                        lord104Args.playersIds.forEach(playerId => {
+                            const player = this.getPlayer(playerId);
+                            (this as any).addActionButton(`giveNebulisTo${playerId}-button`, player.name, () => this.giveNebulisTo([playerId]));
+                            document.getElementById(`giveNebulisTo${playerId}-button`).style.border = `3px solid #${player.color}`;
+                        });
+                    } else {
+                        lord104Args.playersIds.forEach(playerId => {
+                            lord104Args.playersIds.filter(secondPlayerId => secondPlayerId != playerId).forEach(secondPlayerId => {
+                                const player = this.getPlayer(playerId);
+                                const secondPlayer = this.getPlayer(secondPlayerId);
+                                if (!document.getElementById(`giveNebulisTo${playerId}-${secondPlayerId}-button`) && !document.getElementById(`giveNebulisTo${secondPlayerId}-${playerId}-button`)) {
+                                    (this as any).addActionButton(`giveNebulisTo${playerId}-${secondPlayerId}-button`, _('${player_name} and ${player_name2}').replace('${player_name}', player.name).replace('${player_name2}', secondPlayer.name), () => this.giveNebulisTo([playerId, secondPlayerId]));
+                                }
+                            });
+                        });
+                    }
+                    break;
+                case 'lord114':
+                    for (let i = 0; i < 5; i++) {
+                        (this as any).addActionButton(`selectAllyRace${i}`, this.allyManager.allyNameText(i), () => this.selectAllyRace(i));
+                        document.getElementById(`selectAllyRace${i}`).classList.add('affiliate-button');
+                    }
+                    break;
+                case 'giveKraken':
+                    const giveKrakenArgs = args as EnteringGiveKrakenArgs;      
+                    giveKrakenArgs.playersIds.forEach(playerId => {
+                        const player = this.getPlayer(playerId);
+                        (this as any).addActionButton(`giveKraken${playerId}-button`, player.name, () => this.giveKraken(playerId));
+                        document.getElementById(`giveKraken${playerId}-button`).style.border = `3px solid #${player.color}`;
+                    });
                     break;
             }
         }
@@ -707,7 +722,7 @@ class Abyss implements AbyssGame {
           left *= totalZoom;
           
           if (typeof html === 'function') {
-            tt.innerHTML = html.call(this)
+            tt.innerHTML = html.call(this);
           } else {
             tt.innerHTML = html;
           }
@@ -771,6 +786,210 @@ class Abyss implements AbyssGame {
         dojo.connect(node, "onmouseleave", () => dojo.style(tt, {'opacity': '0'}));
     }
 
+    public getPlayerId(): number {
+        return Number((this as any).player_id);
+    }
+
+    private getPlayer(playerId: number): AbyssPlayer {
+        return Object.values(this.gamedatas.players).find(player => Number(player.id) == playerId);
+    }
+
+    private getPlayerTable(playerId: number): PlayerTable {
+        return this.playersTables.find(playerTable => playerTable.playerId === playerId);
+    }
+
+    private getCurrentPlayerTable(): PlayerTable | null {
+        return this.playersTables.find(playerTable => playerTable.playerId === this.getPlayerId());
+    }
+    
+    public organisePanelMessages() {
+        this.playersTables.forEach(playerTable => playerTable.organisePanelMessages());
+    }
+
+    private setDeckSize(deck /*dojo query result*/, num: number) {
+        deck.removeClass("deck-empty deck-low deck-medium deck-full");
+        if (num == 0) {
+            deck.addClass("deck-empty");
+        } else if (num <= 2) {
+            deck.addClass("deck-low");
+        } else if (num <= 5) {
+            deck.addClass("deck-medium");
+        } else {
+            deck.addClass("deck-full");
+        }
+
+        // Set deck-size data
+        deck.attr("data-size", num);
+
+        // If it's a council stack, then add tooltip
+        for (let i = 0; i < deck.length; i++) {
+            var node = deck[i];
+            let deckSize = dojo.query('.deck-size', node);
+            if (deckSize.length > 0) {
+                let n = deckSize[0];
+                n.innerHTML = num > 0 ? num : "";
+            }
+        }
+    }
+
+    private createPlayerPanels(gamedatas: AbyssGamedatas) {
+        Object.values(gamedatas.players).forEach(player => {
+            const playerId = Number(player.id);
+
+            // Setting up players boards if needed
+            var player_board_div = $('player_board_'+playerId);
+            let html = `
+            <div id="cp_board_p${player.id}" class="cp_board" data-player-id="${player.id}">
+                <span class="pearl-holder spacer" id="pearl-holder_p${player.id}"><i class="icon icon-pearl"></i><span class="spacer" id="pearlcount_p${player.id}">${player.pearls}</span></span>`;
+
+            if (gamedatas.krakenExpansion) {
+                html += `<span class="nebulis-holder spacer" id="nebulis-holder_p${player.id}"><i class="icon icon-nebulis"></i><span class="spacer" id="nebuliscount_p${player.id}">${player.nebulis}</span></span>`;
+            }
+
+            html += `    <span class="key-holder spacer" id="key-holder_p${player.id}"><i class="icon icon-key"></i><span class="spacer" id="keycount_p${player.id}">${player.keys}</span><span class="key-addendum">(+<span id="lordkeycount_p${player.id}"></span>)</span></span>
+                <span class="ally-holder spacer" id="ally-holder_p${player.id}"><i class="icon icon-ally"></i><span class="spacer" id="allycount_p${player.id}">${player.hand_size}</span></span>
+                <span class="monster-holder spacer" id="monster-holder_p${player.id}"><i class="icon icon-monster"></i><span class="spacer" id="monstercount_p${player.id}">${player.num_monsters}</span></span>
+                <span class="lordcount-holder spacer"><i class="icon icon-lord"></i><span id="lordcount_p${player.id}">${player.lords.length}</span></span>
+                <div class="monster-hand" id="monster-hand_p${player.id}"></div>
+            </div>`;
+            dojo.place( html, player_board_div );
+
+            
+
+            // kraken token
+            dojo.place(`<div id="player_board_${player.id}_krakenWrapper" class="krakenWrapper"></div>`, `player_board_${player.id}`);
+
+            if (gamedatas.kraken == playerId) {
+                this.placeKrakenToken(playerId);
+            }
+            
+            // Set up scoring table in advance (helpful for testing!)
+            let splitPlayerName = '';
+            let chars = player.name.split("");
+            for (let i in chars) {
+                splitPlayerName += `<span>${chars[i]}</span>`;
+            }
+            $('scoring-row-players').innerHTML += `<td><span id="scoring-row-name-p${playerId}" style="color:#${player.color};"><span>${splitPlayerName}</span></span></td>`;
+            
+            $('scoring-row-location').innerHTML += `<td id="scoring-row-location-p${playerId}"></td>`;
+            $('scoring-row-lord').innerHTML += `<td id="scoring-row-lord-p${playerId}"></td>`;
+            $('scoring-row-affiliated').innerHTML += `<td id="scoring-row-affiliated-p${playerId}"></td>`;
+            $('scoring-row-monster').innerHTML += `<td id="scoring-row-monster-p${playerId}"></td>`;
+            if (gamedatas.krakenExpansion) {
+                $('scoring-row-nebulis').innerHTML += `<td id="scoring-row-nebulis-p${playerId}"></td>`;
+                $('scoring-row-kraken').innerHTML += `<td id="scoring-row-kraken-p${playerId}"></td>`;  
+            }
+            
+            $('scoring-row-total').innerHTML += `<td id="scoring-row-total-p${playerId}"></td>`;
+        });
+    }
+
+    private incPearlCount(playerId: number, inc: number) {
+        $('pearlcount_p' + playerId).innerHTML = +($('pearlcount_p' + playerId).innerHTML) + inc;
+    }
+    private incNebulisCount(playerId: number, inc: number) {
+        $('nebuliscount_p' + playerId).innerHTML = +($('nebuliscount_p' + playerId).innerHTML) + inc;
+    }
+
+    private placeKrakenToken(playerId: number) {
+        const krakenToken = document.getElementById('krakenToken');
+        if (krakenToken) {
+            if (playerId == 0) {
+                (this as any).fadeOutAndDestroy(krakenToken);
+            } else {
+                const parentElement = krakenToken.parentElement;
+
+                document.getElementById(`player_board_${playerId}_krakenWrapper`).appendChild(krakenToken);
+                stockSlideAnimation({
+                    element: krakenToken,
+                    fromElement: parentElement
+                });
+            }
+        } else {
+            if (playerId != 0) {
+                dojo.place('<div id="krakenToken" class="token"></div>', `player_board_${playerId}_krakenWrapper`);
+
+                (this as any).addTooltipHtml('krakenToken', _("The Kraken figure allows players to identify, during the game, the most corrupt player. The figure is given to the first player to receive any Nebulis. As soon as an opponent ties or gains more Nebulis than the most corrupt player, they get the Kraken figure"));
+            }
+        }
+    }
+
+    private getSentinelToken(lordId: number) {
+        let div = document.getElementById(`sentinel-${lordId}`);
+        if (!div) {
+            div = document.createElement('div');
+            div.id = `sentinel-${lordId}`;
+            div.classList.add('sentinel-token');
+            div.dataset.lordId = `${lordId}`;
+        }
+        return div;
+    }
+
+    private placeSentinelToken(playerId: number, lordId: number, location: string, locationArg: number) {
+        const sentinel = this.getSentinelToken(lordId);
+        const parentElement = sentinel.parentElement;
+
+        switch (location) {
+            case 'player':
+                const sentinelsElement = document.getElementById(`player-panel-${playerId}-sentinels`);
+                sentinelsElement.appendChild(sentinel);
+                if (parentElement) {
+                    stockSlideAnimation({
+                        element: sentinel,
+                        fromElement: parentElement
+                    });
+                }
+                break;
+            case 'lord':
+                const lordElement = this.lordManager.getCardElement({ lord_id: locationArg } as AbyssLord);
+                lordElement.appendChild(sentinel);
+                if (parentElement) {
+                    stockSlideAnimation({
+                        element: sentinel,
+                        fromElement: parentElement
+                    });
+                }
+                break;
+            case 'council':
+                const councilElement = document.getElementById(`council-track-${locationArg}`);
+                councilElement.appendChild(sentinel);
+                if (parentElement) {
+                    stockSlideAnimation({
+                        element: sentinel,
+                        fromElement: parentElement
+                    });
+                }
+                break;
+            case 'location':
+                const locationElement = this.locationManager.getCardElement({ location_id: locationArg } as AbyssLocation);
+                locationElement.appendChild(sentinel);
+                if (parentElement) {
+                    stockSlideAnimation({
+                        element: sentinel,
+                        fromElement: parentElement
+                    });
+                }
+                break;
+
+        }
+    }
+
+    private organiseLocations() {
+        // If on playmat:
+        if (dojo.hasClass($('game-board-holder'), "playmat")) {
+            // move all beyond 5 into the overflow
+            const locations = this.visibleLocations.getCards();
+            if (locations.length > 5) {
+                this.visibleLocationsOverflow.addCards(locations.slice(5));
+            }
+        } else {
+            const locations = this.visibleLocationsOverflow.getCards();
+            if (locations.length > 0) {
+                this.visibleLocations.addCards(locations);
+            }
+        }
+    }
+
     ///////////////////////////////////////////////////
     //// Player's action
 
@@ -785,24 +1004,17 @@ class Abyss implements AbyssGame {
 
     */
     onDiscard() {
-        if(!(this as any).checkAction( 'discard' )) {
-        return;
-        }
-
         var ally_ids = [];
         dojo.query("#player-hand .ally.selected").forEach(node => 
             ally_ids.push(+dojo.attr(node, 'data-ally-id'))
         );
 
-        (this as any).ajaxcall( "/abyss/abyss/discard.html", { lock: true, ally_ids: ally_ids.join(';') }, this,
-        () => {},
-        () => {}
-        );
+        this.discardAllies(ally_ids);
     }
 
-    onRecruit() {
-        if(!(this as any).checkAction( 'pay' )) {
-        return;
+    onRecruit(withNebulis: number) {
+        if (!(this as any).checkAction('pay')) {
+            return;
         }
 
         var ally_ids = [];
@@ -810,10 +1022,10 @@ class Abyss implements AbyssGame {
             ally_ids.push(+dojo.attr(node, 'data-ally-id'));
         });
 
-        (this as any).ajaxcall( "/abyss/abyss/pay.html", { lock: true, ally_ids: ally_ids.join(';') }, this,
-        () => {},
-        () => {}
-        );
+        this.takeAction('pay', {
+            ally_ids: ally_ids.join(';'),
+            withNebulis,
+        });
     }
 
     onChooseAffiliate(evt) {
@@ -823,157 +1035,155 @@ class Abyss implements AbyssGame {
 
         var ally_id = +evt.currentTarget.id.replace('button_affiliate_', '');
 
-        (this as any).ajaxcall( "/abyss/abyss/affiliate.html", { lock: true, ally_id: ally_id }, this,
-        () => {},
-        () => {}
-        );
+        this.takeAction('affiliate', {
+            ally_id,
+        });
     }
 
     onClickCouncilTrack(evt) {
         if (dojo.hasClass(evt.target, 'ally')) {
-        // Draw this stack??
-        dojo.stopEvent( evt );
+            // Draw this stack??
+            dojo.stopEvent( evt );
 
-        var faction = dojo.attr(evt.target, 'data-faction');
+            var faction = dojo.attr(evt.target, 'data-faction');
 
-        if( ! (this as any).checkAction( 'requestSupport' ) ) {
-            return;
-        }
+            if (this.gamedatas.gamestate.name === 'placeSentinel') {
+                this.placeSentinel(2, faction);
+                return;
+            } else if (this.gamedatas.gamestate.name === 'placeKraken') {
+                this.placeKraken(faction);
+                return;
+            }
 
-        (this as any).ajaxcall( "/abyss/abyss/requestSupport.html", { lock: true, faction: faction }, this,
-        () => {},
-        () => {}
-        );
+            if( ! (this as any).checkAction( 'requestSupport' ) ) {
+                return;
+            }
+
+            this.takeAction('requestSupport', {
+                faction,
+            });
         }
     }
 
-    onClickLocation ( evt ) {
-        var locations = dojo.query(evt.target).closest('.location');
-        if (locations.length > 0) {
-        var target = locations[0];
-        if (dojo.hasClass(target, 'location') && ! dojo.hasClass(target, 'location-back')) {
-            dojo.stopEvent( evt );
+    onClickPlayerLocation(location: AbyssLocation): void {
+        var target = this.locationManager.getCardElement(location);
+        if (!dojo.hasClass(target, 'location-back')) {
 
-            let location_id = dojo.attr(target, 'data-location-id');
+            if (this.gamedatas.gamestate.name === 'placeSentinel') {
+                this.placeSentinel(3, location.location_id);
+                return;
+            }
 
             if( ! (this as any).checkAction( 'chooseLocation' ) ) {
             return;
             }
             
             // If you select Black Smokers with an empty deck, warn!
-            if (location_id == 10) {
+            if (location.location_id == 10) {
                 let location_deck = dojo.query('.location.location-back')[0];
                 let location_deck_size = +dojo.attr(location_deck, 'data-size');
                 if (location_deck_size == 0) {
                 (this as any).confirmationDialog( _('Are you sure you want to select this Location? There are no Locations left in the deck.'), dojo.hitch( this, function() {
-                    var lord_ids = [];
-                    dojo.query("#player-panel-" + (this as any).player_id + " .free-lords .lord.selected").forEach((node) => {
-                    lord_ids.push(+dojo.attr(node, 'data-lord-id'));
-                    });
-    
-                    (this as any).ajaxcall( "/abyss/abyss/chooseLocation.html", { lock: true, location_id: location_id, lord_ids: lord_ids.join(';') }, this,
-                    () => {},
-                    () => {}
-                    );
+                    this.chooseLocation(location.location_id);
                     } ) );
                     return;
                 }
             }
             
-            var lord_ids = [];
-            dojo.query("#player-panel-" + (this as any).player_id + " .free-lords .lord.selected").forEach(function (node) {
-            lord_ids.push(+dojo.attr(node, 'data-lord-id'));
-            });
-
-            (this as any).ajaxcall( "/abyss/abyss/chooseLocation.html", { lock: true, location_id: location_id, lord_ids: lord_ids.join(';') }, this,
-            () => {},
-            () => {}
-            );
-        }
+            this.chooseLocation(location.location_id);
         }
     }
 
-    onClickLordsTrack( evt ) {
-        if (dojo.hasClass(evt.target, 'lord') && ! dojo.hasClass(evt.target, 'lord-back')) {
-        // Draw this stack??
-        dojo.stopEvent( evt );
+    private onVisibleLocationClick(location: AbyssLocation) {
+        const location_id = location.location_id;
 
-        var lord_id = dojo.attr(evt.target, 'data-lord-id');
-
-        if( ! (this as any).checkAction( 'recruit' ) ) {
+        if (this.gamedatas.gamestate.name === 'placeSentinel') {
+            this.placeSentinel(3, location_id);
             return;
         }
 
-        (this as any).ajaxcall( "/abyss/abyss/recruit.html", { lock: true, lord_id: lord_id }, this,
-        () => {},
-        () => {}
+        if( ! (this as any).checkAction( 'chooseLocation' ) ) {
+            return;
+        }
+        
+        // If you select Black Smokers with an empty deck, warn!
+        if (location_id == 10) {
+            let location_deck = dojo.query('.location.location-back')[0];
+            let location_deck_size = +dojo.attr(location_deck, 'data-size');
+            if (location_deck_size == 0) {
+            (this as any).confirmationDialog( _('Are you sure you want to select this Location? There are no Locations left in the deck.'), dojo.hitch( this, function() {
+                this.chooseLocation(location_id);
+                } ) );
+                return;
+            }
+        }
+        
+        this.chooseLocation(location_id);
+    }
+
+    private chooseLocation(locationId: number) {
+        var lord_ids = [];
+        dojo.query("#player-panel-" + (this as any).player_id + " .free-lords .lord.selected").forEach(node =>
+        lord_ids.push(+dojo.attr(node, 'data-lord-id'))
         );
+
+        this.takeAction('chooseLocation', {
+            location_id: locationId,
+            lord_ids: lord_ids.join(';'),
+        });
+    }
+
+    onVisibleLordClick(lord: AbyssLord) {
+        if (this.gamedatas.gamestate.name === 'placeSentinel') {
+            this.placeSentinel(1, lord.lord_id);
+        } else {
+            this.recruit(lord.lord_id);
         }
     }
 
-    onClickExploreTrack( evt ) {
-        if (dojo.hasClass(evt.target, 'slot-0')) {
-        this.onClickExploreDeck( evt );
-        } else if (dojo.hasClass(evt.target, 'ally')) {
-        this.onClickExploreCard( evt );
+    private recruit(lordId: number) {
+        if (!(this as any).checkAction('recruit')) {
+            return;
         }
+
+        this.takeAction('recruit', {
+            lord_id: lordId,
+        },);
     }
 
     onClickExploreDeck( evt ) {
         dojo.stopEvent( evt );
 
-        if( ! (this as any).checkAction( 'explore' ) ) {
-        return;
-        }
-
-        (this as any).ajaxcall( "/abyss/abyss/explore.html", { lock: true }, this,
-        () => {},
-        () => {}
-        );
-    }
-
-    onClickExploreCard( evt ) {
-        dojo.stopEvent( evt );
-        
-        if( (this as any).checkAction( 'purchase', true ) ) {
-            this.onPurchase( evt );
+        if (!(this as any).checkAction('explore')) {
             return;
         }
 
-        if( ! (this as any).checkAction( 'exploreTake' ) ) {
-        return;
-        }
-
-        var slot = 0;
-        if (dojo.hasClass(evt.target, 'slot-1')) {
-        slot = 1;
-        } else if (dojo.hasClass(evt.target, 'slot-2')) {
-        slot = 2;
-        } else if (dojo.hasClass(evt.target, 'slot-3')) {
-        slot = 3;
-        } else if (dojo.hasClass(evt.target, 'slot-4')) {
-        slot = 4;
-        } else if (dojo.hasClass(evt.target, 'slot-5')) {
-        slot = 5;
-        }
-
-        (this as any).ajaxcall( "/abyss/abyss/exploreTake.html", { lock: true, slot: slot }, this,
-        () => {},
-        () => {}
-        );
+        this.takeAction('explore');
     }
 
-    onPurchase( evt ) {
-        dojo.stopEvent( evt );
-
-        if( ! (this as any).checkAction( 'purchase' ) ) {
-        return;
+    onVisibleAllyClick(ally: AbyssAlly) {
+        if((this as any).checkAction('purchase', true)) {
+            this.onPurchase(0); // TODO BGA ?
+            return;
         }
 
-        (this as any).ajaxcall( "/abyss/abyss/purchase.html", { lock: true }, this,
-        () => {},
-        () => {}
-        );
+        if(!(this as any).checkAction('exploreTake')) {
+            return;
+        }
+
+        this.takeAction('exploreTake', {
+            slot: ally.place,
+        });
+    }
+
+    onPurchase(withNebulis: number) {
+        if(!(this as any).checkAction('purchase')) {
+            return;
+        }
+
+        this.takeAction('purchase', {
+            withNebulis
+        });
     }
 
     onPass( evt ) {
@@ -983,10 +1193,7 @@ class Abyss implements AbyssGame {
         return;
         }
 
-        (this as any).ajaxcall( "/abyss/abyss/pass.html", { lock: true }, this,
-        () => {},
-        () => {}
-        );
+        this.takeAction('pass');
     }
 
     onPlot( evt ) {
@@ -996,10 +1203,7 @@ class Abyss implements AbyssGame {
         return;
         }
 
-        (this as any).ajaxcall( "/abyss/abyss/plot.html", { lock: true }, this,
-        () => {},
-        () => {}
-        );
+        this.takeAction('plot');
     }
 
     onChooseMonsterReward( evt ) {
@@ -1011,38 +1215,46 @@ class Abyss implements AbyssGame {
 
         var option = +evt.currentTarget.id.replace("button_reward_", '');
 
-        (this as any).ajaxcall( "/abyss/abyss/chooseReward.html", { lock: true, option: option }, this,
-        () => {},
-        () => {}
-        );
+        this.takeAction('chooseReward', {
+            option,
+        });
     }
 
-    onClickPlayerHand( evt ) {
-        if (dojo.hasClass(evt.target, 'ally')) {
+    onClickPlayerHand(ally: AbyssAlly) {
         if( (this as any).checkAction( 'pay', true ) ) {
-            dojo.stopEvent( evt );
+            this.allyManager.getCardElement(ally).classList.toggle('selected');
 
-            dojo.toggleClass(evt.target, 'selected');
-
+            const recruitButton = document.getElementById('button_recruit');
             var lord = dojo.query("#lords-track .lord.selected")[0];
-            var cost = +dojo.attr($('button_recruit'), 'data-base-cost');
+            const baseCost = Number(recruitButton.dataset.baseCost);
+            const pearls = Number(recruitButton.dataset.pearls);
+            const nebulis = Number(recruitButton.dataset.nebulis);
             var diversity = +dojo.attr(lord, 'data-diversity');
 
             // Value selected
-            var value = 0;
+            let value = 0;
             dojo.query("#player-hand .ally.selected").forEach(node => {
                 value += +dojo.attr(node, 'data-value');
             });
-            var shortfall = cost - value;
+            let shortfall = baseCost - value;
             if (shortfall < 0) { shortfall = 0; }
 
             // Update "Recruit" button
-            $('button_recruit').innerHTML = _('Recruit') + ' ('+shortfall+' <i class="icon icon-pearl"></i>)';
-        } else if( (this as any).checkAction( 'discard', true ) ) {
-            dojo.stopEvent( evt );
+            recruitButton.innerHTML = _('Recruit') + ' ('+shortfall+' <i class="icon icon-pearl"></i>)';
+            recruitButton.classList.toggle('disabled', shortfall > pearls);
 
+            [1, 2].forEach(i => {
+                const button = document.getElementById(`button_recruit_with${i}Nebulis`);
+                if (button) {
+                    const cost = shortfall;
+                    button.innerHTML = _('Recruit') + ` (${ cost - i > 0 ? `${cost - i} <i class="icon icon-pearl"></i> ` : ''}${i} <i class="icon icon-nebulis"></i>)`;
+                    button.classList.toggle('disabled', nebulis < i || (cost - i) > pearls || shortfall < i);
+                }
+            });
+
+        } else if( (this as any).checkAction( 'discard', true ) ) {
             // Multi-discard: select, otherwise just discard this one
-            dojo.toggleClass(evt.target, 'selected');
+            this.allyManager.getCardElement(ally).classList.toggle('selected');
 
             if (this.gamedatas.gamestate.name === 'martialLaw') {
                 var ally_ids = [];
@@ -1059,14 +1271,9 @@ class Abyss implements AbyssGame {
             //   function( is_error) {}
             // );
         } else if( (this as any).checkAction( 'selectAlly', true ) ) {
-            dojo.stopEvent( evt );
-
-            var ally_id = dojo.attr(evt.target, 'data-ally-id');
-            (this as any).ajaxcall( "/abyss/abyss/selectAlly.html", { lock: true, ally_id: ally_id }, this,
-            () => {},
-            () => {}
-            );
-        }
+            this.takeAction('selectAlly', { 
+                ally_id: ally.ally_id 
+            });
         }
     }
 
@@ -1077,10 +1284,9 @@ class Abyss implements AbyssGame {
 
             // Discard this card...
             var player_id: Number = dojo.attr(dojo.query(evt.target).closest('.cp_board')[0], 'data-player-id');
-            (this as any).ajaxcall( "/abyss/abyss/chooseMonsterTokens.html", { lock: true, player_id: player_id }, this,
-            () => {},
-            () => {}
-            );
+            this.takeAction('chooseMonsterTokens', {
+                player_id,
+            });
         }
         } else {
             if( (this as any).checkAction( 'chooseMonsterTokens' ) ) {
@@ -1088,43 +1294,38 @@ class Abyss implements AbyssGame {
 
             // Discard this card...
             var player_id: Number = +evt.target.id.replace("button_steal_monster_token_", "");
-            (this as any).ajaxcall( "/abyss/abyss/chooseMonsterTokens.html", { lock: true, player_id: player_id }, this,
-            () => {},
-            () => {}
-            );
+            this.takeAction('chooseMonsterTokens', {
+                player_id,
+            });
             }
         }
     }
 
-    onClickPlayerFreeLords( evt ) {
-        if (dojo.hasClass(evt.target, 'lord')) {
+    onClickPlayerFreeLord(lord: AbyssLord) {
         if( (this as any).checkAction( 'selectLord', true ) ) {
-            dojo.stopEvent( evt );
-
-            var lord_id = dojo.attr(evt.target, "data-lord-id");
-
-            (this as any).ajaxcall( "/abyss/abyss/selectLord.html", { lock: true, lord_id: lord_id }, this,
-            () => {},
-            () => {}
-            );
+            this.takeAction('selectLord', {
+                lord_id: lord.lord_id
+            });
         } else if( (this as any).checkAction( 'lordEffect', true ) ) {
-            dojo.stopEvent( evt );
-
-            var lord_id = dojo.attr(evt.target, "data-lord-id");
-
-            (this as any).ajaxcall( "/abyss/abyss/lordEffect.html", { lock: true, lord_id: lord_id }, this,
-            () => {},
-            () => {}
-            );
+            this.takeAction('lordEffect', {
+                lord_id: lord.lord_id
+            });
         } else if( (this as any).checkAction( 'chooseLocation', true ) ) {
-            dojo.stopEvent( evt );
+            const target = this.lordManager.getCardElement(lord);
 
             // Only allow this on your own Lords
-            var panel = dojo.query(evt.target).closest('.player-panel')[0];
-            if (panel.id == "player-panel-" + (this as any).player_id) {
-            dojo.toggleClass(evt.target, "selected");
+            var panel = target.closest('.player-panel');
+            if (panel.id == "player-panel-" + this.getPlayerId()) {
+                dojo.toggleClass(target, "selected");
             }
         }
+    }
+
+    onClickPlayerLockedLord(lord: AbyssLord) {
+        const target = this.lordManager.getCardElement(lord);
+        if (target.classList.contains('selectable') && this.gamedatas.gamestate.name === 'lord116') {
+            this.freeLord(lord.lord_id);
+            return;
         }
     }
     
@@ -1144,10 +1345,10 @@ class Abyss implements AbyssGame {
         }
         autopass += "" + max;
         }
-        (this as any).ajaxcall( "/abyss/abyss/setAutopass.html", { autopass }, this,
-        () => {},
-        () => {}
-    );
+
+        this.takeNoLockAction('setAutopass', {
+            autopass,
+        });
     }
 
     onDrawLocation( evt ) {
@@ -1159,18 +1360,122 @@ class Abyss implements AbyssGame {
 
         var num = +evt.currentTarget.id.replace('button_draw_', '');
 
-        (this as any).ajaxcall( "/abyss/abyss/drawLocations.html", { lock: true, num: num }, this,
-        () => {},
-        () => {}
-        );
+        this.takeAction('drawLocations', {
+            num,
+        });
     }
 
-    payMartialLaw() {
+    private payMartialLaw() {
         if(!(this as any).checkAction('payMartialLaw')) {
             return;
         }
 
         this.takeAction('payMartialLaw');
+    }
+
+    private searchSanctuary() {
+        if(!(this as any).checkAction('searchSanctuary')) {
+            return;
+        }
+
+        this.takeAction('searchSanctuary');
+    }
+
+    private stopSanctuarySearch() {
+        if(!(this as any).checkAction('stopSanctuarySearch')) {
+            return;
+        }
+
+        this.takeAction('stopSanctuarySearch');
+    }
+
+    private takeAllyFromDiscard(id: number) {
+        if(!(this as any).checkAction('takeAllyFromDiscard')) {
+            return;
+        }
+
+        this.takeAction('takeAllyFromDiscard', {
+            id,
+        });
+    }
+
+    private freeLord(id: number) {
+        if(!(this as any).checkAction('freeLord')) {
+            return;
+        }
+
+        this.takeAction('freeLord', {
+            id,
+        });
+    }
+
+    private selectAllyRace(faction: number) {
+        if(!(this as any).checkAction('selectAllyRace')) {
+            return;
+        }
+
+        this.takeAction('selectAllyRace', {
+            faction,
+        });
+    }
+    
+    public discardAllies(ids: number[]) {
+        if(!(this as any).checkAction('discard')) {
+            return;
+        }
+
+        this.takeAction('discard', {
+            ally_ids: ids.join(';'),
+        });
+    }
+
+    private giveKraken(playerId: number) {
+        if(!(this as any).checkAction('giveKraken')) {
+            return;
+        }
+
+        this.takeAction('giveKraken', {
+            playerId,
+        });
+    }
+
+    private goToPlaceSentinel() {
+        if(!(this as any).checkAction('goToPlaceSentinel')) {
+            return;
+        }
+
+        this.takeAction('goToPlaceSentinel');
+    }
+
+    private placeSentinel(location: number, locationArg: number) {
+        if(!(this as any).checkAction('placeSentinel')) {
+            return;
+        }
+
+        this.takeAction('placeSentinel', {
+            location,
+            locationArg,
+        });
+    }
+
+    private giveNebulisTo(playersIds: number[]) {
+        if(!(this as any).checkAction('giveNebulisTo')) {
+            return;
+        }
+
+        this.takeAction('giveNebulisTo', {
+            playersIds: playersIds.join(';'),
+        });
+    }
+
+    private placeKraken(faction: number) {
+        if(!(this as any).checkAction('placeKraken')) {
+            return;
+        }
+
+        this.takeAction('placeKraken', {
+            faction
+        });
     }
 
     public takeAction(action: string, data?: any) {
@@ -1197,46 +1502,52 @@ class Abyss implements AbyssGame {
                 your abyss.game.php file.
 
     */
-    setupNotifications() {
-        // Example 1: standard notification handling
-        dojo.subscribe( 'explore', this, "notif_explore" );
-        dojo.subscribe( 'purchase', this, "notif_purchase" );
-        dojo.subscribe( 'exploreTake', this, "notif_exploreTake" );
-        dojo.subscribe( 'setThreat', this, "notif_setThreat" );
-        dojo.subscribe( 'monsterReward', this, "notif_monsterReward" );
-        dojo.subscribe( 'monsterTokens', this, "notif_monsterTokens" );
-        dojo.subscribe( 'monsterHand', this, "notif_monsterHand" );
-        dojo.subscribe( 'discardCouncil', this, "notif_discardCouncil" );
-        dojo.subscribe( 'requestSupport', this, "notif_requestSupport" );
-        dojo.subscribe( 'requestSupportCards', this, "notif_requestSupportCards" );
-        dojo.subscribe( 'recruit', this, "notif_recruit" );
-        dojo.subscribe( 'refillLords', this, "notif_refillLords" );
-        dojo.subscribe( 'affiliate', this, "notif_affiliate" );
-        dojo.subscribe( 'plot', this, "notif_plot" );
-        dojo.subscribe( 'allyDeckShuffle', this, "notif_allyDeckShuffle" );
-        dojo.subscribe( 'diff', this, "notif_diff" );
-        dojo.subscribe( 'disable', this, "notif_disable" );
-        dojo.subscribe( 'moveLordsRight', this, "notif_moveLordsRight" );
-        dojo.subscribe( 'newLocations', this, "notif_newLocations" );
-        dojo.subscribe( 'control', this, "notif_control" );
-        dojo.subscribe( 'loseLocation', this, "notif_loseLocation" );
-        dojo.subscribe( 'score', this, "notif_score" );
-        dojo.subscribe( 'useLord', this, "notif_useLord" );
-        dojo.subscribe( 'refreshLords', this, "notif_refreshLords" );
-        dojo.subscribe( 'finalRound', this, "notif_finalRound" )
-        dojo.subscribe( 'endGame_scoring', this, "notif_endGame_scoring" );
-        dojo.subscribe( 'payMartialLaw', this, "notif_payMartialLaw" );
-        
-        // Depends on nbr. players
+    setupNotifications() {        
         let num_players = Object.keys(this.gamedatas.players).length;
-        (this as any).notifqueue.setSynchronous( 'endGame_scoring', 5000 * num_players + 3000 );
 
-        // Example 2: standard notification handling + tell the user interface to wait
-        //            during 3 seconds after calling the method in order to let the players
-        //            see what is happening in the game.
-        // dojo.subscribe( 'cardPlayed', this, "notif_cardPlayed" );
-        // this.notifqueue.setSynchronous( 'cardPlayed', 3000 );
-        //
+        const notifs = [
+            ['explore', 1],
+            ['takeAllyFromDiscard', 500],
+            ['purchase', 500],
+            ['exploreTake', 1000],
+            ['setThreat', 1],
+            ['lootReward', 1],
+            ['monsterReward', 1],
+            ['monsterTokens', 1],
+            ['monsterHand', 1],
+            ['discardCouncil', 1],
+            ['requestSupport', 1],
+            ['requestSupportCards', 1],
+            ['recruit', 1],
+            ['refillLords', 1],
+            ['affiliate', 1],
+            ['plot', 1],
+            ['allyDeckShuffle', 1],
+            ['diff', 1],
+            ['disable', 1],
+            ['moveLordsRight', 1],
+            ['newLocations', 1],
+            ['control', 1],
+            ['loseLocation', 1],
+            ['score', 1],
+            ['useLord', 1],
+            ['refreshLords', 1],
+            ['finalRound', 1],
+            ['payMartialLaw', 1],
+            ['newLoot', 500],
+            ['highlightLootsToDiscard', 1000],
+            ['discardLoots', 1],
+            ['searchSanctuaryAlly', 500],
+            ['kraken', 500],
+            ['placeSentinel', 500],
+            ['placeKraken', 500],
+            ['endGame_scoring', 5000 * num_players + 3000],
+        ];
+    
+        notifs.forEach((notif) => {
+            dojo.subscribe(notif[0], this, `notif_${notif[0]}`);
+            (this as any).notifqueue.setSynchronous(notif[0], notif[1]);
+        });
     }
     
     setScoringArrowRow(stage: string) {
@@ -1248,28 +1559,25 @@ class Abyss implements AbyssGame {
             $('scoring-row-' + stage + '-p' + player_id).innerHTML = value;
         }
     
-    setScoringRowWinner(winner_ids: string[]) {
+    setScoringRowWinner(winner_ids: string[], lines: string[]) {
         for (let i in winner_ids) {
             let player_id = winner_ids[i];
             dojo.addClass($('scoring-row-name-p' + player_id), 'wavetext');
             
-            let stages = ['location', 'lord', 'affiliated', 'monster', 'total'];
-            for (let j in stages) {
-                let stage = stages[j];
-                dojo.style($('scoring-row-'+stage+'-p' + player_id), {'backgroundColor': 'rgba(255, 215, 0, 0.3)'});
-            }
+            lines.forEach(stage =>
+                dojo.style($('scoring-row-'+stage+'-p' + player_id), {'backgroundColor': 'rgba(255, 215, 0, 0.3)'})
+            );
         }
     }
     
-    notif_finalRound( notif ) {
+    notif_finalRound( notif: Notif<NotifFinalRoundArgs>) {
         let playerId = notif.args.player_id;
         
         this.gamedatas.game_ending_player = playerId;
         dojo.style($('last-round'), { 'display': 'block' });
     }
     
-    notif_endGame_scoring ( notif: Notif<NotifEndGameScoringArgs> )
-    {
+    notif_endGame_scoring ( notif: Notif<NotifEndGameScoringArgs> ) {
         let breakdowns = notif.args.breakdowns;
         let winnerIds = notif.args.winner_ids;
         
@@ -1277,10 +1585,14 @@ class Abyss implements AbyssGame {
         dojo.style($('last-round'), { 'display': 'none' });
         dojo.style($('game-scoring'), {'display': 'block'});
         
-        let stages = ['location', 'lord', 'affiliated', 'monster', 'total'];
         let currentTime = 0;
-        for (let i in stages) {
-            let stage = stages[i];
+        const lines = ['location', 'lord', 'affiliated', 'monster'];
+        if (this.gamedatas.krakenExpansion) {
+            lines.push('nebulis', 'kraken');
+        }
+        lines.push('total');
+        console.log(breakdowns);
+        lines.forEach(stage => {
             let breakdownStage = stage + '_points';
             if (stage == 'total') {
                 breakdownStage = 'score';
@@ -1291,23 +1603,21 @@ class Abyss implements AbyssGame {
                 setTimeout(this.setScoringRowText.bind(this, stage, player_id, breakdowns[player_id][breakdownStage]), currentTime);
                 currentTime += 1000;
             }
-        }
+        });
         
         // Set winner to be animated!
         currentTime -= 500;
-        setTimeout(this.setScoringRowWinner.bind(this, winnerIds), currentTime);
+        setTimeout(this.setScoringRowWinner.bind(this, winnerIds, lines), currentTime);
     }
 
     notif_useLord( notif: Notif<NotifUseLordArgs> ) {
-        dojo.query(".lord.lord-" + notif.args.lord_id).forEach(node => {
-            dojo.setAttr(node, "data-used", "1");
-        });
+        const lordCard = this.lordManager.getCardElement({ lord_id: notif.args.lord_id } as AbyssLord);
+        lordCard.dataset.used = '1';
+        lordCard.classList.remove('unused');
     }
 
     notif_refreshLords() {
-        dojo.query(".lord").forEach(node => {
-            dojo.setAttr(node, "data-used", "0");
-        });
+        dojo.query(".lord").forEach(node => dojo.setAttr(node, "data-used", "0"));
     }
 
     notif_score( notif: Notif<NotifScoreArgs> ) {
@@ -1322,23 +1632,8 @@ class Abyss implements AbyssGame {
         var lords = notif.args.lords;
         var player_id = notif.args.player_id;
 
-        // Delete the location/lords
-        dojo.query('.location.location-' + location.location_id).forEach(node => dojo.destroy(node));
-        for (var i in lords) {
-            var lord = lords[i];
-            dojo.query('.lord.lord-' + lord.lord_id).forEach(node => dojo.destroy(node));
-        }
-
         // Add the location to the player board
-        var locations_holder = dojo.query('#player-panel-' + player_id + ' .locations')[0];
-        var added_location = this.locationManager.placeWithTooltip(location, locations_holder);
-        this.locationManager.organisePlayerBoard(player_id);
-
-        // Add the lords to the location
-        for (var i in lords) {
-            var lord = lords[i];
-            this.lordManager.placeWithTooltip( lord, dojo.query('.trapped-lords-holder', added_location)[0] );
-        }
+        this.getPlayerTable(player_id).addLocation(location, lords);
         
         this.lordManager.updateLordKeys(player_id);
         
@@ -1350,9 +1645,7 @@ class Abyss implements AbyssGame {
         var player_id = notif.args.player_id;
 
         // Delete the location/lords
-        dojo.query('.location.location-' + location_id).forEach(function (node) {
-        dojo.destroy(node);
-        });
+        dojo.query('.location.location-' + location_id).forEach(node => dojo.destroy(node));
         
         this.lordManager.updateLordKeys(player_id);
         
@@ -1363,11 +1656,11 @@ class Abyss implements AbyssGame {
         var locations = notif.args.locations;
         var deck_size = notif.args.deck_size;
 
-        for (var i in locations) {
-            var location = locations[i];
-            this.locationManager.placeWithTooltip( location, $('locations-holder') );
-        }
-
+        this.visibleLocations.addCards(locations, {
+            fromElement: document.querySelector('.location.location-back'),
+            originalSide: 'back',
+        });
+        this.organiseLocations();
         this.setDeckSize(dojo.query('#locations-holder .location-back'), deck_size);
     }
 
@@ -1383,11 +1676,15 @@ class Abyss implements AbyssGame {
         this.setDeckSize(dojo.query('#explore-track .slot-0'), notif.args.deck_size);
     }
 
-    notif_monsterReward( notif: Notif<NotifMonsterRewardArgs> ) {
+    notif_lootReward( notif: Notif<NotifMonsterRewardArgs> ) {
         var player_id = notif.args.player_id;
-        $('pearlcount_p' + player_id).innerHTML = +($('pearlcount_p' + player_id).innerHTML) + +notif.args.pearls;
+        this.incPearlCount(player_id, +notif.args.pearls);
         $('monstercount_p' + player_id).innerHTML = +($('monstercount_p' + player_id).innerHTML) + +notif.args.monsters;
         $('keycount_p' + player_id).innerHTML = +($('keycount_p' + player_id).innerHTML) + +notif.args.keys;
+    }
+
+    notif_monsterReward( notif: Notif<NotifMonsterRewardArgs>) {
+        this.notif_lootReward(notif);
         this.notif_setThreat({args: {threat: 0}} as Notif<NotifThreatArgs>);
     }
 
@@ -1425,11 +1722,10 @@ class Abyss implements AbyssGame {
         var pearls = +notif.args.pearls;
         var old_lord = notif.args.old_lord;
 
-        $('pearlcount_p' + player_id).innerHTML = +($('pearlcount_p' + player_id).innerHTML) - pearls;
-        let node = this.lordManager.placeWithTooltip( lord, $('lords-track') );
-        dojo.setStyle(node, "left", "13px");
-        requestAnimationFrame(() => {
-        dojo.setStyle(node, "left", "");
+        this.incPearlCount(player_id, -pearls);
+        this.visibleLords.addCard(lord, {
+            fromElement: document.querySelector('.lord.lord-back'),
+            originalSide: 'back',
         });
         this.setDeckSize(dojo.query('#lords-track .slot-0'), deck_size);
 
@@ -1441,15 +1737,15 @@ class Abyss implements AbyssGame {
     notif_affiliate( notif: Notif<NotifAffiliateArgs> ) {
         var ally = notif.args.ally;
         var player_id = notif.args.player_id;
-        this.allyManager.addAffiliated(player_id, ally);
+        this.getPlayerTable(player_id).addAffiliated(ally);
         
         if (notif.args.also_discard) {
             // Also discard this ally from my hand!
             $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) - 1;
 
             // If it's me, also delete the actual ally
-            if (player_id == (this as any).player_id) {
-                dojo.query('#player-panel-'+(this as any).player_id+' .hand .ally[data-ally-id='+ally.ally_id+']').forEach(node => dojo.destroy(node));
+            if (player_id == this.getPlayerId()) {
+                this.getCurrentPlayerTable().removeHandAllies([ally]);
             }
             
         }
@@ -1459,13 +1755,9 @@ class Abyss implements AbyssGame {
 
     notif_explore( notif: Notif<NotifExploreArgs> ) {
         var ally = notif.args.ally;
-        if (ally.faction == null) {
-            ally.faction = 'monster';
-        }
-        let node = this.allyManager.placeWithTooltip(ally, $('explore-track'));
-        dojo.setStyle(node, "left", "9px");
-        requestAnimationFrame(() => {
-            dojo.setStyle(node, "left", "");
+        this.visibleAllies.addCard(ally, {
+            fromElement: document.getElementById('explore-track-deck'),
+            originalSide: 'back',
         });
 
         // Update ally decksize
@@ -1496,40 +1788,29 @@ class Abyss implements AbyssGame {
 
         // For each slot, animate to the council pile, fade out and destroy, then increase the council pile by 1
         var delay = 0;
-        let self = this;
+        const cards = this.visibleAllies.getCards();
         for (var i = 1; i <= 5; i++) {
-            var ally = dojo.query('#explore-track .slot-' + i);
-            if (ally.length > 0) {
-                let theAlly = ally[0];
-                var faction = dojo.attr(theAlly, 'data-faction');
-                dojo.setStyle(theAlly, "transition", "none");
-                if (faction == 'monster') {
+            const ally = cards.find(ally => ally.place == i);
+            if (ally) {
+                const faction = ally.faction;
+                if (faction === null) {
                     // Monster just fades out
-                    (this as any).fadeOutAndDestroy( theAlly, 400, delay );
+                    this.visibleAllies.removeCard(ally);
                     delay += 200;
-                } else if (i != slot) {
+                } else if (i != slot && faction != 10) {
                     // Animate to the council!
                     let deck = dojo.query('#council-track .slot-' + faction);
-                    var animation = (this as any).slideToObject( theAlly, deck[0], 600, delay );
-                    animation.onEnd = function() {
-                        dojo.destroy(theAlly);
-                        var num = +dojo.attr(deck[0], 'data-size') + 1;
-                        self.setDeckSize(deck, num);
-                    };
-                    animation.play();
+                    this.councilStacks[faction].addCard(ally)
+                        .then(() => this.setDeckSize(deck, +dojo.attr(deck[0], 'data-size') + 1));
                     delay += 200;
                 } else {
                     // This is the card that was taken - animate it to hand or player board
-                    if (player_id == (this as any).player_id) {
-                        dojo.setStyle(theAlly, "zIndex", "1");
-                        dojo.setStyle(theAlly, "transition", "none");
-                        var animation = (this as any).slideToObject( theAlly, $('player-hand'), 600, delay );
-                        animation.onEnd = () => {
-                            dojo.destroy(theAlly);
-                            this.allyManager.addHand(player_id, notif.args.ally);
+                    const theAlly = this.allyManager.getCardElement(ally);
+                    if (player_id == this.getPlayerId()) {
+                        setTimeout(() => {
+                            this.getPlayerTable(Number(player_id)).addHandAlly(notif.args.ally, theAlly);
                             $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
-                        };
-                        animation.play();
+                        }, delay);
                         delay += 200;
                     } else {
                         dojo.setStyle(theAlly, "zIndex", "1");
@@ -1549,25 +1830,34 @@ class Abyss implements AbyssGame {
         this.organisePanelMessages();
     }
 
+    notif_takeAllyFromDiscard( notif: Notif<NotifPurchaseArgs> ) {
+        let player_id = notif.args.player_id;
+
+        if (player_id == this.getPlayerId()) {
+            this.getPlayerTable(Number(player_id)).addHandAlly(notif.args.ally, $('game-extra'));
+
+        }
+        $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
+        
+        this.organisePanelMessages();
+    }
+
     notif_purchase( notif: Notif<NotifPurchaseArgs> ) {
         let player_id = notif.args.player_id;
-        let theAlly = dojo.query('#explore-track .slot-' + notif.args.slot)[0];
 
         // Update handsize and pearls of purchasing player
-        $('pearlcount_p' + player_id).innerHTML = +($('pearlcount_p' + player_id).innerHTML) - notif.args.cost;
-        $('pearlcount_p' + notif.args.first_player_id).innerHTML = +($('pearlcount_p' + notif.args.first_player_id).innerHTML) + +notif.args.cost;
+        this.incPearlCount(player_id, -notif.args.incPearls);
+        this.incPearlCount(notif.args.first_player_id, notif.args.incPearls);
+        if (this.gamedatas.krakenExpansion) {
+            this.incNebulisCount(player_id, -notif.args.incNebulis);
+            this.incNebulisCount(notif.args.first_player_id, notif.args.incNebulis);
+        }
 
-        if (player_id == (this as any).player_id) {
-            dojo.setStyle(theAlly, "zIndex", "1");
-            dojo.setStyle(theAlly, "transition", "none");
-            var animation = (this as any).slideToObject( theAlly, $('player-hand'), 600 );
-            animation.onEnd = () => {
-                dojo.destroy(theAlly);
-                this.allyManager.addHand(player_id, notif.args.ally);
-                $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
-            };
-            animation.play();
+        if (player_id == this.getPlayerId()) {
+            this.getPlayerTable(Number(player_id)).addHandAlly(notif.args.ally);
+            $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
         } else {
+            const theAlly = this.allyManager.getCardElement(notif.args.ally);
             dojo.setStyle(theAlly, "zIndex", "1");
             dojo.setStyle(theAlly, "transition", "none");
             var animation = (this as any).slideToObject( theAlly, $('player_board_' + player_id), 600 );
@@ -1589,9 +1879,7 @@ class Abyss implements AbyssGame {
     }
 
     notif_discardCouncil( notif: Notif<NotifDiscardCouncilArgs> ) {
-        var player_id = notif.args.player_id;
         var faction = notif.args.faction;
-        var num = notif.args.num;
 
         // Empty the council pile
         var deck = dojo.query('#council-track .slot-' + faction);
@@ -1606,7 +1894,7 @@ class Abyss implements AbyssGame {
         this.setDeckSize(deck, 0);
 
         // Add cards to the player's hand
-        if (player_id != (this as any).player_id) {
+        if (player_id != this.getPlayerId()) {
         for (var i = 0; i < num; i++) {
             var anim = (this as any).slideTemporaryObject( this.allyManager.renderBack(), 'council-track', 'council-track-' + faction, $('player_board_' + player_id), 600, i * 200 );
             dojo.connect(anim, 'onEnd', () => {
@@ -1627,97 +1915,66 @@ class Abyss implements AbyssGame {
 
         // Add cards to the player's hand
         var delay = 0;
-        for (var j in allies) {
-            let ally = allies[j];
-            var anim = (this as any).slideTemporaryObject( this.allyManager.render(ally), 'council-track', 'council-track-' + faction, $('player-hand'), 600, delay );
-            dojo.connect(anim, 'onEnd', () => 
-                this.allyManager.addHand(player_id, ally)
-            );
-            delay += 200;
-        }
-        
-        this.organisePanelMessages();
+        const ROTATIONS = [-25, -10, 0, 13, 28];
+        allies.forEach(ally => {
+            setTimeout(() => {
+                this.getPlayerTable(Number(player_id)).addHandAlly(ally, document.getElementById('council-track-' + faction), 'back', ROTATIONS[faction]);
+                this.organisePanelMessages();
+            }, delay);
+            delay += 250;
+        });
     }
 
-    notif_moveLordsRight() {
-        // Shuffle everything right
-        var num = dojo.query("#lords-track .lord").length - 1;
-        for (var i = 6; i >= 1; i--) {
-        // Go back from here, and move the first lord we find into this slot
-        for (var j = i; j >= 1; j--) {
-            var potential = dojo.query("#lords-track .lord.slot-" + j);
-            if (potential.length > 0) {
-                dojo.removeClass(potential[0], 'slot-' + j);
-                dojo.addClass(potential[0], 'slot-' + i);
-                break;
-                }
-            }
-        }
+    notif_moveLordsRight(notif: Notif<any>) {
+        this.visibleLords.addCards(notif.args.lords);
     }
 
     notif_recruit( notif: Notif<NotifRecruitArgs> ) {
         var lord = notif.args.lord;
         var player_id = +notif.args.player_id;
-        var spent_pearls = +notif.args.spent_pearls;
         var spent_lords = notif.args.spent_lords;
         var spent_allies = notif.args.spent_allies;
-
-        // Remove lord from the track
-        if (lord) {
-        dojo.query("#lords-track .lord[data-lord-id=" + lord.lord_id + "]").forEach(node => dojo.destroy(node));
-        }
 
         // Spend pearls and allies
         if (spent_allies) {
             $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) - spent_allies.length;
         }
-        if (spent_pearls) {
-            $('pearlcount_p' + player_id).innerHTML = +($('pearlcount_p' + player_id).innerHTML) - spent_pearls;
+        if (notif.args.incPearls) {
+            this.incPearlCount(player_id, -notif.args.incPearls);
+        }
+        if (this.gamedatas.krakenExpansion && notif.args.incNebulis) {
+            this.incNebulisCount(player_id, -notif.args.incNebulis);
         }
 
         // If it's me, then actually get rid of the allies
-        if (spent_allies && +player_id == +(this as any).player_id) {
-            for (var i in spent_allies) {
-                var ally = spent_allies[i];
-                dojo.query('#player-panel-'+player_id+' .hand .ally[data-ally-id='+ally.ally_id+']').forEach(node => dojo.destroy(node));
-            }
+        if (spent_allies && player_id == this.getPlayerId()) {
+            this.getCurrentPlayerTable().removeHandAllies(spent_allies);
         }
 
         if (spent_lords) {
-            for (var i in spent_lords) {
-                var lord2 = spent_lords[i];
-                dojo.query('#player-panel-'+player_id+' .lord[data-lord-id='+lord2.lord_id+']').forEach(node => dojo.destroy(node));
-            }
+            this.getPlayerTable(player_id).removeLords(spent_lords);
         }
 
         // Add the lord
         if (lord) {
-            this.lordManager.placeWithTooltip( lord, dojo.query('#player-panel-'+player_id+' .free-lords')[0] );
+            this.getPlayerTable(player_id).addLord(lord);
         }
         
         this.lordManager.updateLordKeys(player_id);
         this.organisePanelMessages();
     }
 
-    notif_refillLords( notif: Notif<NotifRefillLordsArgs> ) {
+    notif_refillLords(notif: Notif<NotifRefillLordsArgs>) {
         var lords = notif.args.lords;
-        var player_id = +notif.args.player_id;
         var deck_size = notif.args.deck_size;
-        for (var i in lords) {
-            var lord = lords[i];
-            if (dojo.query("#lords-track .lord[data-lord-id=" + lord.lord_id + "]").length == 0) {
-                let node = this.lordManager.placeWithTooltip( lord, $('lords-track') );
-                dojo.setStyle(node, "left", "13px");
-                requestAnimationFrame(() => {
-                    dojo.setStyle(node, "left", "");
-                });
-            }
-        }
+        this.visibleLords.addCards(lords, {
+            fromElement: document.querySelector('.lord.lord-back'),
+            originalSide: 'back',
+        });
         this.setDeckSize(dojo.query('#lords-track .slot-0'), deck_size);
     }
 
-    notif_diff( notif: Notif<NotifDiffArgs> )
-    {
+    notif_diff( notif: Notif<NotifDiffArgs> ) {
         var player_id = +notif.args.player_id;
         var source = notif.args.source;
         var source_player_id = null;
@@ -1727,26 +1984,25 @@ class Abyss implements AbyssGame {
         // TODO : Animate based on 'source'
         // If source starts "lord_" animate to the lord
         if (notif.args.pearls) {
-        var pearls = notif.args.pearls;
-        $('pearlcount_p' + player_id).innerHTML = +($('pearlcount_p' + player_id).innerHTML) + +pearls;
+            this.incPearlCount(player_id, notif.args.pearls);
+        }
+        if (notif.args.nebulis) {
+            this.incNebulisCount(player_id, notif.args.nebulis);
         }
 
         if (notif.args.keys) {
-        var keys = notif.args.keys;
-        $('keycount_p' + player_id).innerHTML = +($('keycount_p' + player_id).innerHTML) + +keys;
-        }
-
-        if (notif.args.allies_lost) {
-        var allies = notif.args.allies_lost;
-        $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) - +allies.length;
-
-        // If it's me, also delete the actual ally
-        if (notif.args.player_id == (this as any).player_id) {
-            for (var i in allies) {
-                var ally = allies[i];
-                dojo.query('#player-panel-'+(this as any).player_id+' .hand .ally[data-ally-id='+ally.ally_id+']').forEach(node => dojo.destroy(node));
+            var keys = notif.args.keys;
+            $('keycount_p' + player_id).innerHTML = +($('keycount_p' + player_id).innerHTML) + +keys;
             }
-        }
+
+            if (notif.args.allies_lost) {
+            var allies = notif.args.allies_lost;
+            $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) - +allies.length;
+
+            // If it's me, also delete the actual ally
+            if (notif.args.player_id == this.getPlayerId()) {
+                this.getCurrentPlayerTable().removeHandAllies(allies);
+            }
         }
 
         if (notif.args.monster) {
@@ -1789,7 +2045,40 @@ class Abyss implements AbyssGame {
     }
 
     notif_payMartialLaw(notif: Notif<NotifPayMartialLawArgs>) {
-        const playerId = notif.args.playerId;
-        $('pearlcount_p' + playerId).innerHTML = +($('pearlcount_p' + playerId).innerHTML) - notif.args.spentPearls;
+        this.incPearlCount(notif.args.playerId, -notif.args.spentPearls);
     }
+
+    notif_newLoot(notif: Notif<NotifNewLootArgs>) {
+        this.locationManager.addLoot(notif.args.locationId, notif.args.newLoot);
+    }
+
+    notif_highlightLootsToDiscard(notif: Notif<NotifDiscardLootsArgs>) {
+        this.locationManager.highlightLootsToDiscard(notif.args.locationId, notif.args.loots);
+    }
+
+    notif_discardLoots(notif: Notif<NotifDiscardLootsArgs>) {
+        this.locationManager.discardLoots(notif.args.locationId, notif.args.loots);
+    }
+
+    notif_searchSanctuaryAlly(notif: Notif<NotifSearchSanctuaryAllyArgs>) {
+        this.getPlayerTable(notif.args.playerId).addHandAlly(notif.args.ally, document.getElementById('explore-track-deck'));
+
+        this.setDeckSize(dojo.query('#explore-track .slot-0'), notif.args.deck_size);
+    }
+
+    notif_kraken(notif: Notif<any>) {
+        this.placeKrakenToken(notif.args.playerId);
+    }
+
+    notif_placeSentinel(notif: Notif<NotifPlaceSentinelArgs>) {
+        this.placeSentinelToken(notif.args.playerId, notif.args.lordId, notif.args.location, notif.args.locationArg);
+    }
+
+    notif_placeKraken(notif: Notif<NotifPlaceKrakenArgs>) {
+        this.councilStacks[notif.args.faction].addCard(notif.args.ally);
+
+        var deck = dojo.query('#council-track .slot-' + notif.args.faction);
+        this.setDeckSize(deck, notif.args.deckSize);
+    }
+
 }

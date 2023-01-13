@@ -16,10 +16,10 @@
       <tr id="scoring-row-affiliated">
         <td class="first-column"><span class="arrow">→</span><i id="scoring-affiliated-icon" class="icon icon-affiliated-ally"></i></td>
       </tr>
-      <tr id="scoring-row-monster" class="line-below">
+      <tr id="scoring-row-monster">
         <td class="first-column"><span class="arrow">→</span><i id="scoring-monster-tokens-icon" class="icon icon-monster"></i></td>
       </tr>
-      <tr id="scoring-row-total">
+      <tr id="scoring-row-total" class="line-above">
         <td id="text-total" class="first-column"></td>
       </tr>
     </table>
@@ -28,33 +28,35 @@
   <div id="game-board-holder">
     <div id="game-board" class="board">
       <div id="council-track">
-        <div id="council-track-0" class="ally ally-back slot-0 deck-empty" data-faction="0">
+        <div id="council-track-0" class="ally ally-side ally-back slot-0 deck-empty" data-faction="0">
           <span class="deck-size"></span>
         </div>
-        <div id="council-track-1" class="ally ally-back slot-1 deck-empty" data-faction="1">
+        <div id="council-track-1" class="ally ally-side ally-back slot-1 deck-empty" data-faction="1">
           <span class="deck-size"></span>
         </div>
-        <div id="council-track-2" class="ally ally-back slot-2 deck-empty" data-faction="2">
+        <div id="council-track-2" class="ally ally-side ally-back slot-2 deck-empty" data-faction="2">
           <span class="deck-size"></span>
         </div>
-        <div id="council-track-3" class="ally ally-back slot-3 deck-empty" data-faction="3">
+        <div id="council-track-3" class="ally ally-side ally-back slot-3 deck-empty" data-faction="3">
           <span class="deck-size"></span>
         </div>
-        <div id="council-track-4" class="ally ally-back slot-4 deck-empty" data-faction="4">
+        <div id="council-track-4" class="ally ally-side ally-back slot-4 deck-empty" data-faction="4">
           <span class="deck-size"></span>
         </div>
       </div>
       <div id="explore-track">
-        <div class="ally ally-back slot-0 slot-fake">
+        <div class="ally ally-side ally-back slot-0 slot-fake">
         </div>
-        <div id="explore-track-deck" class="ally ally-back slot-0 deck-full">
+        <div id="explore-track-deck" class="ally ally-side ally-back slot-0 deck-full">
           <span class="deck-size"></span>
         </div>
+        <div id="visible-allies-stock"></div>
       </div>
       <div id="lords-track">
-        <div class="lord lord-back slot-0 deck-full">
+        <div class="lord lord-side lord-back slot-0 deck-full">
           <span class="deck-size"></span>
         </div>
+        <div id="visible-lords-stock"></div>
         <div id="bonus-pearls-holder">
           <i class="icon icon-pearl"></i>
           <i class="icon icon-pearl"></i>
@@ -69,6 +71,8 @@
       <div id="locations-holder" class="board">
         <div class="location board location-back">
           <span class="deck-size"></span>
+        </div>
+        <div id="visible-locations-stock">
         </div>
       </div>
     </div>
