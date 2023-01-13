@@ -492,7 +492,7 @@ trait ActionTrait {
             throw new BgaUserException( sprintf(self::_("You must use exactly %d different faction(s)."), $lord['diversity']) );
         }
 
-        $purchase_cost = $shortfall;
+        $purchase_cost = max(0, $shortfall);
         $player_pearls = self::getPlayerPearls($player_id);
         $player_nebulis = $withNebulis ? self::getPlayerNebulis($player_id) : 0;
 
