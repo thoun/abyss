@@ -69,7 +69,7 @@
     </div>
     <div id="locations-holder-holder" class="board">
       <div id="locations-holder" class="board">
-        <div class="location board location-back">
+        <div class="location location-side board location-back">
           <span class="deck-size"></span>
         </div>
         <div id="visible-locations-stock">

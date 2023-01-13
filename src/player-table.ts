@@ -57,7 +57,7 @@ class PlayerTable {
         this.locations.onCardClick = card => this.game.onClickPlayerLocation(card);
         player.locations.forEach(location => this.addLocation(location, player.lords.filter(lord => lord.location == location.location_id)));
 
-        this.game.lordManager.updateLordKeys(this.playerId);
+        this.game.lordManager.updateLordKeys(this.playerId, this);
         $('lordcount_p' + this.playerId).innerHTML = ''+player.lords.length;
     }
     

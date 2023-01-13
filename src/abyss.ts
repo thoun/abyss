@@ -428,11 +428,10 @@ class Abyss implements AbyssGame {
         if ((this as any).isCurrentPlayerActive()) {
             dojo.query("#locations-holder .location:not(.location-back)").addClass("unavailable");
             dojo.query("#locations-holder-overflow .location:not(.location-back)").addClass("unavailable");
-            for( var iLocationId in args.location_ids ) {
-                var location_id = args.location_ids[iLocationId];
-                dojo.query("#locations-holder .location.location-" + location_id).removeClass("unavailable");
-                dojo.query("#locations-holder-overflow .location.location-" + location_id).removeClass("unavailable");
-            }
+
+            args.location_ids.forEach(location_id => 
+                    this.locationManager.getCardElement({ location_id } as AbyssLocation).classList.remove('unavailable')
+            );
         }
     }
 

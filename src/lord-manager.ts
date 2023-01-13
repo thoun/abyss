@@ -111,12 +111,11 @@ class LordManager extends CardManager<AbyssLord> {
     </div>`;
   }
 
-  public updateLordKeys(playerId: number) {
-    const playerTable = this.game.getPlayerTable(playerId);
+  public updateLordKeys(playerId: number, playerTable: PlayerTable = this.game.getPlayerTable(playerId)) {
     if (playerTable) {
       const lords = playerTable.getFreeLords();
       const keys = lords.map(lord => lord.keys).reduce((a, b) => a + b, 0);
-      $('lordkeycount_p' + playerId).innerHTML = keys;
+      document.getElementById(`lordkeycount_p${playerId}`).innerHTML = `${keys}`;
     }
   }
 }

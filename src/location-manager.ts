@@ -41,12 +41,12 @@ class LocationManager extends CardManager<AbyssLocation> {
         this.lordsStocks[location.location_id].onCardClick = card => this.game.onClickPlayerLockedLord(card);
         div.prepend(lordHolder);
 
-        div.classList.add(`location`, `location-${location.location_id}`, `board`);
+        div.classList.add(`location`, `board`);
         div.dataset.locationId = `${location.location_id}`;
       },
       setupFrontDiv: (location, div) => {
         var desc = this.makeDesc(location, true);
-        div.classList.add(`location-${location.location_id}`);
+        div.classList.add('location-side', `location-${location.location_id}`);
         div.innerHTML = `
         <div class="location-clicker"></div>
         <span class="location-name">${_(location.name)}</span>
@@ -65,6 +65,9 @@ class LocationManager extends CardManager<AbyssLocation> {
           }
         }
       },
+      setupBackDiv: (location, div) => {
+        div.classList.add('location-side', 'location-back');
+      }
     });
   }
 

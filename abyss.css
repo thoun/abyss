@@ -317,8 +317,6 @@ html body #game-holder .slot-fake {
   display: block;
   width: 350px; /* 370 / 420 */
   height: 106px; /* 112 / 127 */
-  background-image: url(img/locations.png);
-  background-size: 900% 302%;
   margin-bottom: 10px;
   color: white;
   user-select: none;
@@ -329,7 +327,13 @@ html body #game-holder .slot-fake {
   /* 12.5% for each horizontal, 50% for each vertical */
 }
 
-.location {
+.location-side {
+  background-image: url(img/locations.png);
+  background-size: 900% 302%;
+  /* 12.5% for each horizontal, 50% for each vertical */
+}
+
+.location, .location .card-side {
   box-shadow: none !important;
 }
 

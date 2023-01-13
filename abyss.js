@@ -1014,12 +1014,12 @@ var LordManager = /** @class */ (function (_super) {
         }
         return "<div class=\"abs-tooltip-lord\">\n      <span style=\"float: right\">".concat(_(lord.points), " <i class=\"fa fa-star\"></i>").concat(keysString, "</span>\n      <h3 style=\"padding-right: 60px;\">").concat(_(lord.name), "</h3>\n      ").concat(factionSection, "\n      <span style=\"font-size: smaller\"><b>").concat(costString, ": </b> ").concat(costNumber, " ").concat(diversitySection, "</span>\n      ").concat(descSection, "\n    </div>");
     };
-    LordManager.prototype.updateLordKeys = function (playerId) {
-        var playerTable = this.game.getPlayerTable(playerId);
+    LordManager.prototype.updateLordKeys = function (playerId, playerTable) {
+        if (playerTable === void 0) { playerTable = this.game.getPlayerTable(playerId); }
         if (playerTable) {
             var lords = playerTable.getFreeLords();
             var keys = lords.map(function (lord) { return lord.keys; }).reduce(function (a, b) { return a + b; }, 0);
-            $('lordkeycount_p' + playerId).innerHTML = keys;
+            document.getElementById("lordkeycount_p".concat(playerId)).innerHTML = "".concat(keys);
         }
     };
     return LordManager;
@@ -1061,13 +1061,13 @@ var LocationManager = /** @class */ (function (_super) {
                 _this.lordsStocks[location.location_id] = new LineStock(_this.lordManager, lordHolder);
                 _this.lordsStocks[location.location_id].onCardClick = function (card) { return _this.game.onClickPlayerLockedLord(card); };
                 div.prepend(lordHolder);
-                div.classList.add("location", "location-".concat(location.location_id), "board");
+                div.classList.add("location", "board");
                 div.dataset.locationId = "".concat(location.location_id);
             },
             setupFrontDiv: function (location, div) {
                 var _a;
                 var desc = _this.makeDesc(location, true);
-                div.classList.add("location-".concat(location.location_id));
+                div.classList.add('location-side', "location-".concat(location.location_id));
                 div.innerHTML = "\n        <div class=\"location-clicker\"></div>\n        <span class=\"location-name\">".concat(_(location.name), "</span>\n        <span class=\"location-desc\">").concat(desc, "</span>\n        <div class=\"\"></div>\n        ");
                 _this.game.connectTooltip(div, _this.renderTooltip(location), "location");
                 if ([103, 104, 105, 106].includes(location.location_id)) {
@@ -1078,6 +1078,9 @@ var LocationManager = /** @class */ (function (_super) {
                     }
                 }
             },
+            setupBackDiv: function (location, div) {
+                div.classList.add('location-side', 'location-back');
+            }
         }) || this;
         _this.game = game;
         _this.lordManager = lordManager;
@@ -1201,7 +1204,7 @@ var PlayerTable = /** @class */ (function () {
         });
         this.locations.onCardClick = function (card) { return _this.game.onClickPlayerLocation(card); };
         player.locations.forEach(function (location) { return _this.addLocation(location, player.lords.filter(function (lord) { return lord.location == location.location_id; })); });
-        this.game.lordManager.updateLordKeys(this.playerId);
+        this.game.lordManager.updateLordKeys(this.playerId, this);
         $('lordcount_p' + this.playerId).innerHTML = '' + player.lords.length;
     }
     PlayerTable.prototype.addHandAlly = function (ally, fromElement, originalSide, rotationDelta) {
@@ -1670,15 +1673,14 @@ var Abyss = /** @class */ (function () {
         }
     };
     Abyss.prototype.onEnteringControlPostDraw = function (args) {
+        var _this = this;
         // Fade out the locations you can't buy
         if (this.isCurrentPlayerActive()) {
             dojo.query("#locations-holder .location:not(.location-back)").addClass("unavailable");
             dojo.query("#locations-holder-overflow .location:not(.location-back)").addClass("unavailable");
-            for (var iLocationId in args.location_ids) {
-                var location_id = args.location_ids[iLocationId];
-                dojo.query("#locations-holder .location.location-" + location_id).removeClass("unavailable");
-                dojo.query("#locations-holder-overflow .location.location-" + location_id).removeClass("unavailable");
-            }
+            args.location_ids.forEach(function (location_id) {
+                return _this.locationManager.getCardElement({ location_id: location_id }).classList.remove('unavailable');
+            });
         }
     };
     Abyss.prototype.onEnteringControl = function (args) {
