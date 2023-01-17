@@ -415,10 +415,8 @@ class Abyss implements AbyssGame {
     private onEnteringLord116(args: EnteringLord116Args) {
         // Put a green border around selectable lords
         if ((this as any).isCurrentPlayerActive()) {
-            console.log(args.lords);
             args.lords.forEach(lord => 
-                dojo.query(`.lord[data-lord-id="${lord.lord_id}"]`).addClass('selectable')
-                //this.lordManager.getCardElement(lord).classList.add('selectable')
+                this.lordManager.getCardElement(lord).classList.add('selectable')
             );
         }
     }

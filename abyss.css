@@ -473,7 +473,6 @@ html body #game-holder .slot-fake {
 }
 
 .location .lord {
-  z-index: -1;
   position: relative;
   pointer-events: auto;
 }
@@ -482,6 +481,7 @@ html body #game-holder .slot-fake {
   position: relative;
   top: -45px;
   text-align: center;
+  z-index: -1;
 }
 
 /* LORDS */

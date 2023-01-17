@@ -1662,14 +1662,12 @@ var Abyss = /** @class */ (function () {
         }
     };
     Abyss.prototype.onEnteringLord116 = function (args) {
+        var _this = this;
         // Put a green border around selectable lords
         if (this.isCurrentPlayerActive()) {
-            console.log(args.lords);
             args.lords.forEach(function (lord) {
-                return dojo.query(".lord[data-lord-id=\"".concat(lord.lord_id, "\"]")).addClass('selectable');
-            }
-            //this.lordManager.getCardElement(lord).classList.add('selectable')
-            );
+                return _this.lordManager.getCardElement(lord).classList.add('selectable');
+            });
         }
     };
     Abyss.prototype.onEnteringControlPostDraw = function (args) {
