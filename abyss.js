@@ -2141,18 +2141,19 @@ var Abyss = /** @class */ (function () {
             }
         }
     };
-    Abyss.prototype.getSentinelToken = function (lordId) {
+    Abyss.prototype.getSentinelToken = function (playerId, lordId) {
         var div = document.getElementById("sentinel-".concat(lordId));
         if (!div) {
             div = document.createElement('div');
             div.id = "sentinel-".concat(lordId);
             div.classList.add('sentinel-token');
             div.dataset.lordId = "".concat(lordId);
+            div.dataset.currentPlayer = (playerId == this.getPlayerId()).toString();
         }
         return div;
     };
     Abyss.prototype.placeSentinelToken = function (playerId, lordId, location, locationArg) {
-        var sentinel = this.getSentinelToken(lordId);
+        var sentinel = this.getSentinelToken(playerId, lordId);
         var parentElement = sentinel.parentElement;
         switch (location) {
             case 'player':

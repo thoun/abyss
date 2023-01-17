@@ -1111,6 +1111,14 @@ html a.bgabutton.affiliate-button:hover {
   }
 }
 
+#council-track .sentinel-token, .location .sentinel-token, .lord .sentinel-token {
+  cursor: not-allowed;
+  
+  &[data-current-player="true"] {
+    pointer-events: none;
+  }
+}
+
 #visible-allies-stock {
   left: 121px;
   width: 512px;
@@ -1170,4 +1178,8 @@ html a.bgabutton.affiliate-button:hover {
 
 .abs-tooltip .race-shadow {
   text-shadow: 0 0 1px var(--race-color), 0 0 5px var(--race-color);
+}
+
+.deck-size {
+  user-select: none;
 }

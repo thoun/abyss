@@ -914,19 +914,20 @@ class Abyss implements AbyssGame {
         }
     }
 
-    private getSentinelToken(lordId: number) {
+    private getSentinelToken(playerId: number, lordId: number) {
         let div = document.getElementById(`sentinel-${lordId}`);
         if (!div) {
             div = document.createElement('div');
             div.id = `sentinel-${lordId}`;
             div.classList.add('sentinel-token');
             div.dataset.lordId = `${lordId}`;
+            div.dataset.currentPlayer = (playerId == this.getPlayerId()).toString();
         }
         return div;
     }
 
     private placeSentinelToken(playerId: number, lordId: number, location: string, locationArg: number) {
-        const sentinel = this.getSentinelToken(lordId);
+        const sentinel = this.getSentinelToken(playerId, lordId);
         const parentElement = sentinel.parentElement;
 
         switch (location) {
