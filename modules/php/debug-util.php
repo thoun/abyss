@@ -17,7 +17,8 @@ trait DebugUtilTrait {
 		//$this->debugPickAllies(2343493);
 
 		$this->debugAddLocations(2343492);
-		//$this->debugAddLord(2343492);
+		$this->debugAddLord(2343492);
+		$this->debugAddAffiliated(2343492);
 
 		//$this->DbQuery("UPDATE player SET player_nebulis = 3");
 		//$this->DbQuery("UPDATE player SET player_pearls = 10");
@@ -31,6 +32,13 @@ trait DebugUtilTrait {
 		for ($i=0; $i<$number; $i++) {
 			$ally = Ally::draw();
 			self::DbQuery( "UPDATE ally SET place = ".($ally['faction'] == null ? 0 : ($playerId * -1))." WHERE ally_id = " . $ally["ally_id"] );
+		}
+	}
+
+	function debugAddAffiliated(int $playerId, int $number = 5) {
+		for ($i=0; $i<$number; $i++) {
+			$ally = Ally::draw();
+			self::DbQuery( "UPDATE ally SET place = ".($ally['faction'] == null ? 0 : ($playerId * -1)).", affiliated = true WHERE ally_id = " . $ally["ally_id"] );
 		}
 	}
 
