@@ -522,9 +522,10 @@ trait StateTrait {
                                 $transition = "lord_104";
                             } else {
                                 foreach ($opponentsIds as $opponentId) {
-                                    $this->incPlayerNebulis($opponentId, 1, "lord_104");
+                                    $this->incPlayerNebulis($opponentId, 1, "lord_104", false);
                                 }
-                                $this->incPlayerNebulis($player_id, -count($opponentsIds), "lord_104");
+                                $this->incPlayerNebulis($player_id, -count($opponentsIds), "lord_104", false);
+                                $this->checkNewKrakenOwner();
                             }
                         }
                         break;

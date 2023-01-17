@@ -1502,9 +1502,10 @@ trait ActionTrait {
         $playerId = intval($this->getActivePlayerId());
 
         foreach ($opponentsIds as $opponentId) {
-            $this->incPlayerNebulis($opponentId, 1, "lord_104");
+            $this->incPlayerNebulis($opponentId, 1, "lord_104", false);
         }
-        $this->incPlayerNebulis($playerId, -count($opponentsIds), "lord_104");
+        $this->incPlayerNebulis($playerId, -count($opponentsIds), "lord_104", false);
+        $this->checkNewKrakenOwner();
 
         $this->gamestate->nextState('next');
     }

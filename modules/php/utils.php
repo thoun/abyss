@@ -174,7 +174,7 @@ trait UtilTrait {
         $this->setGlobalVariable(MUST_SELECT_NEW_PLAYER_FOR_KRAKEN, $mustSelectNewPlayer ? $giveTo : []);
     }
 
-    function incPlayerNebulis(int $player_id, int $diff, string $source) {
+    function incPlayerNebulis(int $player_id, int $diff, string $source = '', bool $checkNewKrakenOwner = true) {
         self::DbQuery( "UPDATE player SET player_nebulis = player_nebulis + $diff WHERE player_id = $player_id" );
         $players = self::loadPlayersBasicInfos();
         $message = '';
@@ -205,7 +205,9 @@ trait UtilTrait {
         }
         self::notifyAllPlayers( "diff", $message, $params );
 
-        $this->checkNewKrakenOwner();
+        if ($checkNewKrakenOwner) {
+            $this->checkNewKrakenOwner();
+        }
     }
 
     function incPlayerKeys(int $player_id, int $diff, string $source) {
