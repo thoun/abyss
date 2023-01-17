@@ -72,18 +72,17 @@ class PlayerTable {
     }
     
     public removeHandAllies(allies: AbyssAlly[]) {
-        allies.forEach(ally => this.game.allyManager.removeCard(ally));
+        this.hand.removeCards(allies);
     }
     
     public organisePanelMessages() {
-        const i = this.playerId;
         // Do they have any Lords?
-        const lords = dojo.query('.lord', $('player-panel-' + i));
-        $('no-lords-msg-p' + i).style.display = lords.length > 0 ? 'none' : 'block';
+        const lords = dojo.query('.lord', $('player-panel-' + this.playerId));
+        $('no-lords-msg-p' + this.playerId).style.display = lords.length > 0 ? 'none' : 'block';
         
         // Affiliated?
         const affiliated = this.getAffiliatedAllies();
-        $('no-affiliated-msg-p' + i).style.display = affiliated.length > 0 ? 'none' : 'block';
+        $('no-affiliated-msg-p' + this.playerId).style.display = affiliated.length > 0 ? 'none' : 'block';
         
         if (this.currentPlayer) {
             // Hand?

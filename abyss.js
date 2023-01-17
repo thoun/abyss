@@ -11,7 +11,6 @@ function stockSlideAnimation(settings) {
         var destinationBR = settings.element.getBoundingClientRect();
         var deltaX = (destinationBR.left + destinationBR.right) / 2 - (originBR.left + originBR.right) / 2;
         var deltaY = (destinationBR.top + destinationBR.bottom) / 2 - (originBR.top + originBR.bottom) / 2;
-        settings.element.offsetHeight;
         settings.element.style.zIndex = '10';
         settings.element.style.transform = "translate(".concat(-deltaX, "px, ").concat(-deltaY, "px) rotate(").concat((_a = settings.rotationDelta) !== null && _a !== void 0 ? _a : 0, "deg)");
         var side = settings.element.dataset.side;
@@ -190,6 +189,10 @@ var CardStock = /** @class */ (function () {
         else {
             this.cards.push(card);
         }
+        if (!promise) {
+            console.warn("CardStock.addCard didn't return a Promise");
+            return Promise.resolve(false);
+        }
         return promise;
     };
     CardStock.prototype.getNewCardIndex = function (card) {
@@ -232,6 +235,10 @@ var CardStock = /** @class */ (function () {
         if (animation.fromStock != this) {
             animation.fromStock.removeCard(card);
         }
+        if (!promise) {
+            console.warn("CardStock.moveFromOtherStock didn't return a Promise");
+            promise = Promise.resolve(false);
+        }
         return promise;
     };
     CardStock.prototype.moveFromElement = function (card, cardElement, animation, settings) {
@@ -257,6 +264,13 @@ var CardStock = /** @class */ (function () {
                     animation: animation.animation,
                 });
             }
+        }
+        else {
+            promise = Promise.resolve(false);
+        }
+        if (!promise) {
+            console.warn("CardStock.moveFromElement didn't return a Promise");
+            promise = Promise.resolve(false);
         }
         return promise;
     };
@@ -688,16 +702,14 @@ var VoidStock = /** @class */ (function (_super) {
         var cardElement = this.getCardElement(card);
         cardElement.style.left = "".concat((this.element.clientWidth - cardElement.clientWidth) / 2, "px");
         cardElement.style.top = "".concat((this.element.clientHeight - cardElement.clientHeight) / 2, "px");
-        if (promise) {
-            return promise.then(function (result) {
-                _this.removeCard(card);
-                return result;
-            });
+        if (!promise) {
+            console.warn("VoidStock.addCard didn't return a Promise");
+            promise = Promise.resolve(false);
         }
-        else {
-            console.warn('!promise', card, animation, settings);
-            return Promise.resolve(false);
-        }
+        return promise.then(function (result) {
+            _this.removeCard(card);
+            return result;
+        });
     };
     return VoidStock;
 }(CardStock));
@@ -784,11 +796,14 @@ var CardManager = /** @class */ (function () {
         return document.getElementById(this.getId(card));
     };
     CardManager.prototype.removeCard = function (card) {
+        var _a;
         var id = this.getId(card);
         var div = document.getElementById(id);
         if (!div) {
             return;
         }
+        // if the card is in a stock, notify the stock about removal
+        (_a = this.getCardStock(card)) === null || _a === void 0 ? void 0 : _a.cardRemoved(card);
         div.id = "deleted".concat(id);
         // TODO this.removeVisibleInformations(div);
         div.remove();
@@ -1216,17 +1231,15 @@ var PlayerTable = /** @class */ (function () {
         this.game.organisePanelMessages();
     };
     PlayerTable.prototype.removeHandAllies = function (allies) {
-        var _this = this;
-        allies.forEach(function (ally) { return _this.game.allyManager.removeCard(ally); });
+        this.hand.removeCards(allies);
     };
     PlayerTable.prototype.organisePanelMessages = function () {
-        var i = this.playerId;
         // Do they have any Lords?
-        var lords = dojo.query('.lord', $('player-panel-' + i));
-        $('no-lords-msg-p' + i).style.display = lords.length > 0 ? 'none' : 'block';
+        var lords = dojo.query('.lord', $('player-panel-' + this.playerId));
+        $('no-lords-msg-p' + this.playerId).style.display = lords.length > 0 ? 'none' : 'block';
         // Affiliated?
         var affiliated = this.getAffiliatedAllies();
-        $('no-affiliated-msg-p' + i).style.display = affiliated.length > 0 ? 'none' : 'block';
+        $('no-affiliated-msg-p' + this.playerId).style.display = affiliated.length > 0 ? 'none' : 'block';
         if (this.currentPlayer) {
             // Hand?
             var hand = this.hand.getCards();
