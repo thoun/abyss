@@ -352,26 +352,41 @@ $machinestates = array(
  			"transitions" => array( "next" => ST_PLAYER_MARTIAL_LAW, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_CLEANUP_DISCARD )
  	),
 
- 	ST_PLAYER_CONTROL_POST_DRAW => array(
- 			"name" => "controlPostDraw",
+ 	ST_PLAYER_CONTROL_POST_DRAW => [
+ 		"name" => "controlPostDraw",
   		"description" => clienttranslate('${actplayer} must choose a Location to control'),
- 			"descriptionmyturn" => clienttranslate('${you} must choose a Location to control'),
- 			"type" => "activeplayer",
+		"descriptionmyturn" => clienttranslate('${you} must choose a Location to control'),
+		"type" => "activeplayer",
   		"args" => "argControlPostDraw",
-		"possibleactions" => array( "chooseLocation"/*, "lordEffect"*/ ),
- 			"transitions" => array( "chooseLocation" => ST_PRE_CONTROL, "locationEffectBlackSmokers" => ST_PLAYER_LOCATION_EFFECT_BLACK_SMOKERS, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PLAYER_MARTIAL_LAW, "loopback" => ST_PLAYER_CONTROL_POST_DRAW )
- 	),
+		"possibleactions" => [ "chooseLocation"/*, "lordEffect"*/ ],
+ 		"transitions" => [
+			"chooseLocation" => ST_PRE_CONTROL, 
+			"locationEffectBlackSmokers" => ST_PLAYER_LOCATION_EFFECT_BLACK_SMOKERS, 			
+			"fillSanctuary" => ST_PLAYER_FILL_SANCTUARY,
+			"lord_17" => ST_PLAYER_LORD17, 
+			"lord_21" => ST_PLAYER_LORD21, 
+			"lord_12" => ST_PLAYER_LORD12,
+			"zombiePass" => ST_PLAYER_MARTIAL_LAW,
+			"loopback" => ST_PLAYER_CONTROL_POST_DRAW,
+		],
+	],
 
- 	ST_PLAYER_LOCATION_EFFECT_BLACK_SMOKERS => array(
+ 	ST_PLAYER_LOCATION_EFFECT_BLACK_SMOKERS => [
 		"name" => "locationEffectBlackSmokers",
 		"description" => clienttranslate('${actplayer} may swap the Location for one from the deck'),
 		"descriptionmyturn" => clienttranslate('${you} may swap the Location for one from the deck'),
 		"type" => "activeplayer",
-    "action" => "stBlackSmokers",
+    	"action" => "stBlackSmokers",
 		"args" => "argDeckLocations",
-		"possibleactions" => array( "chooseLocation" ),
-		"transitions" => array( "chooseLocation" => ST_PRE_CONTROL, "pass" => ST_PRE_CONTROL, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_LOCATION_EFFECT_BLACK_SMOKERS )
- 	),
+		"possibleactions" => [ "chooseLocation" ],
+		"transitions" => [
+			"chooseLocation" => ST_PRE_CONTROL, 					
+			"fillSanctuary" => ST_PLAYER_FILL_SANCTUARY,
+			"pass" => ST_PRE_CONTROL, 
+			"zombiePass" => ST_PRE_CONTROL, 
+			"loopback" => ST_PLAYER_LOCATION_EFFECT_BLACK_SMOKERS,
+		],
+	],
 
  	ST_PLAYER_UNUSED_LORDS => [
 		"name" => "unusedLords",

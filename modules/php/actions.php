@@ -1519,7 +1519,7 @@ trait ActionTrait {
 
         self::DbQuery( "UPDATE ally SET place = 100 + $faction WHERE ally_id = ".$ally['ally_id']);
 
-        self::notifyAllPlayers('placeKraken', clienttranslate('${player_name} takes ${card_name} to ${councilFaction} council stack'), [
+        self::notifyAllPlayers('placeKraken', clienttranslate('${player_name} sends ${card_name} to ${councilFaction} council stack'), [
             'ally' => $ally,
             'player_id' => $playerId,
             'player_name' => $this->getPlayerName($playerId),
