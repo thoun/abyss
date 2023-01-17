@@ -219,7 +219,7 @@ class Location
       case 101: // + 2 for each of your Smuggler Lords
         $score = 0;
         foreach ($lords as $lord) {
-          if ($lord["faction"] == 10) {
+          if ($lord["lord_id"] >= 101 && $lord["lord_id"] <= 108) {
             $score += 2;
           }
         }
