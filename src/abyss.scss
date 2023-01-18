@@ -1182,3 +1182,8 @@ html a.bgabutton.affiliate-button:hover {
 .deck-size {
   user-select: none;
 }
+
+.card.disabled {
+    filter: contrast(0.6);
+    cursor: not-allowed;
+}

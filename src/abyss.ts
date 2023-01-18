@@ -408,6 +408,7 @@ class Abyss implements AbyssGame {
             dojo.style($('game-extra'), "display", "block");
             const stock = new LineStock<AbyssAlly>(this.allyManager, document.getElementById(`ally-discard`));
             stock.addCards(args.allies);
+            args.allies.filter(ally => ally.faction === null).forEach(monster => this.allyManager.getCardElement(monster)?.classList.add('disabled'));
             stock.onCardClick = ally => this.takeAllyFromDiscard(ally.ally_id);
         }
     }

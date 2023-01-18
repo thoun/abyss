@@ -1418,6 +1418,9 @@ trait ActionTrait {
         if ($ally['place'] != 10) {
             throw new BgaVisibleSystemException("This ally is not in the discard");
         }
+        if ($ally['faction'] === null) {
+            throw new BgaVisibleSystemException("You must take an Ally");
+        }
 
         $playerId = intval($this->getActivePlayerId());
 

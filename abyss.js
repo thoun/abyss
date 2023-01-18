@@ -1671,6 +1671,7 @@ var Abyss = /** @class */ (function () {
             dojo.style($('game-extra'), "display", "block");
             var stock = new LineStock(this.allyManager, document.getElementById("ally-discard"));
             stock.addCards(args.allies);
+            args.allies.filter(function (ally) { return ally.faction === null; }).forEach(function (monster) { var _a; return (_a = _this.allyManager.getCardElement(monster)) === null || _a === void 0 ? void 0 : _a.classList.add('disabled'); });
             stock.onCardClick = function (ally) { return _this.takeAllyFromDiscard(ally.ally_id); };
         }
     };
