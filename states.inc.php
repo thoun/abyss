@@ -612,8 +612,8 @@ $machinestates = array(
 
 	ST_MULTI_LORD114 => [
 		"name" => "lord114multi",
-		"description" => clienttranslate('Other players must discard a ${faction} Ally'),
-		"descriptionmyturn" => clienttranslate('${you} must discard a ${faction} Ally'),
+		"description" => clienttranslate('Other players must discard an affiliated ${factionName} Ally'),
+		"descriptionmyturn" => clienttranslate('${you} must discard an affiliated ${factionName} Ally'),
 		"type" => "multipleactiveplayer",
 		"action" => "stLord114",
 		"args" => "argLord114",

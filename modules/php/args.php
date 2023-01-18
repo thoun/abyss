@@ -298,8 +298,9 @@ trait ArgsTrait {
 		$faction = intval($this->getGameStateValue(SELECTED_FACTION));
 
 		return [
-			'faction' => $this->factions[$faction]["ally_name"],
-            'i18n' => ['faction']
+			'faction' => $faction,
+			'factionName' => $this->factions[$faction]["ally_name"], // for logs
+            'i18n' => ['factionName']
 		];
 	}
 

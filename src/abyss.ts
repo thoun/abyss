@@ -389,6 +389,9 @@ class Abyss implements AbyssGame {
             case 'lord112':
                 this.onEnteringLord112(args.args);
                 break;
+            case 'lord114multi':
+                this.onEnteringLord114multi(args.args);
+                break;
             case 'lord116':
                 this.onEnteringLord116(args.args);
                 break;
@@ -419,6 +422,13 @@ class Abyss implements AbyssGame {
             stock.addCards(args.allies);
             args.allies.filter(ally => ally.faction === null).forEach(monster => this.allyManager.getCardElement(monster)?.classList.add('disabled'));
             stock.onCardClick = ally => this.takeAllyFromDiscard(ally.ally_id);
+        }
+    }
+
+    private onEnteringLord114multi(args: any) {
+        // Put a border around selectable allies
+        if ((this as any).isCurrentPlayerActive()) {
+            Array.from(document.querySelectorAll(`.affiliated .ally[data-faction="${args.faction}"]`)).forEach(elem => elem.classList.add('card-current-move'));
         }
     }
 
@@ -1773,7 +1783,7 @@ class Abyss implements AbyssGame {
 
             // If it's me, also delete the actual ally
             if (player_id == this.getPlayerId()) {
-                this.getCurrentPlayerTable().removeHandAllies([ally]);
+                this.getCurrentPlayerTable().removeAllies([ally]);
             }
             
         }
@@ -1982,7 +1992,7 @@ class Abyss implements AbyssGame {
 
         // If it's me, then actually get rid of the allies
         if (spent_allies && player_id == this.getPlayerId()) {
-            this.getCurrentPlayerTable().removeHandAllies(spent_allies);
+            this.getCurrentPlayerTable().removeAllies(spent_allies);
         }
 
         if (spent_lords) {
@@ -2036,9 +2046,7 @@ class Abyss implements AbyssGame {
             $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) - +allies.length;
 
             // If it's me, also delete the actual ally
-            if (notif.args.player_id == this.getPlayerId()) {
-                this.getCurrentPlayerTable().removeHandAllies(allies);
-            }
+            this.getPlayerTable(notif.args.player_id).removeAllies(allies);
         }
 
         if (notif.args.monster) {

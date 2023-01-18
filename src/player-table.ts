@@ -71,8 +71,9 @@ class PlayerTable {
         this.game.organisePanelMessages();
     }
     
-    public removeHandAllies(allies: AbyssAlly[]) {
+    public removeAllies(allies: AbyssAlly[]) {
         this.hand.removeCards(allies);
+        this.affiliatedStocks.forEach(stock => stock.removeCards(allies));
     }
     
     public getSelectedAllies() {

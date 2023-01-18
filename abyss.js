@@ -1230,8 +1230,9 @@ var PlayerTable = /** @class */ (function () {
         });
         this.game.organisePanelMessages();
     };
-    PlayerTable.prototype.removeHandAllies = function (allies) {
+    PlayerTable.prototype.removeAllies = function (allies) {
         this.hand.removeCards(allies);
+        this.affiliatedStocks.forEach(function (stock) { return stock.removeCards(allies); });
     };
     PlayerTable.prototype.getSelectedAllies = function () {
         var _this = this;
@@ -1652,6 +1653,9 @@ var Abyss = /** @class */ (function () {
             case 'lord112':
                 this.onEnteringLord112(args.args);
                 break;
+            case 'lord114multi':
+                this.onEnteringLord114multi(args.args);
+                break;
             case 'lord116':
                 this.onEnteringLord116(args.args);
                 break;
@@ -1681,6 +1685,12 @@ var Abyss = /** @class */ (function () {
             stock.addCards(args.allies);
             args.allies.filter(function (ally) { return ally.faction === null; }).forEach(function (monster) { var _a; return (_a = _this.allyManager.getCardElement(monster)) === null || _a === void 0 ? void 0 : _a.classList.add('disabled'); });
             stock.onCardClick = function (ally) { return _this.takeAllyFromDiscard(ally.ally_id); };
+        }
+    };
+    Abyss.prototype.onEnteringLord114multi = function (args) {
+        // Put a border around selectable allies
+        if (this.isCurrentPlayerActive()) {
+            Array.from(document.querySelectorAll(".affiliated .ally[data-faction=\"".concat(args.faction, "\"]"))).forEach(function (elem) { return elem.classList.add('card-current-move'); });
         }
     };
     Abyss.prototype.onEnteringLord116 = function (args) {
@@ -2862,7 +2872,7 @@ var Abyss = /** @class */ (function () {
             $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) - 1;
             // If it's me, also delete the actual ally
             if (player_id == this.getPlayerId()) {
-                this.getCurrentPlayerTable().removeHandAllies([ally]);
+                this.getCurrentPlayerTable().removeAllies([ally]);
             }
         }
         this.organisePanelMessages();
@@ -3051,7 +3061,7 @@ var Abyss = /** @class */ (function () {
         }
         // If it's me, then actually get rid of the allies
         if (spent_allies && player_id == this.getPlayerId()) {
-            this.getCurrentPlayerTable().removeHandAllies(spent_allies);
+            this.getCurrentPlayerTable().removeAllies(spent_allies);
         }
         if (spent_lords) {
             this.getPlayerTable(player_id).removeLords(spent_lords);
@@ -3096,9 +3106,7 @@ var Abyss = /** @class */ (function () {
             var allies = notif.args.allies_lost;
             $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) - +allies.length;
             // If it's me, also delete the actual ally
-            if (notif.args.player_id == this.getPlayerId()) {
-                this.getCurrentPlayerTable().removeHandAllies(allies);
-            }
+            this.getPlayerTable(notif.args.player_id).removeAllies(allies);
         }
         if (notif.args.monster) {
             $('monstercount_p' + player_id).innerHTML = +($('monstercount_p' + player_id).innerHTML) + notif.args.monster.length;
