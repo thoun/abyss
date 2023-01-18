@@ -152,11 +152,11 @@ class Lord
   }
 
   public static function playerHas(int $lord_id, int $player_id ) {
-    return Abyss::getValue( "SELECT COUNT(*) FROM lord WHERE place = -$player_id AND location IS NULL AND NOT turned AND lord_id = $lord_id" );
+    return intval(Abyss::getValue( "SELECT COUNT(*) FROM lord WHERE place = -$player_id AND location IS NULL AND NOT turned AND lord_id = $lord_id" )) > 0;
   }
 
   public static function opponentHas(int $lord_id, int $player_id ) {
-    return Abyss::getValue( "SELECT COUNT(*) FROM lord WHERE place != -$player_id AND place < 0 AND location IS NULL AND NOT turned AND lord_id = $lord_id" );
+    return intval(Abyss::getValue( "SELECT COUNT(*) FROM lord WHERE place != -$player_id AND place < 0 AND location IS NULL AND NOT turned AND lord_id = $lord_id" )) > 0;
   }
 
   public static function moveToRight( ) {

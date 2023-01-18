@@ -75,6 +75,10 @@ class PlayerTable {
         this.hand.removeCards(allies);
     }
     
+    public getSelectedAllies() {
+        return this.hand.getCards().filter(card => this.game.allyManager.getCardElement(card)?.classList.contains('selected'));
+    }
+    
     public organisePanelMessages() {
         // Do they have any Lords?
         const lords = dojo.query('.lord', $('player-panel-' + this.playerId));

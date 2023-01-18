@@ -207,10 +207,12 @@ class Abyss implements AbyssGame {
         //(this as any).addTooltip( 'explore-track-deck', '', _('Explore'), 1 );
         (this as any).addTooltipToClass( 'pearl-holder', _( 'Pearls' ), '' );
         (this as any).addTooltipToClass( 'nebulis-holder', _( 'Nebulis' ), '' );
-        (this as any).addTooltipToClass( 'key-holder', _( 'Key tokens (+ Keys from free Lords)' ), '' );
-        (this as any).addTooltipToClass( 'ally-holder', _( 'Ally cards in hand' ), '' );
+        (this as any).addTooltipToClass( 'key-holder', _( 'Key tokens' ), '' );
         (this as any).addTooltipToClass( 'monster-holder', _( 'Monster tokens' ), '' );
+        
+        (this as any).addTooltipToClass( 'ally-holder', _( 'Ally cards in hand' ), '' );
         (this as any).addTooltipToClass( 'lordcount-holder', _( 'Number of Lords' ), '' );
+        (this as any).addTooltipToClass( 'key-addendum', _( 'Keys from free Lords' ), '' );
         
         (this as any).addTooltip( 'scoring-location-icon', _( 'Locations' ), '' );
         (this as any).addTooltip( 'scoring-lords-icon', _( 'Lords' ), '' );
@@ -395,7 +397,7 @@ class Abyss implements AbyssGame {
 
     private onEnteringRecruitPay(args: EnteringRecruitPayArgs) {
         // highlight the given lord
-        this.lordManager.getCardElement({ lord_id: args.lord_id } as AbyssLord)?.classList.add('selected');
+        this.lordManager.getCardElement(args.lord)?.classList.add('selected');
     }
 
     private onEnteringLord7() {
@@ -562,20 +564,12 @@ class Abyss implements AbyssGame {
                     const recruitArgs = args as EnteringRecruitPayArgs;
                     (this as any).addActionButton( 'button_recruit', _('Recruit'), () => this.onRecruit(0));
 
-                    const recruitButton = document.getElementById('button_recruit');
-                    recruitButton.innerHTML = _('Recruit') + ' ('+recruitArgs.cost+' <i class="icon icon-pearl"></i>)';
-                    recruitButton.classList.toggle('disabled', recruitArgs.cost > recruitArgs.pearls);
-                    recruitButton.dataset.baseCost = '' + recruitArgs.cost;
-                    recruitButton.dataset.pearls = '' + recruitArgs.pearls;
-                    recruitButton.dataset.nebulis = '' + recruitArgs.nebulis;
-
                     if (recruitArgs.withNebulis) {
                         Object.keys(recruitArgs.withNebulis).forEach(i => {
                             (this as any).addActionButton(`button_recruit_with${i}Nebulis`, _('Recruit') + ` (${ args.cost - Number(i) > 0 ? `${args.cost - Number(i)} <i class="icon icon-pearl"></i> ` : ''}${i} <i class="icon icon-nebulis"></i>)`, () => this.onRecruit(Number(i)));
-                            const button = document.getElementById(`button_recruit_with${i}Nebulis`);
-                            button.classList.toggle('disabled', recruitArgs.nebulis < Number(i) || (recruitArgs.cost - Number(i)) > recruitArgs.pearls);
                         });
                     }
+                    this.updateRecruitButtonsState(recruitArgs);
 
                     (this as any).addActionButton( 'button_pass', _('Cancel'), event => this.onPass(event));
                     break;
@@ -612,7 +606,7 @@ class Abyss implements AbyssGame {
                 case 'lord7':
                     // Put a red border around the player monster tokens (who aren't me)
                     for( var player_id in this.gamedatas.players ) {
-                        if (player_id != (this as any).player_id) {
+                        if (Number(player_id) != this.getPlayerId()) {
                             var num_tokens = +$('monstercount_p' + player_id).innerHTML;
                             if (num_tokens > 0) {
                                 (this as any).addActionButton( 'button_steal_monster_token_' + player_id, this.gamedatas.players[player_id].name, 'onClickMonsterIcon' );
@@ -846,16 +840,42 @@ class Abyss implements AbyssGame {
             var player_board_div = $('player_board_'+playerId);
             let html = `
             <div id="cp_board_p${player.id}" class="cp_board" data-player-id="${player.id}">
-                <span class="pearl-holder spacer" id="pearl-holder_p${player.id}"><i class="icon icon-pearl"></i><span class="spacer" id="pearlcount_p${player.id}">${player.pearls}</span></span>`;
+                <div class="counters">
+                    <span class="pearl-holder spacer" id="pearl-holder_p${player.id}">
+                        <i class="icon icon-pearl"></i>
+                        <span class="spacer" id="pearlcount_p${player.id}">${player.pearls}</span>
+                    </span>`;
 
             if (gamedatas.krakenExpansion) {
-                html += `<span class="nebulis-holder spacer" id="nebulis-holder_p${player.id}"><i class="icon icon-nebulis"></i><span class="spacer" id="nebuliscount_p${player.id}">${player.nebulis}</span></span>`;
+                html += `<span class="nebulis-holder spacer" id="nebulis-holder_p${player.id}">
+                    <i class="icon icon-nebulis"></i>
+                    <span class="spacer" id="nebuliscount_p${player.id}">${player.nebulis}</span>
+                </span>`;
             }
 
-            html += `    <span class="key-holder spacer" id="key-holder_p${player.id}"><i class="icon icon-key"></i><span class="spacer" id="keycount_p${player.id}">${player.keys}</span><span class="key-addendum">(+<span id="lordkeycount_p${player.id}"></span>)</span></span>
-                <span class="ally-holder spacer" id="ally-holder_p${player.id}"><i class="icon icon-ally"></i><span class="spacer" id="allycount_p${player.id}">${player.hand_size}</span></span>
-                <span class="monster-holder spacer" id="monster-holder_p${player.id}"><i class="icon icon-monster"></i><span class="spacer" id="monstercount_p${player.id}">${player.num_monsters}</span></span>
-                <span class="lordcount-holder spacer"><i class="icon icon-lord"></i><span id="lordcount_p${player.id}">${player.lords.length}</span></span>
+            html += `
+                    <span class="key-holder spacer" id="key-holder_p${player.id}">
+                        <i class="icon icon-key"></i>
+                        <span class="spacer" id="keycount_p${player.id}">${player.keys}</span>
+                    </span>
+                    <span class="monster-holder spacer" id="monster-holder_p${player.id}">
+                        <i class="icon icon-monster"></i>
+                        <span class="spacer" id="monstercount_p${player.id}">${player.num_monsters}</span>
+                    </span>
+                </div>
+                <div class="counters">
+                    <span class="ally-holder spacer" id="ally-holder_p${player.id}">
+                        <i class="icon icon-ally"></i>
+                        <span class="spacer" id="allycount_p${player.id}">${player.hand_size}</span>
+                    </span>
+                    <span class="spacer">
+                        <span class="lordcount-holder">
+                            <i class="icon icon-lord"></i>
+                            <span id="lordcount_p${player.id}">${player.lords.length}</span>
+                        </span>
+                        <span class="key-addendum">(<i class="icon icon-key"></i> <span id="lordkeycount_p${player.id}"></span>)</span>
+                    </span>
+                </div>
                 <div class="monster-hand" id="monster-hand_p${player.id}"></div>
             </div>`;
             dojo.place( html, player_board_div );
@@ -1226,38 +1246,39 @@ class Abyss implements AbyssGame {
         });
     }
 
+    private updateRecruitButtonsState(args: EnteringRecruitPayArgs) {
+        const playerPearls = args.pearls;
+        const playerNebulis = args.nebulis;
+        // const diversity = args.lord.diversity;
+
+        const selectedAllies = this.getCurrentPlayerTable().getSelectedAllies();
+        const value = selectedAllies.map(ally => ally.value).reduce((a, b) => a + b, 0);
+        // const krakens = selectedAllies.filter(ally => ally.faction == 10).length;
+        let shortfall = Math.max(0, args.cost - value);
+
+        // Update "Recruit" button
+        const recruitButton = document.getElementById('button_recruit');
+        recruitButton.innerHTML = _('Recruit') + ' ('+shortfall+' <i class="icon icon-pearl"></i>)';
+        recruitButton.classList.toggle('disabled', shortfall > playerPearls);
+
+        [1, 2].forEach(i => {
+            const button = document.getElementById(`button_recruit_with${i}Nebulis`);
+            if (button) {
+                const cost = shortfall;
+                button.innerHTML = _('Recruit') + ` (${ cost - i > 0 ? `${cost - i} <i class="icon icon-pearl"></i> ` : ''}${i} <i class="icon icon-nebulis"></i>)`;
+                let canPayShortFallWithNebulis = playerNebulis >= i && playerPearls >= (cost - i) && i <= shortfall;
+                if (canPayShortFallWithNebulis && !args.canAlwaysUseNebulis && playerPearls != cost - i) {
+                    canPayShortFallWithNebulis = false;
+                }
+                button.classList.toggle('disabled', !canPayShortFallWithNebulis);
+            }
+        });
+    }
+
     onClickPlayerHand(ally: AbyssAlly) {
         if( (this as any).checkAction( 'pay', true ) ) {
             this.allyManager.getCardElement(ally).classList.toggle('selected');
-
-            const recruitButton = document.getElementById('button_recruit');
-            var lord = dojo.query("#lords-track .lord.selected")[0];
-            const baseCost = Number(recruitButton.dataset.baseCost);
-            const pearls = Number(recruitButton.dataset.pearls);
-            const nebulis = Number(recruitButton.dataset.nebulis);
-            var diversity = +dojo.attr(lord, 'data-diversity');
-
-            // Value selected
-            let value = 0;
-            dojo.query("#player-hand .ally.selected").forEach(node => {
-                value += +dojo.attr(node, 'data-value');
-            });
-            let shortfall = baseCost - value;
-            if (shortfall < 0) { shortfall = 0; }
-
-            // Update "Recruit" button
-            recruitButton.innerHTML = _('Recruit') + ' ('+shortfall+' <i class="icon icon-pearl"></i>)';
-            recruitButton.classList.toggle('disabled', shortfall > pearls);
-
-            [1, 2].forEach(i => {
-                const button = document.getElementById(`button_recruit_with${i}Nebulis`);
-                if (button) {
-                    const cost = shortfall;
-                    button.innerHTML = _('Recruit') + ` (${ cost - i > 0 ? `${cost - i} <i class="icon icon-pearl"></i> ` : ''}${i} <i class="icon icon-nebulis"></i>)`;
-                    button.classList.toggle('disabled', nebulis < i || (cost - i) > pearls || shortfall < i);
-                }
-            });
-
+            this.updateRecruitButtonsState(this.gamedatas.gamestate.args);
         } else if( (this as any).checkAction( 'discard', true ) ) {
             // Multi-discard: select, otherwise just discard this one
             this.allyManager.getCardElement(ally).classList.toggle('selected');

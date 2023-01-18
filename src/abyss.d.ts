@@ -119,10 +119,12 @@ type WithNebulis = { [nebulis: number]: boolean };
 
 interface EnteringRecruitPayArgs {
     lord_id: number;
+    lord: AbyssLord;
     cost: number;
     pearls: number;
     nebulis?: number;
 	withNebulis?: WithNebulis;
+    canAlwaysUseNebulis: boolean;
 }
 
 interface EnteringControlPostDrawArgs {

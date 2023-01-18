@@ -197,20 +197,24 @@ trait ArgsTrait {
 		$playerId = self::getActivePlayerId();
 		
 		$lord_id = intval(self::getGameStateValue( 'selected_lord' ));
+		$lord = Lord::get($lord_id);
 
-		$cost = self::getLordCost(Lord::get($lord_id), self::getCurrentPlayerId());
+		$cost = self::getLordCost($lord, self::getCurrentPlayerId());
 		
 		$pearls = self::getPlayerPearls($playerId);
 		$nebulis = $this->isKrakenExpansion() ? $this->getPlayerNebulis($playerId) : null;
 
 		$withNebulis = $this->getWithNebulis($playerId, $cost);
+		$canAlwaysUseNebulis = Lord::playerHas(103, $playerId);
 
 		return [
 			'lord_id' => $lord_id, 
+			'lord' => $lord, 
 			'cost' => $cost,
 			'pearls' => $pearls,
 			'nebulis' => $nebulis,
 			'withNebulis' => $withNebulis,
+			'canAlwaysUseNebulis' => $canAlwaysUseNebulis,
 		];
 	}
 

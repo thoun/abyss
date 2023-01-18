@@ -1233,6 +1233,10 @@ var PlayerTable = /** @class */ (function () {
     PlayerTable.prototype.removeHandAllies = function (allies) {
         this.hand.removeCards(allies);
     };
+    PlayerTable.prototype.getSelectedAllies = function () {
+        var _this = this;
+        return this.hand.getCards().filter(function (card) { var _a; return (_a = _this.game.allyManager.getCardElement(card)) === null || _a === void 0 ? void 0 : _a.classList.contains('selected'); });
+    };
     PlayerTable.prototype.organisePanelMessages = function () {
         // Do they have any Lords?
         var lords = dojo.query('.lord', $('player-panel-' + this.playerId));
@@ -1469,10 +1473,11 @@ var Abyss = /** @class */ (function () {
         //(this as any).addTooltip( 'explore-track-deck', '', _('Explore'), 1 );
         this.addTooltipToClass('pearl-holder', _('Pearls'), '');
         this.addTooltipToClass('nebulis-holder', _('Nebulis'), '');
-        this.addTooltipToClass('key-holder', _('Key tokens (+ Keys from free Lords)'), '');
-        this.addTooltipToClass('ally-holder', _('Ally cards in hand'), '');
+        this.addTooltipToClass('key-holder', _('Key tokens'), '');
         this.addTooltipToClass('monster-holder', _('Monster tokens'), '');
+        this.addTooltipToClass('ally-holder', _('Ally cards in hand'), '');
         this.addTooltipToClass('lordcount-holder', _('Number of Lords'), '');
+        this.addTooltipToClass('key-addendum', _('Keys from free Lords'), '');
         this.addTooltip('scoring-location-icon', _('Locations'), '');
         this.addTooltip('scoring-lords-icon', _('Lords'), '');
         this.addTooltip('scoring-affiliated-icon', _('Affiliated Allies'), '');
@@ -1655,7 +1660,7 @@ var Abyss = /** @class */ (function () {
     Abyss.prototype.onEnteringRecruitPay = function (args) {
         var _a;
         // highlight the given lord
-        (_a = this.lordManager.getCardElement({ lord_id: args.lord_id })) === null || _a === void 0 ? void 0 : _a.classList.add('selected');
+        (_a = this.lordManager.getCardElement(args.lord)) === null || _a === void 0 ? void 0 : _a.classList.add('selected');
     };
     Abyss.prototype.onEnteringLord7 = function () {
         // Put a red border around the player monster tokens (who aren't me)
@@ -1814,21 +1819,14 @@ var Abyss = /** @class */ (function () {
                     }
                     break;
                 case 'recruitPay':
-                    var recruitArgs_1 = args;
+                    var recruitArgs = args;
                     this.addActionButton('button_recruit', _('Recruit'), function () { return _this.onRecruit(0); });
-                    var recruitButton = document.getElementById('button_recruit');
-                    recruitButton.innerHTML = _('Recruit') + ' (' + recruitArgs_1.cost + ' <i class="icon icon-pearl"></i>)';
-                    recruitButton.classList.toggle('disabled', recruitArgs_1.cost > recruitArgs_1.pearls);
-                    recruitButton.dataset.baseCost = '' + recruitArgs_1.cost;
-                    recruitButton.dataset.pearls = '' + recruitArgs_1.pearls;
-                    recruitButton.dataset.nebulis = '' + recruitArgs_1.nebulis;
-                    if (recruitArgs_1.withNebulis) {
-                        Object.keys(recruitArgs_1.withNebulis).forEach(function (i) {
+                    if (recruitArgs.withNebulis) {
+                        Object.keys(recruitArgs.withNebulis).forEach(function (i) {
                             _this.addActionButton("button_recruit_with".concat(i, "Nebulis"), _('Recruit') + " (".concat(args.cost - Number(i) > 0 ? "".concat(args.cost - Number(i), " <i class=\"icon icon-pearl\"></i> ") : '').concat(i, " <i class=\"icon icon-nebulis\"></i>)"), function () { return _this.onRecruit(Number(i)); });
-                            var button = document.getElementById("button_recruit_with".concat(i, "Nebulis"));
-                            button.classList.toggle('disabled', recruitArgs_1.nebulis < Number(i) || (recruitArgs_1.cost - Number(i)) > recruitArgs_1.pearls);
                         });
                     }
+                    this.updateRecruitButtonsState(recruitArgs);
                     this.addActionButton('button_pass', _('Cancel'), function (event) { return _this.onPass(event); });
                     break;
                 case 'affiliate':
@@ -1875,7 +1873,7 @@ var Abyss = /** @class */ (function () {
                 case 'lord7':
                     // Put a red border around the player monster tokens (who aren't me)
                     for (var player_id in this.gamedatas.players) {
-                        if (player_id != this.player_id) {
+                        if (Number(player_id) != this.getPlayerId()) {
                             var num_tokens = +$('monstercount_p' + player_id).innerHTML;
                             if (num_tokens > 0) {
                                 this.addActionButton('button_steal_monster_token_' + player_id, this.gamedatas.players[player_id].name, 'onClickMonsterIcon');
@@ -2099,11 +2097,11 @@ var Abyss = /** @class */ (function () {
             var playerId = Number(player.id);
             // Setting up players boards if needed
             var player_board_div = $('player_board_' + playerId);
-            var html = "\n            <div id=\"cp_board_p".concat(player.id, "\" class=\"cp_board\" data-player-id=\"").concat(player.id, "\">\n                <span class=\"pearl-holder spacer\" id=\"pearl-holder_p").concat(player.id, "\"><i class=\"icon icon-pearl\"></i><span class=\"spacer\" id=\"pearlcount_p").concat(player.id, "\">").concat(player.pearls, "</span></span>");
+            var html = "\n            <div id=\"cp_board_p".concat(player.id, "\" class=\"cp_board\" data-player-id=\"").concat(player.id, "\">\n                <div class=\"counters\">\n                    <span class=\"pearl-holder spacer\" id=\"pearl-holder_p").concat(player.id, "\">\n                        <i class=\"icon icon-pearl\"></i>\n                        <span class=\"spacer\" id=\"pearlcount_p").concat(player.id, "\">").concat(player.pearls, "</span>\n                    </span>");
             if (gamedatas.krakenExpansion) {
-                html += "<span class=\"nebulis-holder spacer\" id=\"nebulis-holder_p".concat(player.id, "\"><i class=\"icon icon-nebulis\"></i><span class=\"spacer\" id=\"nebuliscount_p").concat(player.id, "\">").concat(player.nebulis, "</span></span>");
+                html += "<span class=\"nebulis-holder spacer\" id=\"nebulis-holder_p".concat(player.id, "\">\n                    <i class=\"icon icon-nebulis\"></i>\n                    <span class=\"spacer\" id=\"nebuliscount_p").concat(player.id, "\">").concat(player.nebulis, "</span>\n                </span>");
             }
-            html += "    <span class=\"key-holder spacer\" id=\"key-holder_p".concat(player.id, "\"><i class=\"icon icon-key\"></i><span class=\"spacer\" id=\"keycount_p").concat(player.id, "\">").concat(player.keys, "</span><span class=\"key-addendum\">(+<span id=\"lordkeycount_p").concat(player.id, "\"></span>)</span></span>\n                <span class=\"ally-holder spacer\" id=\"ally-holder_p").concat(player.id, "\"><i class=\"icon icon-ally\"></i><span class=\"spacer\" id=\"allycount_p").concat(player.id, "\">").concat(player.hand_size, "</span></span>\n                <span class=\"monster-holder spacer\" id=\"monster-holder_p").concat(player.id, "\"><i class=\"icon icon-monster\"></i><span class=\"spacer\" id=\"monstercount_p").concat(player.id, "\">").concat(player.num_monsters, "</span></span>\n                <span class=\"lordcount-holder spacer\"><i class=\"icon icon-lord\"></i><span id=\"lordcount_p").concat(player.id, "\">").concat(player.lords.length, "</span></span>\n                <div class=\"monster-hand\" id=\"monster-hand_p").concat(player.id, "\"></div>\n            </div>");
+            html += "\n                    <span class=\"key-holder spacer\" id=\"key-holder_p".concat(player.id, "\">\n                        <i class=\"icon icon-key\"></i>\n                        <span class=\"spacer\" id=\"keycount_p").concat(player.id, "\">").concat(player.keys, "</span>\n                    </span>\n                    <span class=\"monster-holder spacer\" id=\"monster-holder_p").concat(player.id, "\">\n                        <i class=\"icon icon-monster\"></i>\n                        <span class=\"spacer\" id=\"monstercount_p").concat(player.id, "\">").concat(player.num_monsters, "</span>\n                    </span>\n                </div>\n                <div class=\"counters\">\n                    <span class=\"ally-holder spacer\" id=\"ally-holder_p").concat(player.id, "\">\n                        <i class=\"icon icon-ally\"></i>\n                        <span class=\"spacer\" id=\"allycount_p").concat(player.id, "\">").concat(player.hand_size, "</span>\n                    </span>\n                    <span class=\"spacer\">\n                        <span class=\"lordcount-holder\">\n                            <i class=\"icon icon-lord\"></i>\n                            <span id=\"lordcount_p").concat(player.id, "\">").concat(player.lords.length, "</span>\n                        </span>\n                        <span class=\"key-addendum\">(<i class=\"icon icon-key\"></i> <span id=\"lordkeycount_p").concat(player.id, "\"></span>)</span>\n                    </span>\n                </div>\n                <div class=\"monster-hand\" id=\"monster-hand_p").concat(player.id, "\"></div>\n            </div>");
             dojo.place(html, player_board_div);
             // kraken token
             dojo.place("<div id=\"player_board_".concat(player.id, "_krakenWrapper\" class=\"krakenWrapper\"></div>"), "player_board_".concat(player.id));
@@ -2414,35 +2412,35 @@ var Abyss = /** @class */ (function () {
             option: option,
         });
     };
+    Abyss.prototype.updateRecruitButtonsState = function (args) {
+        var playerPearls = args.pearls;
+        var playerNebulis = args.nebulis;
+        // const diversity = args.lord.diversity;
+        var selectedAllies = this.getCurrentPlayerTable().getSelectedAllies();
+        var value = selectedAllies.map(function (ally) { return ally.value; }).reduce(function (a, b) { return a + b; }, 0);
+        // const krakens = selectedAllies.filter(ally => ally.faction == 10).length;
+        var shortfall = Math.max(0, args.cost - value);
+        // Update "Recruit" button
+        var recruitButton = document.getElementById('button_recruit');
+        recruitButton.innerHTML = _('Recruit') + ' (' + shortfall + ' <i class="icon icon-pearl"></i>)';
+        recruitButton.classList.toggle('disabled', shortfall > playerPearls);
+        [1, 2].forEach(function (i) {
+            var button = document.getElementById("button_recruit_with".concat(i, "Nebulis"));
+            if (button) {
+                var cost = shortfall;
+                button.innerHTML = _('Recruit') + " (".concat(cost - i > 0 ? "".concat(cost - i, " <i class=\"icon icon-pearl\"></i> ") : '').concat(i, " <i class=\"icon icon-nebulis\"></i>)");
+                var canPayShortFallWithNebulis = playerNebulis >= i && playerPearls >= (cost - i) && i <= shortfall;
+                if (canPayShortFallWithNebulis && !args.canAlwaysUseNebulis && playerPearls != cost - i) {
+                    canPayShortFallWithNebulis = false;
+                }
+                button.classList.toggle('disabled', !canPayShortFallWithNebulis);
+            }
+        });
+    };
     Abyss.prototype.onClickPlayerHand = function (ally) {
         if (this.checkAction('pay', true)) {
             this.allyManager.getCardElement(ally).classList.toggle('selected');
-            var recruitButton = document.getElementById('button_recruit');
-            var lord = dojo.query("#lords-track .lord.selected")[0];
-            var baseCost = Number(recruitButton.dataset.baseCost);
-            var pearls_1 = Number(recruitButton.dataset.pearls);
-            var nebulis_1 = Number(recruitButton.dataset.nebulis);
-            var diversity = +dojo.attr(lord, 'data-diversity');
-            // Value selected
-            var value_1 = 0;
-            dojo.query("#player-hand .ally.selected").forEach(function (node) {
-                value_1 += +dojo.attr(node, 'data-value');
-            });
-            var shortfall_1 = baseCost - value_1;
-            if (shortfall_1 < 0) {
-                shortfall_1 = 0;
-            }
-            // Update "Recruit" button
-            recruitButton.innerHTML = _('Recruit') + ' (' + shortfall_1 + ' <i class="icon icon-pearl"></i>)';
-            recruitButton.classList.toggle('disabled', shortfall_1 > pearls_1);
-            [1, 2].forEach(function (i) {
-                var button = document.getElementById("button_recruit_with".concat(i, "Nebulis"));
-                if (button) {
-                    var cost = shortfall_1;
-                    button.innerHTML = _('Recruit') + " (".concat(cost - i > 0 ? "".concat(cost - i, " <i class=\"icon icon-pearl\"></i> ") : '').concat(i, " <i class=\"icon icon-nebulis\"></i>)");
-                    button.classList.toggle('disabled', nebulis_1 < i || (cost - i) > pearls_1 || shortfall_1 < i);
-                }
-            });
+            this.updateRecruitButtonsState(this.gamedatas.gamestate.args);
         }
         else if (this.checkAction('discard', true)) {
             // Multi-discard: select, otherwise just discard this one
