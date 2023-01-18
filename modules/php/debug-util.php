@@ -14,18 +14,18 @@ trait DebugUtilTrait {
 		//$this->debugCouncilAllies();
 
 		$this->debugPickAllies(2343492);
-		//$this->debugPickAllies(2343493);
+		$this->debugPickAllies(2343493);
 
-		$this->debugAddLocations(2343492);
-		$this->debugAddLord(2343492);
-		$this->debugAddAffiliated(2343492);
+		//$this->debugAddLocations(2343492);
+		//$this->debugAddLord(2343492);
+		//$this->debugAddAffiliated(2343492);
 
 		//$this->DbQuery("UPDATE player SET player_nebulis = 3");
 		//$this->DbQuery("UPDATE player SET player_pearls = 10");
 		//$this->DbQuery("UPDATE player SET player_keys = 3");
 		//$this->DbQuery("UPDATE location SET place = 1 WHERE location_id = 103");
 
-		$this->gamestate->changeActivePlayer(2343492);
+		//$this->gamestate->changeActivePlayer(2343492);
     }
 
 	function debugPickAllies(int $playerId, int $number = 12) {

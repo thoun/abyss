@@ -1843,13 +1843,13 @@ html a.bgabutton.affiliate-button:hover {
   box-shadow: 1px 1px 3px 2px black;
 }
 .sentinel-token[data-lord-id="106"] {
-  background-position-y: 0%;
+  background-position-x: 0%;
 }
 .sentinel-token[data-lord-id="107"] {
-  background-position-y: 50%;
+  background-position-x: 50%;
 }
 .sentinel-token[data-lord-id="108"] {
-  background-position-y: 100%;
+  background-position-x: 100%;
 }
 
 .sentinels .sentinel-token {

@@ -1097,9 +1097,9 @@ html a.bgabutton.affiliate-button:hover {
   border-radius: 50%;
   box-shadow: 1px 1px 3px 2px black;
 
-  &[data-lord-id="106"] { background-position-y: 0%; }
-  &[data-lord-id="107"] { background-position-y: 50%; }
-  &[data-lord-id="108"] { background-position-y: 100%; }
+  &[data-lord-id="106"] { background-position-x: 0%; }
+  &[data-lord-id="107"] { background-position-x: 50%; }
+  &[data-lord-id="108"] { background-position-x: 100%; }
 }
 
 .sentinels {
