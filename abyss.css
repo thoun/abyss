@@ -563,7 +563,6 @@ html body #game-holder .slot-fake {
   height: 136px;
   color: white;
   bottom: 0;
-  transition: transform 0.2s ease-in-out, left 0.5s ease-in-out, top 0.5s ease-in-out;
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
@@ -571,6 +570,15 @@ html body #game-holder .slot-fake {
   -webkit-touch-callout: none;
   /* 10% for each horizontal, 33.33% for each vertical */
   transform: var(--translate, translate(0)) var(--scale, scale(1));
+}
+.lord .front {
+  transition: transform 0.2s ease-in-out;
+}
+.lord:hover {
+  z-index: 100;
+}
+.lord:hover .front {
+  transform: scale(2) !important;
 }
 
 .lord-side {
@@ -581,11 +589,6 @@ html body #game-holder .slot-fake {
 
 .lord.disabled {
   filter: grayscale(100%);
-}
-
-.lord:hover:not(.lord-back) {
-  --scale: scale(2) !important;
-  z-index: 100;
 }
 
 .lord-back {

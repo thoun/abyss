@@ -2854,14 +2854,14 @@ var Abyss = /** @class */ (function () {
         var pearls = +notif.args.pearls;
         var old_lord = notif.args.old_lord;
         this.incPearlCount(player_id, -pearls);
+        if (old_lord) {
+            this.visibleLords.removeCard(old_lord);
+        }
         this.visibleLords.addCard(lord, {
             fromElement: document.querySelector('.lord.lord-back'),
             originalSide: 'back',
         });
         this.setDeckSize(dojo.query('#lords-track .slot-0'), deck_size);
-        if (old_lord) {
-            dojo.query('.lord-' + old_lord.lord_id).forEach(function (node) { return dojo.destroy(node); });
-        }
     };
     Abyss.prototype.notif_affiliate = function (notif) {
         var ally = notif.args.ally;
