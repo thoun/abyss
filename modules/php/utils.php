@@ -654,12 +654,14 @@ trait UtilTrait {
         }
         return false;
     }
+
+
         
-    function canAffordLord(int $player_id, array $hand, int $pearls, $lord, bool $krakenExpansion = false) {
+    function canAffordLord(int $playerId, array $hand, int $pearls, int $nebulis, $lord) {
         $potentialFound = false;
         
-        $hasDiplomat = Lord::playerHas( 24 , $player_id );
-        $cost = self::getLordCost( $lord, $player_id );
+        $hasDiplomat = Lord::playerHas(24 , $playerId);
+        $cost = self::getLordCost($lord, $playerId);
         $requiredDiversity = $lord["diversity"];
         
         $krakens = 0;
@@ -686,7 +688,7 @@ trait UtilTrait {
             $potentialFound = false;
         } else {
             // Can you get the required value?
-            $cost -= (self::getPlayerPearls( $player_id ) + ($krakenExpansion ? self::getPlayerNebulis($player_id) : 0));
+            $cost -= ($pearls + $nebulis);
             if ($hasDiplomat || ! isset($lord["faction"]) || $requiredDiversity == 5) {
                 // Using any $requiredDiversity different groups, can you get the value required?
                 $values = array_values($diversity);

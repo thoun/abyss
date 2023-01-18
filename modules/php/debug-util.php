@@ -13,8 +13,8 @@ trait DebugUtilTrait {
 
 		//$this->debugCouncilAllies();
 
-		$this->debugPickAllies(2343492);
-		$this->debugPickAllies(2343493);
+		//$this->debugPickAllies(2343492);
+		//$this->debugPickAllies(2343493);
 
 		//$this->debugAddLocations(2343492);
 		//$this->debugAddLord(2343492);
@@ -81,8 +81,8 @@ trait DebugUtilTrait {
 
 		// These are the id's from the BGAtable I need to debug.
 		$ids = [
-            86103606,
-86175279
+			86175279,
+			92551685
 		];
 
 		// Id of the first player in BGA Studio

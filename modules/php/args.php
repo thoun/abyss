@@ -13,21 +13,22 @@ trait ArgsTrait {
     */
    
     function argAffordableLords() {
-		$player_id = self::getActivePlayerId();
-		$hand = Ally::getPlayerHand( $player_id );
-		$pearls = self::getPlayerPearls( $player_id );
+		$playerId = self::getActivePlayerId();
+		$hand = Ally::getPlayerHand( $playerId );
+		$pearls = self::getPlayerPearls( $playerId );
 		
 		$lords = Lord::getSlots();
 		$affordableLords = [];
 		
         $krakenExpansion = $this->isKrakenExpansion();
+		$nebulis = $krakenExpansion ? (Lord::playerHas(102, $playerId) ? 2 : 1) : 0;
 		foreach ($lords as $lord) {
-			$canAffordLord = self::canAffordLord($player_id, $hand, $pearls, $lord, $krakenExpansion);
+			$canAffordLord = self::canAffordLord($playerId, $hand, $pearls, $nebulis, $lord);
 			if ($canAffordLord) {
 				if ($this->isKrakenExpansion()) {
 					$guarded = $this->guardedBySentinel('lord', $lord['lord_id']);
 					if ($guarded !== null) {
-						if ($guarded->playerId == $player_id) {
+						if ($guarded->playerId == $playerId) {
 							$affordableLords[] = $lord;
 						}
 					} else {
@@ -45,7 +46,7 @@ trait ArgsTrait {
 					'affordableLords' => $affordableLords
 				],
 			],
-			'canPlaceSentinel' => $this->mustPlaceSentinel($player_id) != null,
+			'canPlaceSentinel' => $this->mustPlaceSentinel($playerId) != null,
 		];
 	}
 

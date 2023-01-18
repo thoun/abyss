@@ -252,7 +252,8 @@ trait ActionTrait {
             ) );
         } else {
             $hand = Ally::getPlayerHand( $player_id );
-            $canAffordLord = self::canAffordLord($player_id, $hand, $pearls, $lord, $krakenExpansion);
+            $nebulis = $krakenExpansion ? (Lord::playerHas(102, $player_id) ? 2 : 1) : 0;
+            $canAffordLord = self::canAffordLord($player_id, $hand, $pearls, $nebulis, $lord);
 
             if (! $canAffordLord) {
                 throw new BgaUserException( self::_("You cannot afford that Lord.") );
