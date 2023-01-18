@@ -218,6 +218,7 @@ class Abyss extends Table {
 		$result['location_deck'] = Location::getDeckSize();
 		$result['location_available'] = Location::getAvailable();
 		$result['game_ending_player'] = intval(self::getGameStateValue('game_ending_player'));
+		$result['allyDiscardSize'] = Ally::getDiscardSize();
 
 		$result['krakenExpansion'] = $krakenExpansion;
 

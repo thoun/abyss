@@ -89,6 +89,7 @@ interface AbyssGamedatas {
     threat_level: number;
     location_available: AbyssLocation[];
     location_deck: number;
+    allyDiscardSize: number;
 
     krakenExpansion: boolean;
     kraken?: number;
@@ -246,6 +247,7 @@ interface NotifExploreTakeArgs {
     player_id: number;
     slot: number;
     ally: AbyssAlly;
+    allyDiscardSize: number;
 }
 
 interface NotifPurchaseArgs {
@@ -255,6 +257,7 @@ interface NotifPurchaseArgs {
     incNebulis: number;
     first_player_id: number;
     ally: AbyssAlly;
+    discardSize?: number;
 }
 
 interface NotifThreatArgs {
@@ -265,6 +268,7 @@ interface NotifDiscardCouncilArgs {
     player_id: number;
     faction: number;
     num: number;
+    allyDiscardSize: number;
 }
 
 interface NotifRequestSupportArgs {
@@ -286,6 +290,7 @@ interface NotifRecruitArgs {
     incNebulis: number;
     spent_lords: AbyssLord[];
     spent_allies: AbyssAlly[];
+    allyDiscardSize: number;
 }
 
 interface NotifRefillLordsArgs {
@@ -303,6 +308,7 @@ interface NotifDiffArgs {
     allies_lost?: AbyssAlly[];
     monster?: AbyssMonster[];
     monster_count?: number;
+    allyDiscardSize: number;
 }
 
 interface NotifPayMartialLawArgs {
@@ -326,6 +332,7 @@ interface NotifSearchSanctuaryAllyArgs {
     playerId: number;
     ally: AbyssAlly;
     deck_size: number;
+    allyDiscardSize: number;
 }
 
 interface NotifPlaceSentinelArgs {

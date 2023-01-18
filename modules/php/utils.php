@@ -121,7 +121,8 @@ trait UtilTrait {
                 'player_name' => $players[$player_id]["player_name"],
                 'pearls' => $diff,
                 'num_pearls' => abs($diff), // for log
-                'source' => $source
+                'source' => $source,
+                'allyDiscardSize' => Ally::getDiscardSize(),
         );
         if (strpos($source, "lord_") === 0) {
             $lord_id = str_replace("lord_", "", $source);
@@ -184,7 +185,8 @@ trait UtilTrait {
                 'nebulis' => $diff,
                 'num_nebulis' => abs($diff), // for log
                 'kraken_value' => $diff + 1, // for log
-                'source' => $source
+                'source' => $source,
+                'allyDiscardSize' => Ally::getDiscardSize(),
         );
 
         if (strpos($source, "lord_") === 0) {
@@ -215,7 +217,8 @@ trait UtilTrait {
         self::notifyAllPlayers( "diff", '', array(
                 'player_id' => $player_id,
                 'keys' => $diff,
-                'source' => $source
+                'source' => $source,
+                'allyDiscardSize' => Ally::getDiscardSize(),
         ) );
     }
 
@@ -512,6 +515,7 @@ trait UtilTrait {
                     'ally' => $ally,
                     'deck_size' => Ally::getDeckSize(),
                     'card_name' => $card_name,
+                    'allyDiscardSize' => Ally::getDiscardSize(),
                 ]);
 
             } while ($monster);

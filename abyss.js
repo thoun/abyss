@@ -1567,6 +1567,9 @@ var Abyss = /** @class */ (function () {
                 _loop_3(i_3);
             }
         }
+        this.allyDiscardCounter = new ebg.counter();
+        this.allyDiscardCounter.create("ally-discard-size");
+        this.allyDiscardCounter.setValue(gamedatas.allyDiscardSize);
         this.organisePanelMessages();
         // Setup game notifications to handle (see "setupNotifications" method below)
         this.setupNotifications();
@@ -2802,6 +2805,7 @@ var Abyss = /** @class */ (function () {
     };
     Abyss.prototype.notif_allyDeckShuffle = function (notif) {
         this.setDeckSize(dojo.query('#explore-track .slot-0'), notif.args.deck_size);
+        this.allyDiscardCounter.setValue(0);
     };
     Abyss.prototype.notif_lootReward = function (notif) {
         var player_id = notif.args.player_id;
@@ -2940,6 +2944,7 @@ var Abyss = /** @class */ (function () {
         for (var i = 1; i <= 5; i++) {
             _loop_7();
         }
+        this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
         this.organisePanelMessages();
     };
     Abyss.prototype.notif_takeAllyFromDiscard = function (notif) {
@@ -2948,6 +2953,7 @@ var Abyss = /** @class */ (function () {
             this.getPlayerTable(Number(player_id)).addHandAlly(notif.args.ally, $('game-extra'));
         }
         $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
+        this.allyDiscardCounter.setValue(notif.args.discardSize);
         this.organisePanelMessages();
     };
     Abyss.prototype.notif_purchase = function (notif) {
@@ -2989,6 +2995,7 @@ var Abyss = /** @class */ (function () {
         // Empty the council pile
         var deck = dojo.query('#council-track .slot-' + faction);
         this.setDeckSize(deck, 0);
+        this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
     };
     Abyss.prototype.notif_requestSupport = function (notif) {
         var player_id = notif.args.player_id;
@@ -3055,6 +3062,7 @@ var Abyss = /** @class */ (function () {
         if (lord) {
             this.getPlayerTable(player_id).addLord(lord);
         }
+        this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
         this.lordManager.updateLordKeys(player_id);
         this.organisePanelMessages();
     };
@@ -3128,6 +3136,7 @@ var Abyss = /** @class */ (function () {
                 $('monstercount_p' + source_player_id).innerHTML = +($('monstercount_p' + source_player_id).innerHTML) - +notif.args.monster_count;
             }
         }
+        this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
         this.organisePanelMessages();
     };
     Abyss.prototype.notif_payMartialLaw = function (notif) {
@@ -3145,6 +3154,7 @@ var Abyss = /** @class */ (function () {
     Abyss.prototype.notif_searchSanctuaryAlly = function (notif) {
         this.getPlayerTable(notif.args.playerId).addHandAlly(notif.args.ally, document.getElementById('explore-track-deck'));
         this.setDeckSize(dojo.query('#explore-track .slot-0'), notif.args.deck_size);
+        this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
     };
     Abyss.prototype.notif_kraken = function (notif) {
         this.placeKrakenToken(notif.args.playerId);

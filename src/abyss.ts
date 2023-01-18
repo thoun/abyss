@@ -26,6 +26,7 @@ class Abyss implements AbyssGame {
     private visibleLords: SlotStock<AbyssLord>;
     private visibleLocations: LineStock<AbyssLocation>;
     private visibleLocationsOverflow: LineStock<AbyssLocation>;
+    private allyDiscardCounter: Counter;
 
     constructor() {
     }
@@ -303,6 +304,12 @@ class Abyss implements AbyssGame {
                 });
             }
         }
+
+        this.allyDiscardCounter = new ebg.counter();
+        this.allyDiscardCounter.create(`ally-discard-size`);
+        this.allyDiscardCounter.setValue(gamedatas.allyDiscardSize);
+
+        
         
         this.organisePanelMessages();
 
@@ -1673,6 +1680,7 @@ class Abyss implements AbyssGame {
 
     notif_allyDeckShuffle ( notif: Notif<NotifAllyDeckShuffleArgs> ) {
         this.setDeckSize(dojo.query('#explore-track .slot-0'), notif.args.deck_size);
+        this.allyDiscardCounter.setValue(0);
     }
 
     notif_lootReward( notif: Notif<NotifMonsterRewardArgs> ) {
@@ -1825,6 +1833,8 @@ class Abyss implements AbyssGame {
                 }
             }
         }
+
+        this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
         
         this.organisePanelMessages();
     }
@@ -1837,6 +1847,8 @@ class Abyss implements AbyssGame {
 
         }
         $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
+
+        this.allyDiscardCounter.setValue(notif.args.discardSize);
         
         this.organisePanelMessages();
     }
@@ -1884,6 +1896,7 @@ class Abyss implements AbyssGame {
         // Empty the council pile
         var deck = dojo.query('#council-track .slot-' + faction);
         this.setDeckSize(deck, 0);
+        this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
     }
 
     notif_requestSupport( notif: Notif<NotifRequestSupportArgs> ) {
@@ -1959,6 +1972,8 @@ class Abyss implements AbyssGame {
         if (lord) {
             this.getPlayerTable(player_id).addLord(lord);
         }
+
+        this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
         
         this.lordManager.updateLordKeys(player_id);
         this.organisePanelMessages();
@@ -2035,11 +2050,13 @@ class Abyss implements AbyssGame {
         }
 
         if (notif.args.monster_count) {
-        $('monstercount_p' + player_id).innerHTML = +($('monstercount_p' + player_id).innerHTML) + +notif.args.monster_count;
-        if (source_player_id) {
-            $('monstercount_p' + source_player_id).innerHTML = +($('monstercount_p' + source_player_id).innerHTML) - +notif.args.monster_count;
+            $('monstercount_p' + player_id).innerHTML = +($('monstercount_p' + player_id).innerHTML) + +notif.args.monster_count;
+            if (source_player_id) {
+                $('monstercount_p' + source_player_id).innerHTML = +($('monstercount_p' + source_player_id).innerHTML) - +notif.args.monster_count;
+            }
         }
-        }
+
+        this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
         
         this.organisePanelMessages();
     }
@@ -2064,6 +2081,7 @@ class Abyss implements AbyssGame {
         this.getPlayerTable(notif.args.playerId).addHandAlly(notif.args.ally, document.getElementById('explore-track-deck'));
 
         this.setDeckSize(dojo.query('#explore-track .slot-0'), notif.args.deck_size);
+        this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
     }
 
     notif_kraken(notif: Notif<any>) {

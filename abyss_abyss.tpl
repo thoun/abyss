@@ -45,6 +45,7 @@
         </div>
       </div>
       <div id="explore-track">
+        <span id="ally-discard-size" class="deck-size"></span>
         <div class="ally ally-side ally-back slot-0 slot-fake">
         </div>
         <div id="explore-track-deck" class="ally ally-side ally-back slot-0 deck-full">

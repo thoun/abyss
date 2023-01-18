@@ -861,7 +861,7 @@ i.icon-ally {
 #game-board-holder.playmat #council-track .slot-3 {--rotation: rotate(13deg); top: 193px; left: 713px;}
 #game-board-holder.playmat #council-track .slot-4 {--rotation: rotate(28deg); top: 239px; left: 848px;}
 
-.ally-back .deck-size, .lord-back .deck-size, .location-back .deck-size {
+.ally-back .deck-size, .lord-back .deck-size, .location-back .deck-size, #ally-discard-size.deck-size {
   position: absolute;
   bottom: 5px;
   left: 0;
@@ -869,6 +869,8 @@ i.icon-ally {
   text-align: center;
   font-size: 0.8em;
   pointer-events: none;
+  color: white;
+  text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;
 }
 
 #locations-holder-overflow {
@@ -1119,8 +1121,8 @@ html a.bgabutton.affiliate-button:hover {
 }
 
 #visible-allies-stock {
-  left: 121px;
-  width: 512px;
+  left: 140px;
+  width: 588px;
   position: absolute;
   justify-content: space-between;
 
@@ -1130,15 +1132,30 @@ html a.bgabutton.affiliate-button:hover {
   }
 }
 
+.playmat {
+  #visible-allies-stock {
+    left: 121px;
+    width: 512px;
+  }
+}
+
 #visible-lords-stock {
-  left: 128px;
-  width: 616px;
+  left: 115px;
+  width: 609px;
   position: absolute;
   justify-content: space-between;
 
   .slot {
     width: 88px;
     height: 136px;
+  }
+}
+
+
+.playmat {
+  #visible-lords-stock {
+    left: 128px;
+    width: 616px;
   }
 }
 
@@ -1186,4 +1203,18 @@ html a.bgabutton.affiliate-button:hover {
 .card.disabled {
     filter: contrast(0.6);
     cursor: not-allowed;
+}
+
+#ally-discard-size.deck-size {
+  bottom: -28px;
+  left: 0px;
+  width: 20px;
+}
+
+.playmat {
+  #ally-discard-size.deck-size {
+    bottom: -20px;
+    left: -74px;
+    width: 57px;
+  }
 }

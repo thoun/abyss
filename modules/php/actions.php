@@ -133,27 +133,29 @@ trait ActionTrait {
         // Notification
         $players = self::loadPlayersBasicInfos();
         if ($ally['faction'] !== NULL) {
-            self::notifyAllPlayers( "exploreTake", clienttranslate('${player_name} takes ${card_name}'), array(
-                    'ally' => $ally,
-                    'slot' => $slot,
-                    'player_id' => $player_id,
-                    'player_name' => $players[$player_id]["player_name"],
-                    'card_name' => array(
-                        'log' => '<span style="color:'.$this->factions[$ally["faction"]]["colour"].'">${value} ${faction}</span>',
-                        'args' => array(
-                            'value' => $ally["value"],
-                            'faction' => $this->factions[$ally["faction"]]["ally_name"],
-                            'i18n' => ['faction']
-                        )
-                    ),
-            ) );
+            self::notifyAllPlayers( "exploreTake", clienttranslate('${player_name} takes ${card_name}'), [
+                'ally' => $ally,
+                'slot' => $slot,
+                'player_id' => $player_id,
+                'player_name' => $players[$player_id]["player_name"],
+                'card_name' => array(
+                    'log' => '<span style="color:'.$this->factions[$ally["faction"]]["colour"].'">${value} ${faction}</span>',
+                    'args' => array(
+                        'value' => $ally["value"],
+                        'faction' => $this->factions[$ally["faction"]]["ally_name"],
+                        'i18n' => ['faction']
+                    )
+                ),
+                'allyDiscardSize' => Ally::getDiscardSize(),
+            ]);
         } else {
-            self::notifyAllPlayers( "exploreTake", clienttranslate('${player_name} fights a Monster'), array(
-                    'ally' => $ally,
-                    'slot' => $slot,
-                    'player_id' => $player_id,
-                    'player_name' => $players[$player_id]["player_name"],
-            ));
+            self::notifyAllPlayers( "exploreTake", clienttranslate('${player_name} fights a Monster'), [
+                'ally' => $ally,
+                'slot' => $slot,
+                'player_id' => $player_id,
+                'player_name' => $players[$player_id]["player_name"],
+                'allyDiscardSize' => Ally::getDiscardSize(),
+            ]);
         }
 
         $this->gamestate->nextState($nextState);
@@ -568,6 +570,7 @@ trait ActionTrait {
                 "i18n" => array('lord_name'),
                 "lord_name" => $this->lords[$lord_id]["name"],
                 'num_allies' => count($allies),
+                'allyDiscardSize' => Ally::getDiscardSize(),
         ));
 
         $opponentsIds = $this->getOpponentsIds($player_id);
@@ -612,21 +615,22 @@ trait ActionTrait {
                     'lord_id' => 17
             ) );
 
-            self::notifyAllPlayers( "discardCouncil", clienttranslate('${player_name} discards ${num} card(s) from the ${council_name} with ${lord_name}'), array(
-                    'num' => $num,
-                    'player_id' => $player_id,
-                    'faction' => $faction,
-                    'player_name' => self::getActivePlayerName(),
-                    "i18n" => array('lord_name'),
-                    "lord_name" => $this->lords[17]["name"],
-                    'council_name' => array(
-                        'log' => '<span style="color:'.$this->factions[$faction]["colour"].'">' . clienttranslate('${faction} council') . '</span>',
-                        'args' => array(
-                            'faction' => $this->factions[$faction]["ally_name"],
-                            'i18n' => ['faction']
-                        )
+            self::notifyAllPlayers( "discardCouncil", clienttranslate('${player_name} discards ${num} card(s) from the ${council_name} with ${lord_name}'), [
+                'num' => $num,
+                'player_id' => $player_id,
+                'faction' => $faction,
+                'player_name' => self::getActivePlayerName(),
+                "i18n" => array('lord_name'),
+                "lord_name" => $this->lords[17]["name"],
+                'council_name' => array(
+                    'log' => '<span style="color:'.$this->factions[$faction]["colour"].'">' . clienttranslate('${faction} council') . '</span>',
+                    'args' => array(
+                        'faction' => $this->factions[$faction]["ally_name"],
+                        'i18n' => ['faction']
                     )
-            ) );
+                    ),
+                    'allyDiscardSize' => Ally::getDiscardSize(),
+            ]);
 
             self::returnToPrevious();
             return;
@@ -773,7 +777,8 @@ trait ActionTrait {
         self::notifyAllPlayers( "diff", '', array(
                 'player_id' => $player_id,
                 'allies_lost' => $allies_lost,
-                'source' => $source
+                'source' => $source,
+                'allyDiscardSize' => Ally::getDiscardSize(),
         ) );
 
         if ($state['name'] == 'martialLaw') {
@@ -810,13 +815,15 @@ trait ActionTrait {
                 self::notifyPlayer( $pid, "diff", '', array(
                         'player_id' => $player_id,
                         'monster' => array($monster),
-                        'source' => "player_$target_player_id"
+                        'source' => "player_$target_player_id",
+                        'allyDiscardSize' => Ally::getDiscardSize(),
                 ) );
             } else {
                 self::notifyPlayer( $pid, "diff", '', array(
                         'player_id' => $player_id,
                         'monster_count' => 1,
-                        'source' => "player_$target_player_id"
+                        'source' => "player_$target_player_id",
+                        'allyDiscardSize' => Ally::getDiscardSize(),
                 ) );
             }
         }
@@ -863,6 +870,7 @@ trait ActionTrait {
                     "i18n" => array('lord_name', 'lord_name2'),
                     'lord_name' => $this->lords[$lord_id]["name"],
                     "lord_name2" => $this->lords[23]["name"],
+                    'allyDiscardSize' => Ally::getDiscardSize(),
             ) );
 
             $this->gamestate->nextState( "selectLord" );
@@ -894,6 +902,7 @@ trait ActionTrait {
                     'lord_name' => $this->lords[$lord_id]["name"],
                     "lord_name2" => $this->lords[$lord2["lord_id"]]["name"],
                     "lord_name3" => $this->lords[26]["name"],
+                    'allyDiscardSize' => Ally::getDiscardSize(),
             ) );
 
             self::setGameStateValue( 'selected_lord', $lord2["lord_id"] );
@@ -1272,7 +1281,8 @@ trait ActionTrait {
             self::notifyAllPlayers( "diff", '', array(
                     'player_id' => $player_id,
                     'allies_lost' => $allies_lost,
-                    'source' => $source
+                    'source' => $source,
+                    'allyDiscardSize' => Ally::getDiscardSize(),
             ) );
             self::incPlayerPearls( $player_id, 2, "lord_12" );
 
@@ -1386,6 +1396,7 @@ trait ActionTrait {
             'player_name' => self::getActivePlayerName(),
             "i18n" => ['lord_name'],
             "lord_name" => $this->lords[$id]["name"],
+            'allyDiscardSize' => Ally::getDiscardSize(),
         ]);
 
         $this->gamestate->nextState('freeLord');
@@ -1427,19 +1438,20 @@ trait ActionTrait {
         self::DbQuery( "UPDATE ally SET place = ".($playerId * -1)." WHERE ally_id = " . $ally["ally_id"] );
 
         // Notify that the card has gone to that player
-        self::notifyAllPlayers('takeAllyFromDiscard', clienttranslate('${player_name} takes ${card_name} from the discard'), array(
-                'ally' => $ally,
-                'player_id' => $playerId,
-                'player_name' => $this->getPlayerName($playerId),
-                'card_name' => array( // for logs
-                    'log' => '<span style="color:'.$this->factions[$ally["faction"]]["colour"].'">${value} ${faction}</span>',
-                    'args' => array(
-                        'value' => $ally["value"],
-                        'faction' => $this->factions[$ally["faction"]]["ally_name"],
-                        'i18n' => ['faction']
-                    )
+        self::notifyAllPlayers('takeAllyFromDiscard', clienttranslate('${player_name} takes ${card_name} from the discard'), [
+            'ally' => $ally,
+            'player_id' => $playerId,
+            'player_name' => $this->getPlayerName($playerId),
+            'card_name' => array( // for logs
+                'log' => '<span style="color:'.$this->factions[$ally["faction"]]["colour"].'">${value} ${faction}</span>',
+                'args' => array(
+                    'value' => $ally["value"],
+                    'faction' => $this->factions[$ally["faction"]]["ally_name"],
+                    'i18n' => ['faction']
                 ),
-        ));
+            ),
+            'discardSize' => Ally::getDiscardSize(),
+        ]);
 
         $this->gamestate->nextState('next');
 
