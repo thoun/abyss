@@ -655,32 +655,35 @@ trait UtilTrait {
         return false;
     }
 
-
-        
     function canAffordLord(int $playerId, array $hand, int $pearls, int $nebulis, $lord) {
+        $krakenKey = $this->array_find_key($hand, fn($ally) => $ally["faction"] == 10);
+        if ($krakenKey != null) {
+            for ($i=0; $i < 5; $i++) { 
+                $modifiedHand = $hand; // copy
+                $modifiedHand[$krakenKey]["faction"] = $i;
+                if ($this->canAffordLord($playerId, $modifiedHand, $pearls, $nebulis, $lord)) {
+                    return true;
+                }
+            }
+        }
+
         $potentialFound = false;
         
         $hasDiplomat = Lord::playerHas(24 , $playerId);
         $cost = self::getLordCost($lord, $playerId);
         $requiredDiversity = $lord["diversity"];
         
-        $krakens = 0;
         $diversity = [];
         foreach ($hand as $ally) {
             if (! isset($diversity[$ally["faction"]])) {
                 $diversity[$ally["faction"]] = 0;
             }
             $diversity[$ally["faction"]] += $ally["value"];
-
-            if ($ally["faction"] == 10) {
-                $krakens++;
-                $hasDiplomat = true; // the kraken can replace the required color, so it behaves as the diplomat
-            }
         }
         //throw new BgaUserException( self::_(join(", ", array_keys($diversity)) . " : " . join(", ", array_values($diversity))) );
         $potentialFound = true;
         
-        if ((count($diversity) + $krakens) < $requiredDiversity) {
+        if (count($diversity) < $requiredDiversity) {
             // Total diversity of hand...
             $potentialFound = false;
         } else if (isset($lord["faction"]) && ! $hasDiplomat && ! isset($diversity[$lord["faction"]])) {

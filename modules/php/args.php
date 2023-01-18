@@ -14,14 +14,14 @@ trait ArgsTrait {
    
     function argAffordableLords() {
 		$playerId = self::getActivePlayerId();
-		$hand = Ally::getPlayerHand( $playerId );
-		$pearls = self::getPlayerPearls( $playerId );
+		$hand = Ally::getPlayerHand($playerId);
+		$pearls = self::getPlayerPearls($playerId);
 		
 		$lords = Lord::getSlots();
 		$affordableLords = [];
 		
         $krakenExpansion = $this->isKrakenExpansion();
-		$nebulis = $krakenExpansion ? (Lord::playerHas(102, $playerId) ? 2 : 1) : 0;
+		$nebulis = $krakenExpansion ? min(Lord::playerHas(102, $playerId) ? 2 : 1, $this->getPlayerNebulis($playerId)) : 0;
 		foreach ($lords as $lord) {
 			$canAffordLord = self::canAffordLord($playerId, $hand, $pearls, $nebulis, $lord);
 			if ($canAffordLord) {

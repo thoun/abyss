@@ -251,11 +251,12 @@ trait ActionTrait {
                     "lord_name" => $this->lords[$lord_id]["name"],
             ) );
         } else {
-            $hand = Ally::getPlayerHand( $player_id );
-            $nebulis = $krakenExpansion ? (Lord::playerHas(102, $player_id) ? 2 : 1) : 0;
-            $canAffordLord = self::canAffordLord($player_id, $hand, $pearls, $nebulis, $lord);
+            $playerId = $player_id;
+            $hand = Ally::getPlayerHand($playerId);
+            $nebulis = $krakenExpansion ? min(Lord::playerHas(102, $playerId) ? 2 : 1, $this->getPlayerNebulis($playerId)) : 0;
+            $canAffordLord = self::canAffordLord($playerId, $hand, $pearls, $nebulis, $lord);
 
-            if (! $canAffordLord) {
+            if (!$canAffordLord) {
                 throw new BgaUserException( self::_("You cannot afford that Lord.") );
             }
         }
