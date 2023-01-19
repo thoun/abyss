@@ -1322,6 +1322,8 @@ var Abyss = /** @class */ (function () {
     function Abyss() {
         this.playersTables = [];
         this.councilStacks = [];
+        this.pearlCounters = [];
+        this.nebulisCounters = [];
     }
     Abyss.prototype.setup = function (gamedatas) {
         var _this = this;
@@ -2107,12 +2109,20 @@ var Abyss = /** @class */ (function () {
             var playerId = Number(player.id);
             // Setting up players boards if needed
             var player_board_div = $('player_board_' + playerId);
-            var html = "\n            <div id=\"cp_board_p".concat(player.id, "\" class=\"cp_board\" data-player-id=\"").concat(player.id, "\">\n                <div class=\"counters\">\n                    <span class=\"pearl-holder spacer\" id=\"pearl-holder_p").concat(player.id, "\">\n                        <i class=\"icon icon-pearl\"></i>\n                        <span class=\"spacer\" id=\"pearlcount_p").concat(player.id, "\">").concat(player.pearls, "</span>\n                    </span>");
+            var html = "\n            <div id=\"cp_board_p".concat(player.id, "\" class=\"cp_board\" data-player-id=\"").concat(player.id, "\">\n                <div class=\"counters\">\n                    <span class=\"pearl-holder spacer\" id=\"pearl-holder_p").concat(player.id, "\">\n                        <i class=\"icon icon-pearl\"></i>\n                        <span class=\"spacer\" id=\"pearlcount_p").concat(player.id, "\"></span>\n                    </span>");
             if (gamedatas.krakenExpansion) {
-                html += "<span class=\"nebulis-holder spacer\" id=\"nebulis-holder_p".concat(player.id, "\">\n                    <i class=\"icon icon-nebulis\"></i>\n                    <span class=\"spacer\" id=\"nebuliscount_p").concat(player.id, "\">").concat(player.nebulis, "</span>\n                </span>");
+                html += "<span class=\"nebulis-holder spacer\" id=\"nebulis-holder_p".concat(player.id, "\">\n                    <i class=\"icon icon-nebulis\"></i>\n                    <span class=\"spacer\" id=\"nebuliscount_p").concat(player.id, "\"></span>\n                </span>");
             }
             html += "\n                    <span class=\"key-holder spacer\" id=\"key-holder_p".concat(player.id, "\">\n                        <i class=\"icon icon-key\"></i>\n                        <span class=\"spacer\" id=\"keycount_p").concat(player.id, "\">").concat(player.keys, "</span>\n                    </span>\n                    <span class=\"monster-holder spacer\" id=\"monster-holder_p").concat(player.id, "\">\n                        <i class=\"icon icon-monster\"></i>\n                        <span class=\"spacer\" id=\"monstercount_p").concat(player.id, "\">").concat(player.num_monsters, "</span>\n                    </span>\n                </div>\n                <div class=\"counters\">\n                    <span class=\"ally-holder spacer\" id=\"ally-holder_p").concat(player.id, "\">\n                        <i class=\"icon icon-ally\"></i>\n                        <span class=\"spacer\" id=\"allycount_p").concat(player.id, "\">").concat(player.hand_size, "</span>\n                    </span>\n                    <span class=\"spacer\">\n                        <span class=\"lordcount-holder\">\n                            <i class=\"icon icon-lord\"></i>\n                            <span id=\"lordcount_p").concat(player.id, "\">").concat(player.lords.length, "</span>\n                        </span>\n                        <span class=\"key-addendum\">(<i class=\"icon icon-key\"></i> <span id=\"lordkeycount_p").concat(player.id, "\"></span>)</span>\n                    </span>\n                </div>\n                <div class=\"monster-hand\" id=\"monster-hand_p").concat(player.id, "\"></div>\n            </div>");
             dojo.place(html, player_board_div);
+            _this.pearlCounters[playerId] = new ebg.counter();
+            _this.pearlCounters[playerId].create("pearlcount_p".concat(player.id));
+            _this.pearlCounters[playerId].setValue(player.pearls);
+            if (gamedatas.krakenExpansion) {
+                _this.nebulisCounters[playerId] = new ebg.counter();
+                _this.nebulisCounters[playerId].create("nebuliscount_p".concat(player.id));
+                _this.nebulisCounters[playerId].setValue(player.nebulis);
+            }
             // kraken token
             dojo.place("<div id=\"player_board_".concat(player.id, "_krakenWrapper\" class=\"krakenWrapper\"></div>"), "player_board_".concat(player.id));
             if (gamedatas.kraken == playerId) {
@@ -2136,11 +2146,12 @@ var Abyss = /** @class */ (function () {
             $('scoring-row-total').innerHTML += "<td id=\"scoring-row-total-p".concat(playerId, "\"></td>");
         });
     };
-    Abyss.prototype.incPearlCount = function (playerId, inc) {
-        $('pearlcount_p' + playerId).innerHTML = +($('pearlcount_p' + playerId).innerHTML) + inc;
+    Abyss.prototype.setPearlCount = function (playerId, count) {
+        this.pearlCounters[playerId].setValue(count);
     };
-    Abyss.prototype.incNebulisCount = function (playerId, inc) {
-        $('nebuliscount_p' + playerId).innerHTML = +($('nebuliscount_p' + playerId).innerHTML) + inc;
+    Abyss.prototype.setNebulisCount = function (playerId, count) {
+        var _a;
+        (_a = this.nebulisCounters[playerId]) === null || _a === void 0 ? void 0 : _a.setValue(count);
     };
     Abyss.prototype.placeKrakenToken = function (playerId) {
         var krakenToken = document.getElementById('krakenToken');
@@ -2817,7 +2828,7 @@ var Abyss = /** @class */ (function () {
     };
     Abyss.prototype.notif_lootReward = function (notif) {
         var player_id = notif.args.player_id;
-        this.incPearlCount(player_id, +notif.args.pearls);
+        this.setPearlCount(player_id, notif.args.playerPearls);
         $('monstercount_p' + player_id).innerHTML = +($('monstercount_p' + player_id).innerHTML) + +notif.args.monsters;
         $('keycount_p' + player_id).innerHTML = +($('keycount_p' + player_id).innerHTML) + +notif.args.keys;
     };
@@ -2851,9 +2862,8 @@ var Abyss = /** @class */ (function () {
         var lord = notif.args.lord;
         var player_id = notif.args.player_id;
         var deck_size = +notif.args.deck_size;
-        var pearls = +notif.args.pearls;
         var old_lord = notif.args.old_lord;
-        this.incPearlCount(player_id, -pearls);
+        this.setPearlCount(player_id, notif.args.playerPearls);
         if (old_lord) {
             this.visibleLords.removeCard(old_lord);
         }
@@ -2969,11 +2979,11 @@ var Abyss = /** @class */ (function () {
         var player_id = notif.args.player_id;
         var ally = notif.args.ally;
         // Update handsize and pearls of purchasing player
-        this.incPearlCount(player_id, -notif.args.incPearls);
-        this.incPearlCount(notif.args.first_player_id, notif.args.incPearls);
+        this.setPearlCount(player_id, notif.args.playerPearls);
+        this.setPearlCount(notif.args.first_player_id, notif.args.firstPlayerPearls);
         if (this.gamedatas.krakenExpansion) {
-            this.incNebulisCount(player_id, -notif.args.incNebulis);
-            this.incNebulisCount(notif.args.first_player_id, notif.args.incNebulis);
+            this.setNebulisCount(player_id, notif.args.playerNebulis);
+            this.setNebulisCount(notif.args.first_player_id, notif.args.firstPlayerNebulis);
         }
         if (player_id == this.getPlayerId()) {
             this.getPlayerTable(Number(player_id)).addHandAlly(ally);
@@ -3053,11 +3063,11 @@ var Abyss = /** @class */ (function () {
         if (spent_allies) {
             $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) - spent_allies.length;
         }
-        if (notif.args.incPearls) {
-            this.incPearlCount(player_id, -notif.args.incPearls);
+        if (notif.args.playerPearls !== undefined && notif.args.playerPearls !== null) {
+            this.setPearlCount(player_id, notif.args.playerPearls);
         }
-        if (this.gamedatas.krakenExpansion && notif.args.incNebulis) {
-            this.incNebulisCount(player_id, -notif.args.incNebulis);
+        if (notif.args.playerNebulis !== undefined && notif.args.playerNebulis !== null) {
+            this.setNebulisCount(player_id, notif.args.playerNebulis);
         }
         // If it's me, then actually get rid of the allies
         if (spent_allies && player_id == this.getPlayerId()) {
@@ -3092,11 +3102,11 @@ var Abyss = /** @class */ (function () {
         }
         // TODO : Animate based on 'source'
         // If source starts "lord_" animate to the lord
-        if (notif.args.pearls) {
-            this.incPearlCount(player_id, notif.args.pearls);
+        if (notif.args.playerPearls !== undefined && notif.args.playerPearls !== null) {
+            this.setPearlCount(player_id, notif.args.playerPearls);
         }
-        if (notif.args.nebulis) {
-            this.incNebulisCount(player_id, notif.args.nebulis);
+        if (notif.args.playerNebulis !== undefined && notif.args.playerNebulis !== null) {
+            this.setNebulisCount(player_id, notif.args.playerNebulis);
         }
         if (notif.args.keys) {
             var keys = notif.args.keys;
@@ -3146,7 +3156,7 @@ var Abyss = /** @class */ (function () {
         this.organisePanelMessages();
     };
     Abyss.prototype.notif_payMartialLaw = function (notif) {
-        this.incPearlCount(notif.args.playerId, -notif.args.spentPearls);
+        this.setPearlCount(notif.args.playerId, notif.args.playerPearls);
     };
     Abyss.prototype.notif_newLoot = function (notif) {
         this.locationManager.addLoot(notif.args.locationId, notif.args.newLoot);

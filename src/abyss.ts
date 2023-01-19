@@ -27,6 +27,8 @@ class Abyss implements AbyssGame {
     private visibleLocations: LineStock<AbyssLocation>;
     private visibleLocationsOverflow: LineStock<AbyssLocation>;
     private allyDiscardCounter: Counter;
+    private pearlCounters: Counter[] = [];
+    private nebulisCounters: Counter[] = [];
 
     constructor() {
     }
@@ -853,13 +855,13 @@ class Abyss implements AbyssGame {
                 <div class="counters">
                     <span class="pearl-holder spacer" id="pearl-holder_p${player.id}">
                         <i class="icon icon-pearl"></i>
-                        <span class="spacer" id="pearlcount_p${player.id}">${player.pearls}</span>
+                        <span class="spacer" id="pearlcount_p${player.id}"></span>
                     </span>`;
 
             if (gamedatas.krakenExpansion) {
                 html += `<span class="nebulis-holder spacer" id="nebulis-holder_p${player.id}">
                     <i class="icon icon-nebulis"></i>
-                    <span class="spacer" id="nebuliscount_p${player.id}">${player.nebulis}</span>
+                    <span class="spacer" id="nebuliscount_p${player.id}"></span>
                 </span>`;
             }
 
@@ -890,7 +892,14 @@ class Abyss implements AbyssGame {
             </div>`;
             dojo.place( html, player_board_div );
 
-            
+            this.pearlCounters[playerId] = new ebg.counter();
+            this.pearlCounters[playerId].create(`pearlcount_p${player.id}`);
+            this.pearlCounters[playerId].setValue(player.pearls);
+            if (gamedatas.krakenExpansion) {
+                this.nebulisCounters[playerId] = new ebg.counter();
+                this.nebulisCounters[playerId].create(`nebuliscount_p${player.id}`);
+                this.nebulisCounters[playerId].setValue(player.nebulis);
+            }
 
             // kraken token
             dojo.place(`<div id="player_board_${player.id}_krakenWrapper" class="krakenWrapper"></div>`, `player_board_${player.id}`);
@@ -920,11 +929,11 @@ class Abyss implements AbyssGame {
         });
     }
 
-    private incPearlCount(playerId: number, inc: number) {
-        $('pearlcount_p' + playerId).innerHTML = +($('pearlcount_p' + playerId).innerHTML) + inc;
+    private setPearlCount(playerId: number, count: number) {
+        this.pearlCounters[playerId].setValue(count);
     }
-    private incNebulisCount(playerId: number, inc: number) {
-        $('nebuliscount_p' + playerId).innerHTML = +($('nebuliscount_p' + playerId).innerHTML) + inc;
+    private setNebulisCount(playerId: number, count: number) {
+        this.nebulisCounters[playerId]?.setValue(count);
     }
 
     private placeKrakenToken(playerId: number) {
@@ -1715,8 +1724,8 @@ class Abyss implements AbyssGame {
     }
 
     notif_lootReward( notif: Notif<NotifMonsterRewardArgs> ) {
-        var player_id = notif.args.player_id;
-        this.incPearlCount(player_id, +notif.args.pearls);
+        const player_id = notif.args.player_id;
+        this.setPearlCount(player_id, notif.args.playerPearls);
         $('monstercount_p' + player_id).innerHTML = +($('monstercount_p' + player_id).innerHTML) + +notif.args.monsters;
         $('keycount_p' + player_id).innerHTML = +($('keycount_p' + player_id).innerHTML) + +notif.args.keys;
     }
@@ -1757,10 +1766,9 @@ class Abyss implements AbyssGame {
         var lord = notif.args.lord;
         var player_id = notif.args.player_id;
         var deck_size = +notif.args.deck_size;
-        var pearls = +notif.args.pearls;
         var old_lord = notif.args.old_lord;
 
-        this.incPearlCount(player_id, -pearls);
+        this.setPearlCount(player_id, notif.args.playerPearls);
         if (old_lord) {
             this.visibleLords.removeCard(old_lord);
         }
@@ -1888,11 +1896,11 @@ class Abyss implements AbyssGame {
         const ally = notif.args.ally;
 
         // Update handsize and pearls of purchasing player
-        this.incPearlCount(player_id, -notif.args.incPearls);
-        this.incPearlCount(notif.args.first_player_id, notif.args.incPearls);
+        this.setPearlCount(player_id, notif.args.playerPearls);
+        this.setPearlCount(notif.args.first_player_id, notif.args.firstPlayerPearls);
         if (this.gamedatas.krakenExpansion) {
-            this.incNebulisCount(player_id, -notif.args.incNebulis);
-            this.incNebulisCount(notif.args.first_player_id, notif.args.incNebulis);
+            this.setNebulisCount(player_id, notif.args.playerNebulis);
+            this.setNebulisCount(notif.args.first_player_id, notif.args.firstPlayerNebulis);
         }
 
         if (player_id == this.getPlayerId()) {
@@ -1982,11 +1990,11 @@ class Abyss implements AbyssGame {
         if (spent_allies) {
             $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) - spent_allies.length;
         }
-        if (notif.args.incPearls) {
-            this.incPearlCount(player_id, -notif.args.incPearls);
+        if (notif.args.playerPearls !== undefined && notif.args.playerPearls !== null) {
+            this.setPearlCount(player_id, notif.args.playerPearls);
         }
-        if (this.gamedatas.krakenExpansion && notif.args.incNebulis) {
-            this.incNebulisCount(player_id, -notif.args.incNebulis);
+        if (notif.args.playerNebulis !== undefined && notif.args.playerNebulis !== null) {
+            this.setNebulisCount(player_id, notif.args.playerNebulis);
         }
 
         // If it's me, then actually get rid of the allies
@@ -2024,15 +2032,15 @@ class Abyss implements AbyssGame {
         var source = notif.args.source;
         var source_player_id = null;
         if (source.startsWith("player_")) {
-        source_player_id = +source.slice("player_".length);
+            source_player_id = +source.slice("player_".length);
         }
         // TODO : Animate based on 'source'
         // If source starts "lord_" animate to the lord
-        if (notif.args.pearls) {
-            this.incPearlCount(player_id, notif.args.pearls);
+        if (notif.args.playerPearls !== undefined && notif.args.playerPearls !== null) {
+            this.setPearlCount(player_id, notif.args.playerPearls);
         }
-        if (notif.args.nebulis) {
-            this.incNebulisCount(player_id, notif.args.nebulis);
+        if (notif.args.playerNebulis !== undefined && notif.args.playerNebulis !== null) {
+            this.setNebulisCount(player_id, notif.args.playerNebulis);
         }
 
         if (notif.args.keys) {
@@ -2090,7 +2098,7 @@ class Abyss implements AbyssGame {
     }
 
     notif_payMartialLaw(notif: Notif<NotifPayMartialLawArgs>) {
-        this.incPearlCount(notif.args.playerId, -notif.args.spentPearls);
+        this.setPearlCount(notif.args.playerId, notif.args.playerPearls);
     }
 
     notif_newLoot(notif: Notif<NotifNewLootArgs>) {

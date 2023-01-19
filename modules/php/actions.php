@@ -208,6 +208,7 @@ trait ActionTrait {
                     'old_lord' => $lord,
                     'player_id' => $player_id,
                     'player_name' => self::getActivePlayerName(),
+                    'playerPearls' => $this->getPlayerPearls($player_id),
                     'pearls' => 0,
                     'deck_size' => Lord::getDeckSize(),
                     'lord_name' => $this->lords[21]["name"],
@@ -245,6 +246,7 @@ trait ActionTrait {
                     'lord' => $lord,
                     'spent_allies' => [],
                     'spent_pearls' => 5,
+                    'playerPearls' => $this->getPlayerPearls($player_id),
                     'player_id' => $player_id,
                     'player_name' => self::getActivePlayerName(),
                     "i18n" => array('lord_name'),
@@ -361,6 +363,7 @@ trait ActionTrait {
 
         self::notifyAllPlayers( "monsterReward", clienttranslate('${player_name} earns ${rewards} for defeating a Monster'), array(
                 'keys' => $keys,
+                'playerPearls' => $this->getPlayerPearls($player_id),
                 'pearls' => $pearls,
                 'monsters' => count($monsters),
                 'player_id' => $player_id,
@@ -426,14 +429,18 @@ trait ActionTrait {
 
         // Notify that the card has gone to that player
         $players = self::loadPlayersBasicInfos();
-        $message = $withNebulis ?
-            clienttranslate('${player_name} purchases ${card_name} for ${cost} Pearl(s) and ${nebulisCost} Nebulis') :
+        $message = $nebulisCost > 0 ?
+            ($pearlCost > 0 ? clienttranslate('${player_name} purchases ${card_name} for ${cost} Pearl(s) and ${nebulisCost} Nebulis') : clienttranslate('${player_name} purchases ${card_name} for ${nebulisCost} Nebulis')) :
             clienttranslate('${player_name} purchases ${card_name} for ${cost} Pearl(s)');
         self::notifyAllPlayers( "purchase", $message, array(
                 'ally' => $ally,
                 'slot' => $ally["place"],
                 'cost' => $pearlCost, // for logs
                 'nebulisCost' => $nebulisCost, // for logs
+                'playerPearls' => $this->getPlayerPearls($player_id),
+                'playerNebulis' => $this->getPlayerNebulis($player_id),
+                'firstPlayerPearls' => $this->getPlayerPearls($first_player_id),
+                'firstPlayerNebulis' => $this->getPlayerNebulis($first_player_id),
                 'incPearls' => $pearlCost,
                 'incNebulis' => $nebulisCost,
                 'player_id' => $player_id,
@@ -565,6 +572,8 @@ trait ActionTrait {
                 'spent_allies' => array_values($allies),
                 'spent_pearls' => $pearlCost,
                 'spent_nebulis' => $nebulisCost,
+                'playerPearls' => $this->getPlayerPearls($player_id),
+                'playerNebulis' => $this->getPlayerNebulis($player_id),
                 'incPearls' => $pearlCost,
                 'incNebulis' => $nebulisCost,
                 'player_id' => $player_id,
@@ -700,6 +709,7 @@ trait ActionTrait {
                 'lord' => $lord,
                 'player_id' => $player_id,
                 'player_name' => self::getActivePlayerName(),
+                'playerPearls' => $this->getPlayerPearls($player_id),
                 'pearls' => 1,
                 'deck_size' => Lord::getDeckSize()
         ) );
@@ -1006,6 +1016,7 @@ trait ActionTrait {
                     'lord' => $lord,
                     'player_id' => $playerId,
                     'player_name' => self::getActivePlayerName(),
+                    'playerPearls' => $this->getPlayerPearls($playerId),
                     'pearls' => 0,
                     'deck_size' => Lord::getDeckSize()
             ) );
@@ -1321,6 +1332,7 @@ trait ActionTrait {
         self::DbQuery( "UPDATE player SET player_pearls = player_pearls - $diff WHERE player_id = $playerId");
 
         self::notifyAllPlayers("payMartialLaw", clienttranslate('${player_name} pays ${diff} pearl(s) for martial law'), [
+            'playerPearls' => $this->getPlayerPearls($playerId),
             'spentPearls' => $diff,
             'playerId' => $playerId,
             'diff' => $diff, // for log

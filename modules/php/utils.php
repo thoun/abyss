@@ -119,6 +119,7 @@ trait UtilTrait {
         $params = array(
                 'player_id' => $player_id,
                 'player_name' => $players[$player_id]["player_name"],
+                'playerPearls' => $this->getPlayerPearls($player_id),
                 'pearls' => $diff,
                 'num_pearls' => abs($diff), // for log
                 'source' => $source,
@@ -182,6 +183,7 @@ trait UtilTrait {
         $params = array(
                 'player_id' => $player_id,
                 'player_name' => $players[$player_id]["player_name"],
+                'playerNebulis' => $this->getPlayerNebulis($player_id),
                 'nebulis' => $diff,
                 'num_nebulis' => abs($diff), // for log
                 'kraken_value' => $diff + 1, // for log
@@ -467,6 +469,7 @@ trait UtilTrait {
 
             self::notifyAllPlayers("lootReward", clienttranslate('${player_name} earns ${rewards} with drawn loot'), [
                 'keys' => $keys,
+                'playerPearls' => $this->getPlayerPearls($playerId),
                 'pearls' => $pearls,
                 'monsters' => count($monsters),
                 'player_id' => $playerId,

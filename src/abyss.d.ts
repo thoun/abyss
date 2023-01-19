@@ -212,7 +212,7 @@ interface NotifAllyDeckShuffleArgs {
 
 interface NotifMonsterRewardArgs {
     player_id: number;
-    pearls: number;
+    playerPearls: number;
     monsters: number;
     keys: number;
 }
@@ -230,7 +230,7 @@ interface NotifPlotArgs {
     lord: AbyssLord;
     player_id: number;
     deck_size: number;
-    pearls: number;
+    playerPearls: number;
     old_lord: AbyssLord;
 }
 
@@ -255,8 +255,10 @@ interface NotifExploreTakeArgs {
 interface NotifPurchaseArgs {
     player_id: number;
     slot;
-    incPearls: number;
-    incNebulis: number;
+    playerPearls: number;
+    playerNebulis: number;
+    firstPlayerPearls: number;
+    firstPlayerNebulis: number;
     first_player_id: number;
     ally: AbyssAlly;
     discardSize?: number;
@@ -288,8 +290,8 @@ interface NotifRequestSupportCardsArgs {
 interface NotifRecruitArgs {
     lord: AbyssLord;
     player_id: number;
-    incPearls: number;
-    incNebulis: number;
+    playerPearls: number;
+    playerNebulis: number;
     spent_lords: AbyssLord[];
     spent_allies: AbyssAlly[];
     allyDiscardSize: number;
@@ -304,8 +306,8 @@ interface NotifRefillLordsArgs {
 interface NotifDiffArgs {
     player_id: number;
     source?: string;
-    pearls?: number;
-    nebulis?: number;
+    playerPearls?: number;
+    playerNebulis?: number;
     keys?: number;
     allies_lost?: AbyssAlly[];
     monster?: AbyssMonster[];
@@ -315,7 +317,7 @@ interface NotifDiffArgs {
 
 interface NotifPayMartialLawArgs {
     playerId: number;
-    spentPearls: number;
+    playerPearls: number;
 }
 
 interface NotifNewLootArgs {
