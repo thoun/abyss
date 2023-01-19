@@ -1484,7 +1484,7 @@ trait ActionTrait {
     function goToPlaceSentinel() {
         self::checkAction('goToPlaceSentinel');
 
-        $this->setGameStateValue(AFTER_PLACE_SENTINEL, 2);
+        $this->setGameStateValue(AFTER_PLACE_SENTINEL, $this->gamestate->state_id());
         $this->gamestate->nextState('placeSentinel');
     }
 
@@ -1521,7 +1521,7 @@ trait ActionTrait {
         if ($this->mustPlaceSentinel($playerId) != null) {
             $this->gamestate->nextState('nextSentinel');
         } else {
-            $this->gamestate->nextState('next'.$this->getGameStateValue(AFTER_PLACE_SENTINEL));
+            $this->gamestate->jumpToState($this->getGameStateValue(AFTER_PLACE_SENTINEL));
         }
     }
 

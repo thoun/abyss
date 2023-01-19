@@ -435,8 +435,6 @@ $machinestates = array(
 		],
 		"transitions" => [
 			"nextSentinel" => ST_PLAYER_PLACE_SENTINEL,
-			"next1" => ST_PRE_CONTROL, 
-			"next2" => ST_PLAYER_MARTIAL_LAW, 
 		],
 	],
 

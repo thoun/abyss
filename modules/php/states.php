@@ -565,7 +565,7 @@ trait StateTrait {
                 self::incPlayerPearls( $player_id, 1, "lord_11" );
             } else if (in_array($lord['lord_id'], [106, 107, 108])) {
                 self::incPlayerNebulis($player_id, 1, "lord_$lord_id" );
-                $this->setGameStateValue(AFTER_PLACE_SENTINEL, 1);
+                $this->setGameStateValue(AFTER_PLACE_SENTINEL, ST_PRE_CONTROL);
                 $this->setSentinel($player_id, $lord_id, 'player', null);
                 $transition = "lord_sentinel";
             } 
