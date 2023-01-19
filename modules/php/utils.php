@@ -95,6 +95,10 @@ trait UtilTrait {
         return intval($this->getGameStateValue(KRAKEN_EXPANSION)) == 2;
     }
 
+    function isLeviathanExpansion() {
+        return intval($this->getGameStateValue(LEVIATHAN_EXPANSION)) == 2;
+    }
+
     function returnToPrevious() {
         $previous = self::getGameStateValue( "previous_state" );
         $this->gamestate->nextState( "return_$previous" );

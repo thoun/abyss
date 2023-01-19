@@ -70,8 +70,11 @@ class Abyss extends Table {
             SELECTED_FACTION => 25,
             AFTER_PLACE_SENTINEL => 26,
 
+            SCOURGE => 30,
+
             // game options
             KRAKEN_EXPANSION => KRAKEN_EXPANSION,
+            LEVIATHAN_EXPANSION => LEVIATHAN_EXPANSION,
         ]);
 
         Lord::init( $this );
@@ -113,6 +116,7 @@ class Abyss extends Table {
         /************ Start the game initialization *****/
 
         $krakenExpansion = $this->isKrakenExpansion();
+        $leviathanExpansion = $this->isLeviathanExpansion();
 
         // Init global values with their initial values
 		self::setGameStateInitialValue( 'temp_value', 0 );
@@ -124,6 +128,7 @@ class Abyss extends Table {
 		self::setGameStateInitialValue( 'game_ending_player', -1 );
 		$this->setGameStateInitialValue(MARTIAL_LAW_ACTIVATED, 1);
 		$this->setGameStateInitialValue(KRAKEN, 0);
+		$this->setGameStateInitialValue(SCOURGE, 0);
         // Init game statistics
         // (note: statistics used in this file must be defined in your stats.inc.php file)
 		self::initStat( 'table', "turns_number", 0 );
@@ -142,10 +147,10 @@ class Abyss extends Table {
         }
 
         // Setup decks
-		Lord::setup($krakenExpansion);
-		Ally::setup($krakenExpansion);
+		Lord::setup($krakenExpansion, $leviathanExpansion);
+		Ally::setup($krakenExpansion, $leviathanExpansion, array_keys($players));
 		Location::setup($krakenExpansion);
-		Monster::setup();
+		Monster::setup($leviathanExpansion);
         if ($krakenExpansion) {
             LootManager::setup();
         }
@@ -174,6 +179,7 @@ class Abyss extends Table {
         $current_player_id = self::getCurrentPlayerId();    // !! We must only return informations visible by this player !!
 
         $krakenExpansion = $this->isKrakenExpansion();
+        $leviathanExpansion = $this->isLeviathanExpansion();
 
         // Get information about players
         // Note: you can retrieve some extra field you added for "player" table in "dbmodel.sql" if you need it.
@@ -221,10 +227,14 @@ class Abyss extends Table {
 		$result['allyDiscardSize'] = Ally::getDiscardSize();
 
 		$result['krakenExpansion'] = $krakenExpansion;
+		$result['leviathanExpansion'] = $leviathanExpansion;
 
         if ($krakenExpansion) {
             $result['sentinels'] = $this->getSentinels();
             $result['kraken'] = intval(self::getGameStateValue(KRAKEN));
+        }
+        if ($leviathanExpansion) {
+            $result['scourge'] = intval(self::getGameStateValue(SCOURGE));
         }
 
         return $result;

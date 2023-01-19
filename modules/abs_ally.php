@@ -1,7 +1,7 @@
 <?php
 
 class Ally {
-  public static function setup(bool $krakenExpansion) {
+  public static function setup(bool $krakenExpansion, bool $leviathanExpansion, array $playersIds) {
     $sql = "INSERT INTO ally (`faction`, `value`) VALUES ";
 
     // 6 monsters

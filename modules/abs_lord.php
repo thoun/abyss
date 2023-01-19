@@ -27,14 +27,13 @@ class Lord
     self::$game = $theGame;
   }
 
-  public static function setup(bool $krakenExpansion) {
+  public static function setup(bool $krakenExpansion, bool $leviathanExpansion) {
     $sql = "INSERT INTO lord (lord_id, points, `keys`, cost, diversity, faction, effect) VALUES
       ( 1, 4, 1, 10, 2, ".self::FACTION_RED.", ".self::EFFECT_PASSIVE."),
       ( 2, 7, 0,  6, 3, ".self::FACTION_RED.", ".self::EFFECT_ONCE."),
       ( 3, 7, 0,  7, 2, ".self::FACTION_RED.", ".self::EFFECT_ONCE."),
       ( 4, 6, 0, 10, 1, ".self::FACTION_RED.", ".self::EFFECT_ONCE."),
       ( 5, 4, 1,  8, 1, ".self::FACTION_RED.", ".self::EFFECT_PASSIVE."),
-      ( 6, 4, 1,  6, 3, ".self::FACTION_RED.", ".self::EFFECT_PASSIVE."),
       ( 7, 6, 0,  8, 2, ".self::FACTION_RED.", ".self::EFFECT_ONCE."),
 
       ( 8, 5, 1,  6, 3, ".self::FACTION_GREEN.", ".self::EFFECT_PASSIVE."),
@@ -70,6 +69,12 @@ class Lord
       (34, 5, 0, 10, 5, NULL, ".self::EFFECT_ONCE."),
       (35, 3, 0, 10, 5, NULL, ".self::EFFECT_ONCE.")
     ";
+
+    if (!$leviathanExpansion) {
+      $sql .= ",
+      ( 6, 4, 1,  6, 3, ".self::FACTION_RED.", ".self::EFFECT_PASSIVE.")
+      ";
+    }
 
     if ($krakenExpansion) {
       $sql .= ",

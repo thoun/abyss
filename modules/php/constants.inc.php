@@ -62,6 +62,7 @@ define('END_SCORE', 100);
  * Game options
  */
 define('KRAKEN_EXPANSION', 110);
+define('LEVIATHAN_EXPANSION', 120);
 
 /**
  * Constants
@@ -69,6 +70,7 @@ define('KRAKEN_EXPANSION', 110);
 define('MARTIAL_LAW_ACTIVATED', 'MARTIAL_LAW_ACTIVATED');
 define('LAST_LOCATION', 'LAST_LOCATION');
 define('KRAKEN', 'KRAKEN');
+define('SCOURGE', 'SCOURGE');
 define('SELECTED_FACTION', 'SELECTED_FACTION');
 define('AFTER_PLACE_SENTINEL', 'AFTER_PLACE_SENTINEL');
 

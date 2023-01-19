@@ -1,7 +1,7 @@
 <?php
 
 class Monster {
-  public static function setup() {
+  public static function setup(bool $leviathanExpansion) {
     $sql = "INSERT INTO monster (`value`) VALUES ";
     $values = array();
 

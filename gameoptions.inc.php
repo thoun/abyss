@@ -44,6 +44,22 @@ $game_options = [
         'default' => 1,
     ],
 
+    /*LEVIATHAN_EXPANSION => [
+        'name' => totranslate('Leviathan expansion'),
+        'values' => [
+            1 => [
+                'name' => totranslate('Disabled'),
+            ],
+            2 => [
+                'name' => totranslate('Enabled'),
+                'tmdisplay' => totranslate('Leviathan expansion'),
+                'nobeginner' => true,
+                'alpha' => true,
+            ],
+        ],
+        'default' => 1,
+    ],*/
+
 ];
 
 $game_preferences = [

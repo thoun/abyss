@@ -94,6 +94,9 @@ interface AbyssGamedatas {
     krakenExpansion: boolean;
     kraken?: number;
     sentinels?: Sentinel[];
+
+    leviathanExpansion: boolean;
+    scourge?: number;
 }
 
 interface AbyssGame extends Game {
