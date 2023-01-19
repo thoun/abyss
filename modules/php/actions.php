@@ -504,8 +504,8 @@ trait ActionTrait {
         }
 
         $purchase_cost = max(0, $shortfall);
-        $player_pearls = self::getPlayerPearls($player_id);
-        $player_nebulis = $withNebulis ? self::getPlayerNebulis($player_id) : 0;
+        $player_pearls = $this->getPlayerPearls($player_id);
+        $player_nebulis = $withNebulis ? $this->getPlayerNebulis($player_id) : 0;
 
         $pearlCost = $purchase_cost - $withNebulis;
         $nebulisCost = $withNebulis;
@@ -543,7 +543,7 @@ trait ActionTrait {
             self::DbQuery( "UPDATE player SET player_pearls = player_pearls - $pearlCost WHERE player_id = " . $player_id );
         }
         if ($nebulisCost > 0) {
-            self::DbQuery( "UPDATE player SET player_pearls = player_nebulis - $nebulisCost WHERE player_id = " . $player_id );
+            self::DbQuery( "UPDATE player SET player_nebulis = player_nebulis - $nebulisCost WHERE player_id = " . $player_id );
             $this->checkNewKrakenOwner();
         }
 
