@@ -88,8 +88,8 @@ class LocationManager extends CardManager<AbyssLocation> {
     // TODO : Wrap points in nobr to avoid line breaks
     let desc = dojo.replace(_(location.desc), TEXT_HIGHLIGHT);
     if (laurel) {
-      desc = desc.replace(/(\d+)\$/g, (_, points) => {
-        return `<i class="icon icon-laurel">${points}</i>`; 
+      desc = desc.replace(/(\d+)?\$/g, (_, points) => {
+        return `<i class="icon icon-laurel">${points ?? ''}</i>`; 
       });
     } else {
       desc = desc.replace(/\$/g, '<i class="fa fa-star"></i>');

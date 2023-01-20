@@ -1121,8 +1121,8 @@ var LocationManager = /** @class */ (function (_super) {
         // TODO : Wrap points in nobr to avoid line breaks
         var desc = dojo.replace(_(location.desc), TEXT_HIGHLIGHT);
         if (laurel) {
-            desc = desc.replace(/(\d+)\$/g, function (_, points) {
-                return "<i class=\"icon icon-laurel\">".concat(points, "</i>");
+            desc = desc.replace(/(\d+)?\$/g, function (_, points) {
+                return "<i class=\"icon icon-laurel\">".concat(points !== null && points !== void 0 ? points : '', "</i>");
             });
         }
         else {
