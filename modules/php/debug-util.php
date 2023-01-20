@@ -25,7 +25,7 @@ trait DebugUtilTrait {
 		//$this->DbQuery("UPDATE player SET player_keys = 3");
 		//$this->DbQuery("UPDATE location SET place = 1 WHERE location_id = 103");
 		$this->DbQuery("UPDATE lord SET place = 0 WHERE place IN (1,2,3,5)");
-		$this->DbQuery("UPDATE lord SET place = 5 WHERE lord_id = 29");
+		$this->DbQuery("UPDATE lord SET place = 5 WHERE lord_id = 108");
 
 		//$this->gamestate->changeActivePlayer(2343492);
     }

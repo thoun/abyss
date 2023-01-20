@@ -1856,6 +1856,10 @@ html a.bgabutton.affiliate-button:hover {
   background-position-x: 100%;
 }
 
+#council-track .sentinel-token {
+  margin-top: -15px;
+}
+
 .sentinels .sentinel-token {
   position: relative;
   left: unset;
