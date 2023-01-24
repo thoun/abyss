@@ -1271,9 +1271,10 @@ class Abyss implements AbyssGame {
         // const diversity = args.lord.diversity;
 
         const selectedAllies = this.getCurrentPlayerTable().getSelectedAllies();
-        const value = selectedAllies.map(ally => ally.value).reduce((a, b) => a + b, 0);
+        const value = selectedAllies.map(ally => ally.value).reduce((a, b) => Number(a) + Number(b), 0);
         // const krakens = selectedAllies.filter(ally => ally.faction == 10).length;
         let shortfall = Math.max(0, args.cost - value);
+        // console.log(args, value, shortfall);
 
         // Update "Recruit" button
         const recruitButton = document.getElementById('button_recruit');
@@ -1637,7 +1638,7 @@ class Abyss implements AbyssGame {
             lines.push('nebulis', 'kraken');
         }
         lines.push('total');
-        console.log(breakdowns);
+        log(breakdowns);
         lines.forEach(stage => {
             let breakdownStage = stage + '_points';
             if (stage == 'total') {

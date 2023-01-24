@@ -29,7 +29,7 @@ class Ally {
   }
 
   public static function getExploreSlots() {
-    return array_values(Abyss::getCollection( "SELECT * FROM ally WHERE place >= 1 AND place <= 5 ORDER BY place ASC" ));
+    return Ally::typedAllies(Abyss::getCollection( "SELECT * FROM ally WHERE place >= 1 AND place <= 5 ORDER BY place ASC" ));
   }
 
   public function typedAlly(array $dbResult) {

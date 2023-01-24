@@ -1233,12 +1233,14 @@ var PlayerTable = /** @class */ (function () {
         this.game.organisePanelMessages();
     };
     PlayerTable.prototype.removeAllies = function (allies) {
-        this.hand.removeCards(allies);
+        var _a;
+        (_a = this.hand) === null || _a === void 0 ? void 0 : _a.removeCards(allies);
         this.affiliatedStocks.forEach(function (stock) { return stock.removeCards(allies); });
     };
     PlayerTable.prototype.getSelectedAllies = function () {
         var _this = this;
-        return this.hand.getCards().filter(function (card) { var _a; return (_a = _this.game.allyManager.getCardElement(card)) === null || _a === void 0 ? void 0 : _a.classList.contains('selected'); });
+        var _a, _b;
+        return ((_b = (_a = this.hand) === null || _a === void 0 ? void 0 : _a.getCards()) !== null && _b !== void 0 ? _b : []).filter(function (card) { var _a; return (_a = _this.game.allyManager.getCardElement(card)) === null || _a === void 0 ? void 0 : _a.classList.contains('selected'); });
     };
     PlayerTable.prototype.organisePanelMessages = function () {
         // Do they have any Lords?
@@ -1291,7 +1293,6 @@ var PlayerTable = /** @class */ (function () {
     PlayerTable.prototype.addLocation = function (location, lords, init) {
         var _this = this;
         this.locations.addCard(location).then(function (animated) {
-            console.log('animated', animated);
             // if loot location, scroll to it
             if (animated && !init && [103, 104, 105, 106].includes(location.location_id)) {
                 var element = _this.game.locationManager.getCardElement(location);
@@ -2459,9 +2460,10 @@ var Abyss = /** @class */ (function () {
         var playerNebulis = args.nebulis;
         // const diversity = args.lord.diversity;
         var selectedAllies = this.getCurrentPlayerTable().getSelectedAllies();
-        var value = selectedAllies.map(function (ally) { return ally.value; }).reduce(function (a, b) { return a + b; }, 0);
+        var value = selectedAllies.map(function (ally) { return ally.value; }).reduce(function (a, b) { return Number(a) + Number(b); }, 0);
         // const krakens = selectedAllies.filter(ally => ally.faction == 10).length;
         var shortfall = Math.max(0, args.cost - value);
+        // console.log(args, value, shortfall);
         // Update "Recruit" button
         var recruitButton = document.getElementById('button_recruit');
         recruitButton.innerHTML = _('Recruit') + ' (' + shortfall + ' <i class="icon icon-pearl"></i>)';
@@ -2779,7 +2781,7 @@ var Abyss = /** @class */ (function () {
             lines.push('nebulis', 'kraken');
         }
         lines.push('total');
-        console.log(breakdowns);
+        log(breakdowns);
         lines.forEach(function (stage) {
             var breakdownStage = stage + '_points';
             if (stage == 'total') {

@@ -72,12 +72,12 @@ class PlayerTable {
     }
     
     public removeAllies(allies: AbyssAlly[]) {
-        this.hand.removeCards(allies);
+        this.hand?.removeCards(allies);
         this.affiliatedStocks.forEach(stock => stock.removeCards(allies));
     }
     
     public getSelectedAllies() {
-        return this.hand.getCards().filter(card => this.game.allyManager.getCardElement(card)?.classList.contains('selected'));
+        return (this.hand?.getCards() ?? []).filter(card => this.game.allyManager.getCardElement(card)?.classList.contains('selected'));
     }
     
     public organisePanelMessages() {
@@ -141,7 +141,6 @@ class PlayerTable {
     public addLocation(location: AbyssLocation, lords: AbyssLord[], init: boolean) {
 
         this.locations.addCard(location).then(animated => {
-            console.log('animated', animated);
             // if loot location, scroll to it
             if (animated && !init && [103, 104, 105, 106].includes(location.location_id)) {
                 const element = this.game.locationManager.getCardElement(location);
