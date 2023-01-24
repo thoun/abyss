@@ -1679,7 +1679,7 @@ class Abyss implements AbyssGame {
         var player_id = notif.args.player_id;
 
         // Add the location to the player board
-        this.getPlayerTable(player_id).addLocation(location, lords);
+        this.getPlayerTable(player_id).addLocation(location, lords, false);
         
         this.lordManager.updateLordKeys(player_id);
         

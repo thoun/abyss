@@ -233,6 +233,7 @@ trait ActionTrait {
                     "i18n" => array('lord_name', 'lord_name2'),
                     "lord_name" => $this->lords[$lord_id]["name"],
                     "lord_name2" => $this->lords[23]["name"],
+                    'allyDiscardSize' => Ally::getDiscardSize(),
             ) );
         } else if ($state['name'] == 'lord22') {
             // You only need 5 pearls
@@ -272,6 +273,7 @@ trait ActionTrait {
                     'player_name' => self::getActivePlayerName(),
                     "i18n" => array('lord_name'),
                     "lord_name" => $this->lords[$lord_id]["name"],
+                    'allyDiscardSize' => Ally::getDiscardSize(),
             ) );
         } else {
             $playerId = $player_id;

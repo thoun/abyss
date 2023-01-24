@@ -55,7 +55,7 @@ class PlayerTable {
             center: false,
         });
         this.locations.onCardClick = card => this.game.onClickPlayerLocation(card);
-        player.locations.forEach(location => this.addLocation(location, player.lords.filter(lord => lord.location == location.location_id)));
+        player.locations.forEach(location => this.addLocation(location, player.lords.filter(lord => lord.location == location.location_id), true));
 
         this.game.lordManager.updateLordKeys(this.playerId, this);
         $('lordcount_p' + this.playerId).innerHTML = ''+player.lords.length;
@@ -138,8 +138,30 @@ class PlayerTable {
         return affiliated;
     }
     
-    public addLocation(location: AbyssLocation, lords: AbyssLord[]) {
-        this.locations.addCard(location);
+    public addLocation(location: AbyssLocation, lords: AbyssLord[], init: boolean) {
+
+        this.locations.addCard(location).then(animated => {
+            console.log('animated', animated);
+            // if loot location, scroll to it
+            if (animated && !init && [103, 104, 105, 106].includes(location.location_id)) {
+                const element = this.game.locationManager.getCardElement(location);
+                const rect = element.getBoundingClientRect();
+                const isVisible = (
+                    rect.top >= 0 &&
+                    rect.left >= 0 &&
+                    rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+                    rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+                );
+                
+                if (!isVisible) {
+                    element.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center',
+                        inline: 'center',
+                    });
+                }
+            }
+        });
         this.game.locationManager.addLords(location.location_id, lords);
     }
     

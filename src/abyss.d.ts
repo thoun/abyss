@@ -171,6 +171,10 @@ interface EnteringLord116Args {
     lords: AbyssLord[];
 }
 
+interface EnteringFillSanctuaryArgs {
+    locationId: number;
+}
+
 interface NotifFinalRoundArgs {
     player_id: number;
 }

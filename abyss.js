@@ -1138,7 +1138,9 @@ var LocationManager = /** @class */ (function (_super) {
         this.lordsStocks[locationId].addCards(lords);
     };
     LocationManager.prototype.addLoot = function (locationId, loot) {
-        this.lootStocks[locationId].addCard(loot); // TODO add from an element ?
+        this.lootStocks[locationId].addCard(loot, {
+            fromElement: document.getElementById('page-title'),
+        });
     };
     LocationManager.prototype.highlightLootsToDiscard = function (locationId, loots) {
         var _this = this;
@@ -1218,7 +1220,7 @@ var PlayerTable = /** @class */ (function () {
             center: false,
         });
         this.locations.onCardClick = function (card) { return _this.game.onClickPlayerLocation(card); };
-        player.locations.forEach(function (location) { return _this.addLocation(location, player.lords.filter(function (lord) { return lord.location == location.location_id; })); });
+        player.locations.forEach(function (location) { return _this.addLocation(location, player.lords.filter(function (lord) { return lord.location == location.location_id; }), true); });
         this.game.lordManager.updateLordKeys(this.playerId, this);
         $('lordcount_p' + this.playerId).innerHTML = '' + player.lords.length;
     }
@@ -1286,8 +1288,27 @@ var PlayerTable = /** @class */ (function () {
         }
         return affiliated;
     };
-    PlayerTable.prototype.addLocation = function (location, lords) {
-        this.locations.addCard(location);
+    PlayerTable.prototype.addLocation = function (location, lords, init) {
+        var _this = this;
+        this.locations.addCard(location).then(function (animated) {
+            console.log('animated', animated);
+            // if loot location, scroll to it
+            if (animated && !init && [103, 104, 105, 106].includes(location.location_id)) {
+                var element = _this.game.locationManager.getCardElement(location);
+                var rect = element.getBoundingClientRect();
+                var isVisible = (rect.top >= 0 &&
+                    rect.left >= 0 &&
+                    rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+                    rect.right <= (window.innerWidth || document.documentElement.clientWidth));
+                if (!isVisible) {
+                    element.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center',
+                        inline: 'center',
+                    });
+                }
+            }
+        });
         this.game.locationManager.addLords(location.location_id, lords);
     };
     PlayerTable.prototype.affiliatedAllyClick = function (ally) {
@@ -2793,7 +2814,7 @@ var Abyss = /** @class */ (function () {
         var lords = notif.args.lords;
         var player_id = notif.args.player_id;
         // Add the location to the player board
-        this.getPlayerTable(player_id).addLocation(location, lords);
+        this.getPlayerTable(player_id).addLocation(location, lords, false);
         this.lordManager.updateLordKeys(player_id);
         this.organisePanelMessages();
     };

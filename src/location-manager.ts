@@ -112,7 +112,9 @@ class LocationManager extends CardManager<AbyssLocation> {
   }
 
   public addLoot(locationId: number, loot: AbyssLoot) {
-    this.lootStocks[locationId].addCard(loot); // TODO add from an element ?
+    this.lootStocks[locationId].addCard(loot, {
+      fromElement: document.getElementById('page-title'),
+    });
   }
 
   public highlightLootsToDiscard(locationId: number, loots: AbyssLoot[]) {
