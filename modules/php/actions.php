@@ -236,17 +236,38 @@ trait ActionTrait {
             ) );
         } else if ($state['name'] == 'lord22') {
             // You only need 5 pearls
-            if ($pearls < 5)
+
+            $pearlCost = min(5, $pearls);
+            $nebulisCost = 0;
+            $withNebulis = $this->getWithNebulis($player_id, 5) ?? [];
+            foreach ($withNebulis as $nebulis => $canUse) {
+                if ($canUse) {
+                    $pearlCost = 5 - $nebulis;
+                    $nebulisCost = $nebulis;
+                }
+            }
+
+
+            if (($pearlCost + $nebulisCost) < 5)
                 throw new BgaUserException( self::_("You cannot afford that Lord.") );
 
             // Spend 5 pearls, and give the player the Lord straight away
-            self::DbQuery( "UPDATE player SET player_pearls = player_pearls - 5 WHERE player_id = " . $player_id );
+            self::DbQuery( "UPDATE player SET player_pearls = player_pearls - $pearlCost WHERE player_id = " . $player_id );
+            if ($withNebulis) {
+                self::DbQuery( "UPDATE player SET player_nebulis = player_nebulis - $nebulisCost WHERE player_id = " . $player_id );
+                $this->checkNewKrakenOwner();
+            }
             Lord::giveToPlayer( $lord_id, $player_id );
-            self::notifyAllPlayers( "recruit", clienttranslate('${player_name} recruits ${lord_name} with ${spent_pearls} Pearls'), array(
+            $message = $nebulisCost > 0 ? 
+                clienttranslate('${player_name} recruits ${lord_name} with ${spent_pearls} Pearls and ${spent_nebulis} Nebulis') :
+                clienttranslate('${player_name} recruits ${lord_name} with ${spent_pearls} Pearls');
+            self::notifyAllPlayers( "recruit", $message, array(
                     'lord' => $lord,
                     'spent_allies' => [],
-                    'spent_pearls' => 5,
+                    'spent_pearls' => $pearlCost,
+                    'spent_nebulis' => $nebulisCost,
                     'playerPearls' => $this->getPlayerPearls($player_id),
+                    'playerNebulis' => $this->getPlayerNebulis($player_id),
                     'player_id' => $player_id,
                     'player_name' => self::getActivePlayerName(),
                     "i18n" => array('lord_name'),

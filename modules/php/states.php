@@ -459,7 +459,10 @@ trait StateTrait {
                     case 22;
                         // The Corruptor - You may recruit a second Lord for 5 Pearls
                         $pearls = self::getPlayerPearls( $player_id );
-                        if ($pearls >= 5) {
+
+                        $withNebulis = $this->getWithNebulis($player_id, 5) ?? [];
+
+                        if ($pearls >= 5 || $this->array_some($withNebulis, fn($nebulis) => $nebulis === true)) {
                             $transition = "lord_22";
                         }
                         break;
