@@ -602,7 +602,7 @@ trait UtilTrait {
     }
 
     function setKrakenPlayer(int $playerId) { // 0 means no-one
-        if (intval($this->getGlobalVariable(KRAKEN)) == $playerId) {
+        if (intval($this->getGameStateValue(KRAKEN)) == $playerId) {
             return;
         }
 
