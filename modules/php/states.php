@@ -406,6 +406,10 @@ trait StateTrait {
                                 }
                             }
                         }
+                        
+                        if ($transition == "done") {
+                            self::notifyAllPlayers( "log", clienttranslate('Impossible to activate the Lord effect'), []);
+                        }
                         break;
                     case 7;
                         // The Hunter - Steal a random Monster token from the opponent of your choice.
@@ -419,6 +423,10 @@ trait StateTrait {
                                 $transition = "lord_7";
                                 break;
                             }
+                        }
+                        
+                        if ($transition == "done") {
+                            self::notifyAllPlayers( "log", clienttranslate('Impossible to activate the Lord effect'), []);
                         }
                         break;
                     case 9;
@@ -445,6 +453,10 @@ trait StateTrait {
                                 break;
                             }
                         }
+                        
+                        if ($transition == "done") {
+                            self::notifyAllPlayers( "log", clienttranslate('Impossible to activate the Lord effect'), []);
+                        }
                         break;
                     case 19;
                         // The Illusionist - Swap one of your locations for an available one
@@ -455,6 +467,10 @@ trait StateTrait {
                                 $transition = "lord_19";
                             }
                         }
+                        
+                        if ($transition == "done") {
+                            self::notifyAllPlayers( "log", clienttranslate('Impossible to activate the Lord effect'), []);
+                        }
                         break;
                     case 22;
                         // The Corruptor - You may recruit a second Lord for 5 Pearls
@@ -464,6 +480,10 @@ trait StateTrait {
 
                         if ($pearls >= 5 || $this->array_some($withNebulis, fn($nebulis) => $nebulis === true)) {
                             $transition = "lord_22";
+                        } 
+                        
+                        if ($transition == "done") {
+                            self::notifyAllPlayers( "log", clienttranslate('Impossible to activate the Lord effect'), []);
                         }
                         break;
                     case 23;
@@ -476,6 +496,10 @@ trait StateTrait {
                                 break;
                             }
                         }
+                        
+                        if ($transition == "done") {
+                            self::notifyAllPlayers( "log", clienttranslate('Impossible to activate the Lord effect'), []);
+                        }
                         break;
                     case 26;
                         // The Schemer - Discard a free Lord and replace with top of deck
@@ -486,6 +510,10 @@ trait StateTrait {
                                 $transition = "lord_26";
                                 break;
                             }
+                        }
+                        
+                        if ($transition == "done") {
+                            self::notifyAllPlayers( "log", clienttranslate('Impossible to activate the Lord effect'), []);
                         }
                         break;
                     case 33; case 34; case 35;
@@ -540,12 +568,20 @@ trait StateTrait {
                         if (Ally::getDiscardSize() > 0) {
                             $transition = "lord_112";
                         }
+                        
+                        if ($transition == "done") {
+                            self::notifyAllPlayers( "log", clienttranslate('Impossible to activate the Lord effect'), []);
+                        }
                         break;
                     case 114:
                         $opponentsIds = $this->getOpponentsIds($player_id);
                         $affiliated = $this->array_some($opponentsIds, fn($opponentId) => count(Ally::getPlayerAffiliated($opponentId)) > 0);
                         if ($affiliated) {
                             $transition = "lord_114";
+                        }
+                        
+                        if ($transition == "done") {
+                            self::notifyAllPlayers( "log", clienttranslate('Impossible to activate the Lord effect'), []);
                         }
                         break;
                     case 116:
@@ -555,6 +591,10 @@ trait StateTrait {
                                 $transition = "lord_116";
                                 break;
                             }
+                        }
+                        
+                        if ($transition == "done") {
+                            self::notifyAllPlayers( "log", clienttranslate('Impossible to activate the Lord effect'), []);
                         }
                         break;
                     default;
