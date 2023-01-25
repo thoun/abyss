@@ -376,8 +376,6 @@ trait UtilTrait {
             if (intval($this->getGameStateValue(KRAKEN)) == $player_id) {
                 $krakenPoints = -5;
             }
-
-            self::DbQuery( "UPDATE player SET player_score = player_score + $nebulisPoints + $krakenPoints WHERE player_id=$player_id" );
         }
 
         if ($final_scoring && $log) {

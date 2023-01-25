@@ -13,12 +13,12 @@ trait DebugUtilTrait {
 
 		//$this->debugCouncilAllies();
 
-		//$this->debugPickAllies(2343492);
-		//$this->debugPickAllies(2343493);
+		$this->debugPickAllies(2343492);
+		$this->debugPickAllies(2343493);
 
-		//$this->debugAddLocations(2343492);
-		//$this->debugAddLord(2343492);
-		//$this->debugAddAffiliated(2343492);
+		$this->debugAddLocations(2343492);
+		$this->debugAddLord(2343492);
+		$this->debugAddAffiliated(2343492);
 
 		$this->DbQuery("UPDATE player SET player_nebulis = 4");
 		$this->DbQuery("UPDATE player SET player_pearls = 4");
