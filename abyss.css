@@ -287,7 +287,7 @@ body > .card {
   background: unset !important;
   box-shadow: none !important;
 }
-.deck-empty:not(.selectable) {
+.deck-empty::not(.card-current-move) {
   cursor: unset;
 }
 

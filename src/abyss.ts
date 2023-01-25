@@ -1843,12 +1843,14 @@ class Abyss implements AbyssGame {
                     // Monster just fades out
                     this.visibleAllies.removeCard(ally);
                     delay += 200;
-                } else if (i != slot && faction != 10) {
-                    // Animate to the council!
-                    let deck = dojo.query('#council-track .slot-' + faction);
-                    this.councilStacks[faction].addCard(ally, null, { visible: false })
-                        .then(() => this.setDeckSize(deck, +dojo.attr(deck[0], 'data-size') + 1));
-                    delay += 200;
+                } else if (i != slot) {
+                    if (faction != 10) {
+                        // Animate to the council!
+                        let deck = dojo.query('#council-track .slot-' + faction);
+                        this.councilStacks[faction].addCard(ally, null, { visible: false })
+                            .then(() => this.setDeckSize(deck, +dojo.attr(deck[0], 'data-size') + 1));
+                        delay += 200;
+                    }
                 } else {
                     // This is the card that was taken - animate it to hand or player board
                     const theAlly = this.allyManager.getCardElement(ally);

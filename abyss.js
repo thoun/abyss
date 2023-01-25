@@ -2950,12 +2950,14 @@ var Abyss = /** @class */ (function () {
                     this_2.visibleAllies.removeCard(ally);
                     delay += 200;
                 }
-                else if (i != slot && faction != 10) {
-                    // Animate to the council!
-                    var deck_1 = dojo.query('#council-track .slot-' + faction);
-                    this_2.councilStacks[faction].addCard(ally, null, { visible: false })
-                        .then(function () { return _this.setDeckSize(deck_1, +dojo.attr(deck_1[0], 'data-size') + 1); });
-                    delay += 200;
+                else if (i != slot) {
+                    if (faction != 10) {
+                        // Animate to the council!
+                        var deck_1 = dojo.query('#council-track .slot-' + faction);
+                        this_2.councilStacks[faction].addCard(ally, null, { visible: false })
+                            .then(function () { return _this.setDeckSize(deck_1, +dojo.attr(deck_1[0], 'data-size') + 1); });
+                        delay += 200;
+                    }
                 }
                 else {
                     // This is the card that was taken - animate it to hand or player board

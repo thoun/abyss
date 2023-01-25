@@ -93,7 +93,7 @@
   background: unset !important;
   box-shadow: none !important;
 
-  &:not(.selectable) {
+  &::not(.card-current-move) {
     cursor: unset;
   }
 }
