@@ -5,7 +5,7 @@ class LootManager extends CardManager<AbyssLoot> {
       setupDiv: (loot, div) => {
         div.classList.add(`loot`);
 
-        this.game.connectTooltip(div, this.renderTooltip(loot), "loot");
+        this.game.setTooltip(div.id, this.renderTooltip(loot));
       },
       setupFrontDiv: (loot, div) => {
         div.dataset.value = `${loot.value}`;

@@ -14,6 +14,10 @@ bga-cards@thoun/bga-cards#main:
   version "1.0.0"
   resolved "https://codeload.github.com/thoun/bga-cards/tar.gz/aca8c9dfd3b8028c5e1185c6ae0dc06ea912f32b"
 
+bga-zoom@thoun/bga-zoom:
+  version "1.0.0"
+  resolved "https://codeload.github.com/thoun/bga-zoom/tar.gz/9cefd9fb0412b988c069cd463fdda5824703a4e0"
+
 binary-extensions@^2.0.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/binary-extensions/-/binary-extensions-2.2.0.tgz#75f502eeaf9ffde42fc98829645be4ea76bd9e2d"

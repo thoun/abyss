@@ -3,7 +3,13 @@
   src: url(img/TribalGaramond.ttf);
 }
 
+@import '../node_modules/bga-zoom/bga-zoom';
 @import '../node_modules/bga-cards/bga-cards';
+
+#table {
+  display: flex;
+  justify-content: center;
+}
 
 .board {
   background-repeat: no-repeat;
@@ -711,27 +717,6 @@ i.icon-ally {
   100% {border: 2px solid #003D4F;}
 }
 
-/* Custom tooltip (because dijit doesn't work with zoom) */
-.abs-tooltip {
-  box-shadow: 0 5px 10px #adadad;
-  border-radius: 3px;
-  background: #ffffff;
-  border: 1px solid #7eabcd;
-  padding: 0.45em;
-  position: absolute;
-  z-index: 100;
-  max-width: 300px;
-  opacity: 0;
-  transition: opacity .4s ease-in-out;
-  pointer-events: none;
-  color: black;
-}
-
-.abs-tooltip-lord del {
-  text-decoration: line-through;
-  opacity: 0.5;
-}
-
 .playmat_on #game-holder {
   color: white;
   background-color: #081020;
@@ -1204,7 +1189,7 @@ html a.bgabutton.affiliate-button:hover {
   text-shadow: 0 0 1px var(--race-color), 0 0 5px var(--race-color), 0 0 3px var(--race-color);
 }
 
-.abs-tooltip .race-shadow {
+.dijitTooltipContents .race-shadow {
   text-shadow: 0 0 1px var(--race-color), 0 0 5px var(--race-color);
 }
 

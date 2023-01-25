@@ -11,6 +11,7 @@
         "src/framework.d.ts",
         "src/counter.d.ts",
         "src/abyss.d.ts",
+        "node_modules/bga-zoom/src/zoom-manager.ts",
         "node_modules/bga-cards/src/animations.ts",
         "node_modules/bga-cards/src/animations-functions.ts",
         "node_modules/bga-cards/src/sort.ts",

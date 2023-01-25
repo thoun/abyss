@@ -1,3 +1,190 @@
+var DEFAULT_ZOOM_LEVELS = [0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1];
+var ZoomManager = /** @class */ (function () {
+    /**
+     * Place the settings.element in a zoom wrapper and init zoomControls.
+     *
+     * @param settings: a `ZoomManagerSettings` object
+     */
+    function ZoomManager(settings) {
+        var _this = this;
+        var _a, _b, _c, _d;
+        this.settings = settings;
+        if (!settings.element) {
+            throw new DOMException('You need to set the element to wrap in the zoom element');
+        }
+        this.zoomLevels = (_a = settings.zoomLevels) !== null && _a !== void 0 ? _a : DEFAULT_ZOOM_LEVELS;
+        this._zoom = this.settings.defaultZoom || 1;
+        if (this.settings.localStorageZoomKey) {
+            var zoomStr = localStorage.getItem(this.settings.localStorageZoomKey);
+            if (zoomStr) {
+                this._zoom = Number(zoomStr);
+            }
+        }
+        this.wrapper = document.createElement('div');
+        this.wrapper.id = 'bga-zoom-wrapper';
+        this.wrapElement(this.wrapper, settings.element);
+        this.wrapper.appendChild(settings.element);
+        settings.element.classList.add('bga-zoom-inner');
+        if ((_c = (_b = settings.zoomControls) === null || _b === void 0 ? void 0 : _b.visible) !== null && _c !== void 0 ? _c : true) {
+            this.initZoomControls(settings);
+        }
+        if (this._zoom !== 1) {
+            this.setZoom(this._zoom);
+        }
+        window.addEventListener('resize', function () {
+            var _a;
+            _this.zoomOrDimensionChanged();
+            if ((_a = _this.settings.autoZoom) === null || _a === void 0 ? void 0 : _a.expectedWidth) {
+                _this.setAutoZoom();
+            }
+        });
+        if (window.ResizeObserver) {
+            new ResizeObserver(function () { return _this.zoomOrDimensionChanged(); }).observe(settings.element);
+        }
+        if ((_d = this.settings.autoZoom) === null || _d === void 0 ? void 0 : _d.expectedWidth) {
+            this.setAutoZoom();
+        }
+    }
+    Object.defineProperty(ZoomManager.prototype, "zoom", {
+        /**
+         * Returns the zoom level
+         */
+        get: function () {
+            return this._zoom;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    ZoomManager.prototype.setAutoZoom = function () {
+        var _this = this;
+        var _a, _b, _c;
+        var zoomWrapperWidth = document.getElementById('bga-zoom-wrapper').clientWidth;
+        if (!zoomWrapperWidth) {
+            setTimeout(function () { return _this.setAutoZoom(); }, 200);
+            return;
+        }
+        var expectedWidth = (_a = this.settings.autoZoom) === null || _a === void 0 ? void 0 : _a.expectedWidth;
+        var newZoom = this.zoom;
+        while (newZoom > this.zoomLevels[0] && newZoom > ((_c = (_b = this.settings.autoZoom) === null || _b === void 0 ? void 0 : _b.minZoomLevel) !== null && _c !== void 0 ? _c : 0) && zoomWrapperWidth / newZoom < expectedWidth) {
+            newZoom = this.zoomLevels[this.zoomLevels.indexOf(newZoom) - 1];
+        }
+        if (this._zoom == newZoom) {
+            if (this.settings.localStorageZoomKey) {
+                localStorage.setItem(this.settings.localStorageZoomKey, '' + this._zoom);
+            }
+        }
+        else {
+            this.setZoom(newZoom);
+        }
+    };
+    /**
+     * Set the zoom level. Ideally, use a zoom level in the zoomLevels range.
+     * @param zoom zool level
+     */
+    ZoomManager.prototype.setZoom = function (zoom) {
+        var _a, _b, _c, _d;
+        if (zoom === void 0) { zoom = 1; }
+        this._zoom = zoom;
+        if (this.settings.localStorageZoomKey) {
+            localStorage.setItem(this.settings.localStorageZoomKey, '' + this._zoom);
+        }
+        var newIndex = this.zoomLevels.indexOf(this._zoom);
+        (_a = this.zoomInButton) === null || _a === void 0 ? void 0 : _a.classList.toggle('disabled', newIndex === this.zoomLevels.length - 1);
+        (_b = this.zoomOutButton) === null || _b === void 0 ? void 0 : _b.classList.toggle('disabled', newIndex === 0);
+        this.settings.element.style.transform = zoom === 1 ? '' : "scale(".concat(zoom, ")");
+        (_d = (_c = this.settings).onZoomChange) === null || _d === void 0 ? void 0 : _d.call(_c, this._zoom);
+        this.zoomOrDimensionChanged();
+    };
+    /**
+     * Call this method for the browsers not supporting ResizeObserver, everytime the table height changes, if you know it.
+     * If the browsert is recent enough (>= Safari 13.1) it will just be ignored.
+     */
+    ZoomManager.prototype.manualHeightUpdate = function () {
+        if (!window.ResizeObserver) {
+            this.zoomOrDimensionChanged();
+        }
+    };
+    /**
+     * Everytime the element dimensions changes, we update the style. And call the optional callback.
+     */
+    ZoomManager.prototype.zoomOrDimensionChanged = function () {
+        var _a, _b;
+        this.settings.element.style.width = "".concat(this.wrapper.getBoundingClientRect().width / this._zoom, "px");
+        this.wrapper.style.height = "".concat(this.settings.element.getBoundingClientRect().height, "px");
+        (_b = (_a = this.settings).onDimensionsChange) === null || _b === void 0 ? void 0 : _b.call(_a, this._zoom);
+    };
+    /**
+     * Simulates a click on the Zoom-in button.
+     */
+    ZoomManager.prototype.zoomIn = function () {
+        if (this._zoom === this.zoomLevels[this.zoomLevels.length - 1]) {
+            return;
+        }
+        var newIndex = this.zoomLevels.indexOf(this._zoom) + 1;
+        this.setZoom(newIndex === -1 ? 1 : this.zoomLevels[newIndex]);
+    };
+    /**
+     * Simulates a click on the Zoom-out button.
+     */
+    ZoomManager.prototype.zoomOut = function () {
+        if (this._zoom === this.zoomLevels[0]) {
+            return;
+        }
+        var newIndex = this.zoomLevels.indexOf(this._zoom) - 1;
+        this.setZoom(newIndex === -1 ? 1 : this.zoomLevels[newIndex]);
+    };
+    /**
+     * Changes the color of the zoom controls.
+     */
+    ZoomManager.prototype.setZoomControlsColor = function (color) {
+        if (this.zoomControls) {
+            this.zoomControls.dataset.color = color;
+        }
+    };
+    /**
+     * Set-up the zoom controls
+     * @param settings a `ZoomManagerSettings` object.
+     */
+    ZoomManager.prototype.initZoomControls = function (settings) {
+        var _this = this;
+        var _a, _b, _c, _d, _e, _f;
+        this.zoomControls = document.createElement('div');
+        this.zoomControls.id = 'bga-zoom-controls';
+        this.zoomControls.dataset.position = (_b = (_a = settings.zoomControls) === null || _a === void 0 ? void 0 : _a.position) !== null && _b !== void 0 ? _b : 'top-right';
+        this.zoomOutButton = document.createElement('button');
+        this.zoomOutButton.type = 'button';
+        this.zoomOutButton.addEventListener('click', function () { return _this.zoomOut(); });
+        if ((_c = settings.zoomControls) === null || _c === void 0 ? void 0 : _c.customZoomOutElement) {
+            settings.zoomControls.customZoomOutElement(this.zoomOutButton);
+        }
+        else {
+            this.zoomOutButton.classList.add("bga-zoom-out-icon");
+        }
+        this.zoomInButton = document.createElement('button');
+        this.zoomInButton.type = 'button';
+        this.zoomInButton.addEventListener('click', function () { return _this.zoomIn(); });
+        if ((_d = settings.zoomControls) === null || _d === void 0 ? void 0 : _d.customZoomInElement) {
+            settings.zoomControls.customZoomInElement(this.zoomInButton);
+        }
+        else {
+            this.zoomInButton.classList.add("bga-zoom-in-icon");
+        }
+        this.zoomControls.appendChild(this.zoomOutButton);
+        this.zoomControls.appendChild(this.zoomInButton);
+        this.wrapper.appendChild(this.zoomControls);
+        this.setZoomControlsColor((_f = (_e = settings.zoomControls) === null || _e === void 0 ? void 0 : _e.color) !== null && _f !== void 0 ? _f : 'black');
+    };
+    /**
+     * Wraps an element around an existing DOM element
+     * @param wrapper the wrapper element
+     * @param element the existing element
+     */
+    ZoomManager.prototype.wrapElement = function (wrapper, element) {
+        element.parentNode.insertBefore(wrapper, element);
+        wrapper.appendChild(element);
+    };
+    return ZoomManager;
+}());
 /**
  * Linear slide of the card from origin to destination.
  *
@@ -866,7 +1053,7 @@ var AllyManager = /** @class */ (function (_super) {
                 div.dataset.allyId = "".concat(ally.ally_id);
                 div.dataset.faction = "".concat(ally.faction);
                 div.dataset.value = "".concat(ally.value);
-                _this.game.connectTooltip(div, _this.renderTooltip(ally), "ally");
+                _this.game.setTooltip(div.id, _this.renderTooltip(ally));
             },
             setupFrontDiv: function (ally, div) {
                 div.dataset.faction = "".concat(ally.faction);
@@ -940,7 +1127,7 @@ var LordManager = /** @class */ (function (_super) {
                 div.dataset.turned = "".concat(lord.turned);
                 div.dataset.effect = "".concat(lord.effect);
                 div.dataset.keys = "".concat(lord.keys);
-                _this.game.connectTooltip(div, _this.renderTooltip(lord), "lord");
+                _this.game.setTooltip(div.id, _this.renderTooltip(lord));
             },
             setupFrontDiv: function (lord, div) {
                 div.dataset.lordId = "".concat(lord.lord_id);
@@ -1078,13 +1265,15 @@ var LocationManager = /** @class */ (function (_super) {
                 div.prepend(lordHolder);
                 div.classList.add("location", "board");
                 div.dataset.locationId = "".concat(location.location_id);
+                div.addEventListener('mouseenter', function () { return console.log('main', location); });
+                _this.game.setTooltip(div.id, _this.renderTooltip(location));
             },
             setupFrontDiv: function (location, div) {
                 var _a;
                 var desc = _this.makeDesc(location, true);
                 div.classList.add('location-side', "location-".concat(location.location_id));
                 div.innerHTML = "\n        <div class=\"location-clicker\"></div>\n        <span class=\"location-name\">".concat(_(location.name), "</span>\n        <span class=\"location-desc\">").concat(desc, "</span>\n        <div class=\"\"></div>\n        ");
-                _this.game.connectTooltip(div, _this.renderTooltip(location), "location");
+                div.addEventListener('mouseenter', function () { return console.log('front', location); });
                 if ([103, 104, 105, 106].includes(location.location_id)) {
                     div.insertAdjacentHTML('beforeend', "<div id=\"loot-stock-".concat(location.location_id, "\" class=\"loot-stock\"></div>"));
                     _this.lootStocks[location.location_id] = new CompressedLineStock(lootManager, document.getElementById("loot-stock-".concat(location.location_id)));
@@ -1161,7 +1350,7 @@ var LootManager = /** @class */ (function (_super) {
             getId: function (loot) { return "loot-".concat(loot.id); },
             setupDiv: function (loot, div) {
                 div.classList.add("loot");
-                _this.game.connectTooltip(div, _this.renderTooltip(loot), "loot");
+                _this.game.setTooltip(div.id, _this.renderTooltip(loot));
             },
             setupFrontDiv: function (loot, div) {
                 div.dataset.value = "".concat(loot.value);
@@ -1340,12 +1529,15 @@ var PlayerTable = /** @class */ (function () {
 var isDebug = window.location.host == 'studio.boardgamearena.com' || window.location.hash.indexOf('debug') > -1;
 var log = isDebug ? console.log.bind(window.console) : function () { };
 var debounce;
+var ZOOM_LEVELS = [0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1, 1.25, 1.5];
+var LOCAL_STORAGE_ZOOM_KEY = 'Abyss-zoom';
 var Abyss = /** @class */ (function () {
     function Abyss() {
         this.playersTables = [];
         this.councilStacks = [];
         this.pearlCounters = [];
         this.nebulisCounters = [];
+        this.TOOLTIP_DELAY = document.body.classList.contains('touch-device') ? 1500 : undefined;
     }
     Abyss.prototype.setup = function (gamedatas) {
         var _this = this;
@@ -1360,55 +1552,25 @@ var Abyss = /** @class */ (function () {
         this.lordManager = new LordManager(this);
         this.lootManager = new LootManager(this);
         this.locationManager = new LocationManager(this, this.lordManager, this.lootManager);
-        // Use zoom when not on FF
-        this.useZoom = false; //navigator.userAgent.toLowerCase().indexOf('firefox') <= -1;
-        var self = this;
         dojo.connect($('modified-layout-checkbox'), 'onchange', function () {
-            if ($('modified-layout-checkbox').checked) {
-                dojo.addClass($('game-board-holder'), "playmat");
-            }
-            else {
-                dojo.removeClass($('game-board-holder'), "playmat");
-            }
+            dojo.toggleClass($('game-board-holder'), "playmat", $('modified-layout-checkbox').checked);
         });
         var usePlaymat = this.prefs[100].value == 1;
         // On resize, fit cards to screen (debounced)
         if (usePlaymat) {
             dojo.addClass($('game-board-holder'), "playmat");
         }
-        dojo.connect(window, "onresize", debounce(function () {
-            var r = $('game-holder').getBoundingClientRect();
-            var w = r.width;
-            var zoom = 1;
+        var onResize = function () {
+            var _a, _b, _c;
+            var w = ((_a = document.getElementById('bga-zoom-wrapper')) === null || _a === void 0 ? void 0 : _a.clientWidth) / ((_c = (_b = _this.zoomManager) === null || _b === void 0 ? void 0 : _b.zoom) !== null && _c !== void 0 ? _c : 1);
             if (usePlaymat) {
-                if (w > 1000) {
-                    zoom = w / 1340;
-                    dojo.addClass($('game-board-holder'), "playmat");
-                    dojo.removeClass($('game-board-holder'), "playmat-narrow");
-                }
-                else {
-                    dojo.removeClass($('game-board-holder'), "playmat");
-                    dojo.addClass($('game-board-holder'), "playmat-narrow");
-                }
-            }
-            self.zoomLevel = zoom;
-            if (self.useZoom) {
-                dojo.style($('game-board-holder'), {
-                    zoom: zoom
-                });
-                dojo.style($('locations-holder-overflow'), {
-                    zoom: zoom * 0.87
-                });
-            }
-            else {
-                var height = zoom == 1 ? "" : ((639 * zoom) + "px");
-                dojo.style($('game-board-holder'), {
-                    transform: "scale(" + zoom + ")",
-                    height: height
-                });
+                var narrowPlaymat = w < 1340;
+                dojo.toggleClass($('game-board-holder'), "playmat", !narrowPlaymat);
+                dojo.toggleClass($('game-board-holder'), "playmat-narrow", narrowPlaymat);
             }
             _this.organiseLocations();
-        }, 200));
+        };
+        dojo.connect(window, "onresize", debounce(function () { return onResize(); }, 200));
         if (gamedatas.krakenExpansion) {
             document.getElementById('scoring-row-total').insertAdjacentHTML('beforebegin', "\n                <tr id=\"scoring-row-nebulis\">\n                    <td class=\"first-column\"><span class=\"arrow\">\u2192</span><i id=\"scoring-nebulis-icon\" class=\"icon icon-nebulis\"></i></td>\n                </tr>\n                <tr id=\"scoring-row-kraken\">\n                    <td class=\"first-column\"><span class=\"arrow\">\u2192</span><i id=\"scoring-kraken-icon\" class=\"icon-kraken\"></i></td>\n                </tr>\n            ");
         }
@@ -1495,21 +1657,21 @@ var Abyss = /** @class */ (function () {
         this.addEventToClass('icon-monster', 'onclick', 'onClickMonsterIcon');
         // Tooltips
         // Hide this one, because it doesn't line up due to Zoom
-        //(this as any).addTooltip( 'explore-track-deck', '', _('Explore'), 1 );
-        this.addTooltipToClass('pearl-holder', _('Pearls'), '');
-        this.addTooltipToClass('nebulis-holder', _('Nebulis'), '');
-        this.addTooltipToClass('key-holder', _('Key tokens'), '');
-        this.addTooltipToClass('monster-holder', _('Monster tokens'), '');
-        this.addTooltipToClass('ally-holder', _('Ally cards in hand'), '');
-        this.addTooltipToClass('lordcount-holder', _('Number of Lords'), '');
-        this.addTooltipToClass('key-addendum', _('Keys from free Lords'), '');
-        this.addTooltip('scoring-location-icon', _('Locations'), '');
-        this.addTooltip('scoring-lords-icon', _('Lords'), '');
-        this.addTooltip('scoring-affiliated-icon', _('Affiliated Allies'), '');
-        this.addTooltip('scoring-monster-tokens-icon', _('Monster tokens'), '');
+        //this.setTooltip( 'explore-track-deck', '', _('Explore'), 1 );
+        this.setTooltipToClass('pearl-holder', _('Pearls'));
+        this.setTooltipToClass('nebulis-holder', _('Nebulis'));
+        this.setTooltipToClass('key-holder', _('Key tokens'));
+        this.setTooltipToClass('monster-holder', _('Monster tokens'));
+        this.setTooltipToClass('ally-holder', _('Ally cards in hand'));
+        this.setTooltipToClass('lordcount-holder', _('Number of Lords'));
+        this.setTooltipToClass('key-addendum', _('Keys from free Lords'));
+        this.setTooltip('scoring-location-icon', _('Locations'));
+        this.setTooltip('scoring-lords-icon', _('Lords'));
+        this.setTooltip('scoring-affiliated-icon', _('Affiliated Allies'));
+        this.setTooltip('scoring-monster-tokens-icon', _('Monster tokens'));
         if (gamedatas.krakenExpansion) {
-            this.addTooltip('scoring-nebulis-icon', _('Nebulis'), '');
-            this.addTooltip('scoring-kraken-icon', _('Kraken'), '');
+            this.setTooltip('scoring-nebulis-icon', _('Nebulis'));
+            this.setTooltip('scoring-kraken-icon', _('Kraken'));
         }
         // Localisation of options box
         $('option-desc').innerHTML = _('Which Ally cards do you want to automatically pass on?');
@@ -1569,7 +1731,7 @@ var Abyss = /** @class */ (function () {
                             $('autopass-all-' + j).checked = false;
                             $('autopass-' + faction + '-' + j).checked = j <= i_2;
                         }
-                        self.onUpdateAutopass();
+                        _this.onUpdateAutopass();
                     });
                 };
                 for (var i_2 = 0; i_2 <= 5; i_2++) {
@@ -1590,7 +1752,7 @@ var Abyss = /** @class */ (function () {
                             $('autopass-' + faction + '-' + j).checked = j <= i_3;
                         }
                     }
-                    self.onUpdateAutopass();
+                    _this.onUpdateAutopass();
                 });
             };
             for (var i_3 = 0; i_3 <= 5; i_3++) {
@@ -1601,6 +1763,16 @@ var Abyss = /** @class */ (function () {
         this.allyDiscardCounter.create("ally-discard-size");
         this.allyDiscardCounter.setValue(gamedatas.allyDiscardSize);
         this.organisePanelMessages();
+        this.zoomManager = new ZoomManager({
+            element: document.getElementById('table'),
+            localStorageZoomKey: LOCAL_STORAGE_ZOOM_KEY,
+            zoomLevels: ZOOM_LEVELS,
+            zoomControls: {
+                color: 'white',
+            },
+            onZoomChange: function () { return onResize(); },
+            //onDimensionsChange: () => this.onTableCenterSizeChange(),
+        });
         // Setup game notifications to handle (see "setupNotifications" method below)
         this.setupNotifications();
     };
@@ -1990,95 +2162,11 @@ var Abyss = /** @class */ (function () {
     };
     ///////////////////////////////////////////////////
     //// Utility methods
-    Abyss.prototype.connectTooltip = function (node, html, offsetType) {
-        var _this = this;
-        var tt = $('abs-tooltip-0');
-        dojo.connect(node, "onmouseenter", function () {
-            if (_this.prefs[200].value == 1) {
-                return;
-            }
-            var r = node.getBoundingClientRect();
-            var outer = $('game-holder').getBoundingClientRect();
-            var left = r.left - outer.left;
-            var top = r.top - outer.top;
-            var zoomSupported = _this.useZoom;
-            // Always include content zoom
-            var contentZoom = zoomSupported ? (+dojo.style($('page-content'), 'zoom') || 1) : 1;
-            var totalZoom = contentZoom;
-            // Only include game zoom if the node is in the zoomed element
-            var gameZoom = 1;
-            if (zoomSupported && dojo.hasClass($('game-board-holder'), "playmat") && $('game-board-holder').contains(node)) {
-                gameZoom = _this.zoomLevel;
-            }
-            if (dojo.hasClass($('game-board-holder'), "playmat") && $('locations-holder-holder').contains(node)) {
-                gameZoom *= zoomSupported ? (dojo.style($('locations-holder-holder'), 'zoom') || 1) : 1;
-            }
-            totalZoom *= gameZoom;
-            top *= totalZoom;
-            left *= totalZoom;
-            if (typeof html === 'function') {
-                tt.innerHTML = html.call(_this);
-            }
-            else {
-                tt.innerHTML = html;
-            }
-            // If there is room above, put it there...
-            var offsetX = 0;
-            var offsetY = 0;
-            if (offsetType === "lord") {
-                offsetX = 44 * gameZoom;
-                offsetY = 68 * gameZoom;
-            }
-            else if (offsetType === "ally") {
-                offsetX = 29 * gameZoom;
-                offsetY = 43 * gameZoom;
-            }
-            var padding = 20;
-            var positions = ["right", "top", "bottom", "left"];
-            var originalTop = top;
-            var originalLeft = left;
-            for (var i in positions) {
-                top = originalTop;
-                left = originalLeft;
-                var position = positions[i];
-                if (position == "right") {
-                    left += node.offsetWidth * totalZoom + padding;
-                    left += offsetX;
-                    top -= offsetY;
-                }
-                else if (position == "top") {
-                    top -= tt.offsetHeight * contentZoom + padding;
-                    left -= offsetX;
-                    top -= offsetY;
-                }
-                else if (position == "bottom") {
-                    top += node.offsetHeight * totalZoom + padding;
-                    left -= offsetX;
-                    top += offsetY;
-                }
-                else if (position == "left") {
-                    left -= tt.offsetWidth * contentZoom + padding;
-                    left -= offsetX;
-                    top -= offsetY;
-                }
-                // If it fits, stop here
-                var right = left + tt.offsetWidth * contentZoom;
-                var bottom = top + tt.offsetHeight * contentZoom;
-                if (right > $('page-content').offsetWidth) {
-                    continue;
-                }
-                if (left < 0) {
-                    continue;
-                }
-                var scrollLimit = window.scrollY - $('page-content').offsetTop;
-                if (top < scrollLimit) {
-                    continue;
-                }
-                break;
-            }
-            dojo.style(tt, { 'opacity': '1', 'top': top + 'px', 'left': left + 'px' });
-        });
-        dojo.connect(node, "onmouseleave", function () { return dojo.style(tt, { 'opacity': '0' }); });
+    Abyss.prototype.setTooltip = function (id, html) {
+        this.addTooltipHtml(id, html, this.TOOLTIP_DELAY);
+    };
+    Abyss.prototype.setTooltipToClass = function (className, html) {
+        this.addTooltipHtmlToClass(className, html, this.TOOLTIP_DELAY);
     };
     Abyss.prototype.getPlayerId = function () {
         return Number(this.player_id);
@@ -2193,7 +2281,7 @@ var Abyss = /** @class */ (function () {
         else {
             if (playerId != 0) {
                 dojo.place('<div id="krakenToken" class="token"></div>', "player_board_".concat(playerId, "_krakenWrapper"));
-                this.addTooltipHtml('krakenToken', _("The Kraken figure allows players to identify, during the game, the most corrupt player. The figure is given to the first player to receive any Nebulis. As soon as an opponent ties or gains more Nebulis than the most corrupt player, they get the Kraken figure"));
+                this.setTooltip('krakenToken', _("The Kraken figure allows players to identify, during the game, the most corrupt player. The figure is given to the first player to receive any Nebulis. As soon as an opponent ties or gains more Nebulis than the most corrupt player, they get the Kraken figure"));
             }
         }
     };
@@ -2921,12 +3009,12 @@ var Abyss = /** @class */ (function () {
         this.lastExploreTime = new Date().getTime();
     };
     Abyss.prototype.notif_exploreTake = function (notif) {
+        var _this = this;
         // If this comes right after notif_explore, we want to delay by about 1-2 seconds
         var deltaTime = this.lastExploreTime ? (new Date().getTime() - this.lastExploreTime) : 1000;
         if (deltaTime < 2000) {
-            var self_1 = this;
             setTimeout(function () {
-                return self_1.notif_exploreTake_real(notif);
+                return _this.notif_exploreTake_real(notif);
             }, 2000 - deltaTime);
         }
         else {

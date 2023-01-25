@@ -10,6 +10,9 @@ declare const g_gamethemeurl;
 
 let debounce;
 
+const ZOOM_LEVELS = [0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1, 1.25, 1.5];
+const LOCAL_STORAGE_ZOOM_KEY = 'Abyss-zoom';
+
 class Abyss implements AbyssGame {
     public allyManager: AllyManager;
     public lordManager: LordManager;
@@ -17,9 +20,8 @@ class Abyss implements AbyssGame {
     public locationManager: LocationManager;
 
     private gamedatas: AbyssGamedatas;
+    private zoomManager: ZoomManager;
     private playersTables: PlayerTable[] = [];
-    private useZoom: boolean;
-    private zoomLevel: number;
     private lastExploreTime: number;
     private visibleAllies: SlotStock<AbyssAlly>;
     private councilStacks: VoidStock<AbyssAlly>[] = [];
@@ -29,6 +31,8 @@ class Abyss implements AbyssGame {
     private allyDiscardCounter: Counter;
     private pearlCounters: Counter[] = [];
     private nebulisCounters: Counter[] = [];
+    
+    private TOOLTIP_DELAY = document.body.classList.contains('touch-device') ? 1500 : undefined;
 
     constructor() {
     }
@@ -48,17 +52,9 @@ class Abyss implements AbyssGame {
         this.lordManager = new LordManager(this);
         this.lootManager = new LootManager(this);
         this.locationManager = new LocationManager(this, this.lordManager, this.lootManager);
-
-        // Use zoom when not on FF
-        this.useZoom = false; //navigator.userAgent.toLowerCase().indexOf('firefox') <= -1;
         
-        let self = this as any;
         dojo.connect($('modified-layout-checkbox'), 'onchange', () => {
-            if ($('modified-layout-checkbox').checked) {
-                dojo.addClass($('game-board-holder'), "playmat");
-            } else {
-                dojo.removeClass($('game-board-holder'), "playmat");
-            }
+            dojo.toggleClass($('game-board-holder'), "playmat", $('modified-layout-checkbox').checked);
         });
 
         const usePlaymat = (this as any).prefs[100].value == 1 ;   
@@ -66,37 +62,19 @@ class Abyss implements AbyssGame {
         if (usePlaymat) {
             dojo.addClass($('game-board-holder'), "playmat");
         }
-        dojo.connect(window, "onresize", debounce(() => {
-            let r = $('game-holder').getBoundingClientRect();
-            let w = r.width;
-            let zoom = 1;
+
+        const onResize = () => {
+            const w = document.getElementById('bga-zoom-wrapper')?.clientWidth / (this.zoomManager?.zoom ?? 1);
+
             if (usePlaymat) {
-                if (w > 1000) {
-                    zoom = w/1340;
-                    dojo.addClass($('game-board-holder'), "playmat");
-                    dojo.removeClass($('game-board-holder'), "playmat-narrow");
-                } else {
-                    dojo.removeClass($('game-board-holder'), "playmat");
-                    dojo.addClass($('game-board-holder'), "playmat-narrow");
-                }
-            }
-            self.zoomLevel = zoom;
-            if (self.useZoom) {
-                dojo.style($('game-board-holder'), {
-                    zoom: zoom
-                });
-                dojo.style($('locations-holder-overflow'), {
-                    zoom: zoom * 0.87
-                });
-            } else {
-                let height = zoom == 1 ? "" : ((639 * zoom) + "px");
-                dojo.style($('game-board-holder'), {
-                    transform: "scale("+zoom+")",
-                    height: height
-                });
+                const narrowPlaymat = w < 1340;
+                dojo.toggleClass($('game-board-holder'), "playmat", !narrowPlaymat);
+                dojo.toggleClass($('game-board-holder'), "playmat-narrow", narrowPlaymat);
             }
             this.organiseLocations();
-        }, 200));
+        };
+
+        dojo.connect(window, "onresize", debounce(() => onResize(), 200));
 
         if (gamedatas.krakenExpansion) {
             document.getElementById('scoring-row-total').insertAdjacentHTML('beforebegin', `
@@ -206,23 +184,23 @@ class Abyss implements AbyssGame {
 
         // Tooltips
         // Hide this one, because it doesn't line up due to Zoom
-        //(this as any).addTooltip( 'explore-track-deck', '', _('Explore'), 1 );
-        (this as any).addTooltipToClass( 'pearl-holder', _( 'Pearls' ), '' );
-        (this as any).addTooltipToClass( 'nebulis-holder', _( 'Nebulis' ), '' );
-        (this as any).addTooltipToClass( 'key-holder', _( 'Key tokens' ), '' );
-        (this as any).addTooltipToClass( 'monster-holder', _( 'Monster tokens' ), '' );
+        //this.setTooltip( 'explore-track-deck', '', _('Explore'), 1 );
+        this.setTooltipToClass( 'pearl-holder', _( 'Pearls' ));
+        this.setTooltipToClass( 'nebulis-holder', _( 'Nebulis' ));
+        this.setTooltipToClass( 'key-holder', _( 'Key tokens' ));
+        this.setTooltipToClass( 'monster-holder', _( 'Monster tokens' ));
         
-        (this as any).addTooltipToClass( 'ally-holder', _( 'Ally cards in hand' ), '' );
-        (this as any).addTooltipToClass( 'lordcount-holder', _( 'Number of Lords' ), '' );
-        (this as any).addTooltipToClass( 'key-addendum', _( 'Keys from free Lords' ), '' );
+        this.setTooltipToClass( 'ally-holder', _( 'Ally cards in hand' ));
+        this.setTooltipToClass( 'lordcount-holder', _( 'Number of Lords' ));
+        this.setTooltipToClass( 'key-addendum', _( 'Keys from free Lords' ));
         
-        (this as any).addTooltip( 'scoring-location-icon', _( 'Locations' ), '' );
-        (this as any).addTooltip( 'scoring-lords-icon', _( 'Lords' ), '' );
-        (this as any).addTooltip( 'scoring-affiliated-icon', _( 'Affiliated Allies' ), '' );
-        (this as any).addTooltip( 'scoring-monster-tokens-icon', _( 'Monster tokens' ), '' );
+        this.setTooltip( 'scoring-location-icon', _( 'Locations' ));
+        this.setTooltip( 'scoring-lords-icon', _( 'Lords' ));
+        this.setTooltip( 'scoring-affiliated-icon', _( 'Affiliated Allies' ));
+        this.setTooltip( 'scoring-monster-tokens-icon', _( 'Monster tokens' ));
         if (gamedatas.krakenExpansion) {
-            (this as any).addTooltip('scoring-nebulis-icon', _( 'Nebulis' ), '');
-            (this as any).addTooltip('scoring-kraken-icon', _( 'Kraken' ), '');
+            this.setTooltip('scoring-nebulis-icon', _( 'Nebulis' ));
+            this.setTooltip('scoring-kraken-icon', _( 'Kraken' ));
         }
         
         // Localisation of options box
@@ -288,7 +266,7 @@ class Abyss implements AbyssGame {
                         $('autopass-all-'+j).checked = false;
                         $('autopass-'+faction+'-'+j).checked = j <= i;
                     }
-                    self.onUpdateAutopass();
+                    this.onUpdateAutopass();
                     });
                 }
             }
@@ -304,7 +282,7 @@ class Abyss implements AbyssGame {
                             $('autopass-'+faction+'-'+j).checked = j <= i;
                         }
                     }
-                    self.onUpdateAutopass();
+                    this.onUpdateAutopass();
                 });
             }
         }
@@ -316,6 +294,17 @@ class Abyss implements AbyssGame {
         
         
         this.organisePanelMessages();
+
+        this.zoomManager = new ZoomManager({
+            element: document.getElementById('table'),
+            localStorageZoomKey: LOCAL_STORAGE_ZOOM_KEY,
+            zoomLevels: ZOOM_LEVELS,
+            zoomControls: {
+                color: 'white',
+            },
+            onZoomChange: () => onResize(),
+            //onDimensionsChange: () => this.onTableCenterSizeChange(),
+        });
 
         // Setup game notifications to handle (see "setupNotifications" method below)
         this.setupNotifications();
@@ -699,99 +688,11 @@ class Abyss implements AbyssGame {
     ///////////////////////////////////////////////////
     //// Utility methods
 
-    public connectTooltip(node: any, html: string | Function, offsetType: string) {
-        let tt = $('abs-tooltip-0');
-        dojo.connect(node, "onmouseenter", () => {
-          if ((this as any).prefs[200].value == 1) {
-            return;
-          }
-          let r = node.getBoundingClientRect();
-          let outer = $('game-holder').getBoundingClientRect();
-          let left = r.left - outer.left;
-          let top = r.top - outer.top;
-          
-          let zoomSupported = this.useZoom;
-          
-          // Always include content zoom
-          let contentZoom = zoomSupported ? (+dojo.style($('page-content'), 'zoom') || 1) : 1;
-          let totalZoom = contentZoom;
-          
-          // Only include game zoom if the node is in the zoomed element
-          let gameZoom = 1;
-          if (zoomSupported && dojo.hasClass($('game-board-holder'), "playmat") && $('game-board-holder').contains(node)) {
-            gameZoom = this.zoomLevel;
-          }
-          if (dojo.hasClass($('game-board-holder'), "playmat") && $('locations-holder-holder').contains(node)) {
-            gameZoom *= zoomSupported ? (dojo.style($('locations-holder-holder'), 'zoom') || 1) : 1;
-          }
-          
-          totalZoom *= gameZoom;
-          top *= totalZoom;
-          left *= totalZoom;
-          
-          if (typeof html === 'function') {
-            tt.innerHTML = html.call(this);
-          } else {
-            tt.innerHTML = html;
-          }
-          
-          // If there is room above, put it there...
-          let offsetX = 0;
-          let offsetY = 0;
-          if (offsetType === "lord") {
-            offsetX = 44 * gameZoom;
-            offsetY = 68 * gameZoom;
-          } else if (offsetType === "ally") {
-            offsetX = 29 * gameZoom;
-            offsetY = 43 * gameZoom;
-          }
-          let padding = 20;
-          let positions = ["right", "top", "bottom", "left"];
-          let originalTop = top;
-          let originalLeft = left;
-          for (let i in positions) {
-            top = originalTop;
-            left = originalLeft;
-            
-            let position = positions[i];
-            if (position == "right") {
-              left += node.offsetWidth * totalZoom + padding;
-              left += offsetX;
-              top -= offsetY;
-            } else if (position == "top") {
-              top -= tt.offsetHeight * contentZoom + padding;
-              left -= offsetX;
-              top -= offsetY;
-            } else if (position == "bottom") {
-              top += node.offsetHeight * totalZoom + padding;
-              left -= offsetX;
-              top += offsetY;
-            } else if (position == "left") {
-              left -= tt.offsetWidth * contentZoom + padding;
-              left -= offsetX;
-              top -= offsetY;
-            }
-            
-            // If it fits, stop here
-            let right = left + tt.offsetWidth * contentZoom;
-            let bottom = top + tt.offsetHeight * contentZoom;
-            if (right > $('page-content').offsetWidth) {
-              continue;
-            }
-            if (left < 0) {
-              continue;
-            }
-            let scrollLimit = window.scrollY - $('page-content').offsetTop;
-            if (top < scrollLimit) {
-              continue;
-            }
-            
-            break;
-          }
-          
-          dojo.style(tt, {'opacity': '1', 'top': top + 'px', 'left': left + 'px'});
-        });
-        dojo.connect(node, "onmouseleave", () => dojo.style(tt, {'opacity': '0'}));
+    public setTooltip(id: string | HTMLElement, html: string) {
+        (this as any).addTooltipHtml(id, html, this.TOOLTIP_DELAY);
+    }
+    public setTooltipToClass(className: string, html: string) {
+        (this as any).addTooltipHtmlToClass(className, html, this.TOOLTIP_DELAY);
     }
 
     public getPlayerId(): number {
@@ -954,7 +855,7 @@ class Abyss implements AbyssGame {
             if (playerId != 0) {
                 dojo.place('<div id="krakenToken" class="token"></div>', `player_board_${playerId}_krakenWrapper`);
 
-                (this as any).addTooltipHtml('krakenToken', _("The Kraken figure allows players to identify, during the game, the most corrupt player. The figure is given to the first player to receive any Nebulis. As soon as an opponent ties or gains more Nebulis than the most corrupt player, they get the Kraken figure"));
+                this.setTooltip('krakenToken', _("The Kraken figure allows players to identify, during the game, the most corrupt player. The figure is given to the first player to receive any Nebulis. As soon as an opponent ties or gains more Nebulis than the most corrupt player, they get the Kraken figure"));
             }
         }
     }
@@ -1817,9 +1718,8 @@ class Abyss implements AbyssGame {
         let deltaTime = this.lastExploreTime ? (new Date().getTime() - this.lastExploreTime) : 1000;
         
         if (deltaTime < 2000) {
-            let self = this;
             setTimeout(() => 
-                self.notif_exploreTake_real( notif )
+                this.notif_exploreTake_real( notif )
             , 2000 - deltaTime);
         } else {
             this.notif_exploreTake_real( notif );

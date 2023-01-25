@@ -15,7 +15,7 @@ class LordManager extends CardManager<AbyssLord> {
         div.dataset.effect = `${lord.effect}`;
         div.dataset.keys = `${lord.keys}`;
 
-        this.game.connectTooltip(div, this.renderTooltip(lord), "lord" );
+        this.game.setTooltip(div.id, this.renderTooltip(lord));
       },
       setupFrontDiv: (lord, div) => {
         div.dataset.lordId = `${lord.lord_id}`;

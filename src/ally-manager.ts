@@ -9,7 +9,7 @@ class AllyManager extends CardManager<AbyssAlly> {
         div.dataset.faction = `${ally.faction}`;
         div.dataset.value = `${ally.value}`;
 
-        this.game.connectTooltip(div, this.renderTooltip(ally), "ally");
+        this.game.setTooltip(div.id, this.renderTooltip(ally));
       },
       setupFrontDiv: (ally, div) => {
         div.dataset.faction = `${ally.faction}`;

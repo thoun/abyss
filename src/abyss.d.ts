@@ -105,7 +105,8 @@ interface AbyssGame extends Game {
     lootManager: LootManager;
     locationManager: LocationManager;
 
-    connectTooltip(node: any, html: string | Function, offsetType: string): void;
+    setTooltip(id: string | HTMLElement, html: string): void;
+    setTooltipToClass(className: string, html: string): void;
     getPlayerId(): number;
     getOpponentsIds(playerId: number): number[];
     getPlayerTable(playerId: number): PlayerTable;
