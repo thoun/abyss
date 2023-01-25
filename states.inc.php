@@ -278,16 +278,27 @@ $machinestates = array(
  			"transitions" => array( "endGame" => ST_FINAL_SCORING, "plot" => ST_PRE_TURN )
  	),
 
- 	ST_PLAYER_CHOOSE_MONSTER_REWARD => array(
+ 	ST_PLAYER_CHOOSE_MONSTER_REWARD => [
  			"name" => "chooseMonsterReward",
   		"description" => clienttranslate('${actplayer} must choose a reward'),
  			"descriptionmyturn" => clienttranslate('${you} must choose a reward'),
  			"type" => "activeplayer",
   		"args" => "argChooseMonsterReward",
   		"action" => "stChooseMonsterReward",
-  		"possibleactions" => array( "chooseReward", "lordEffect" ),
- 			"transitions" => array( "next" => ST_PRE_CONTROL, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_CHOOSE_MONSTER_REWARD )
- 	),
+  		"possibleactions" => [
+			"chooseReward", 
+			"lordEffect",
+		],
+ 		"transitions" => [
+			"next" => ST_PRE_CONTROL,
+			"exploreTakeAllyRemainingKrakens" => ST_PLAYER_PLACE_KRAKEN,
+			"lord_17" => ST_PLAYER_LORD17, 
+			"lord_21" => ST_PLAYER_LORD21, 
+			"lord_12" => ST_PLAYER_LORD12, 
+			"zombiePass" => ST_PRE_CONTROL, 
+			"loopback" => ST_PLAYER_CHOOSE_MONSTER_REWARD,
+		],
+ 	],
 
  	ST_PLAYER_RECRUIT_PAY => array(
  			"name" => "recruitPay",

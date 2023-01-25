@@ -398,7 +398,14 @@ trait ActionTrait {
                 'monsters' => $monsters
         ) );
 
-        $this->gamestate->nextState( "next" );
+        $nextState = "next";
+
+        $slots = Ally::getExploreSlots();
+        if ($this->array_some($slots, fn($s) => $s["faction"] == 10)) {
+            $nextState = "exploreTakeAllyRemainingKrakens";
+        }
+
+        $this->gamestate->nextState($nextState);
     }
     
     function purchase(int $withNebulis = 0) {
