@@ -35,7 +35,7 @@ trait ActionTrait {
 
         if (count($slots) > 0) {
             $ally = end($slots);
-            if ($ally["faction"] == null && self::getGameStateValue( 'threat_level' ) < 5 && self::checkAction( 'exploreTake', false )) {
+            if ($ally["faction"] === null && self::getGameStateValue( 'threat_level' ) < 5 && self::checkAction( 'exploreTake', false )) {
                 // Increase the threat track
                 $threat = intval(self::incGameStateValue('threat_level', 1));
                 self::notifyAllPlayers("setThreat", '', [
