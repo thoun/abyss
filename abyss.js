@@ -1464,8 +1464,10 @@ var PlayerTable = /** @class */ (function () {
     PlayerTable.prototype.addAffiliated = function (ally) {
         this.affiliatedStocks[ally.faction].addCard(ally);
     };
-    PlayerTable.prototype.addLord = function (lord) {
-        $('lordcount_p' + this.playerId).innerHTML = Number($('lordcount_p' + this.playerId).innerHTML) + 1;
+    PlayerTable.prototype.addLord = function (lord, freeLord) {
+        if (!freeLord) {
+            $('lordcount_p' + this.playerId).innerHTML = Number($('lordcount_p' + this.playerId).innerHTML) + 1;
+        }
         this.freeLords.addCard(lord);
     };
     PlayerTable.prototype.removeLords = function (lords) {
@@ -3191,7 +3193,7 @@ var Abyss = /** @class */ (function () {
         }
         // Add the lord
         if (lord) {
-            this.getPlayerTable(player_id).addLord(lord);
+            this.getPlayerTable(player_id).addLord(lord, notif.args.freeLord);
         }
         this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
         this.lordManager.updateLordKeys(player_id);

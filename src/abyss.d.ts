@@ -303,6 +303,7 @@ interface NotifRecruitArgs {
     spent_lords: AbyssLord[];
     spent_allies: AbyssAlly[];
     allyDiscardSize: number;
+    freeLord?: boolean;
 }
 
 interface NotifRefillLordsArgs {

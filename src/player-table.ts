@@ -118,8 +118,10 @@ class PlayerTable {
         this.affiliatedStocks[ally.faction].addCard(ally);
     }
     
-    public addLord(lord: AbyssLord) {
-        $('lordcount_p' + this.playerId).innerHTML = Number($('lordcount_p' + this.playerId).innerHTML) + 1;
+    public addLord(lord: AbyssLord, freeLord?: boolean) {
+        if (!freeLord) {
+            $('lordcount_p' + this.playerId).innerHTML = Number($('lordcount_p' + this.playerId).innerHTML) + 1;
+        }
         this.freeLords.addCard(lord);
     }
     

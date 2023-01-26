@@ -1437,6 +1437,7 @@ trait ActionTrait {
             "i18n" => ['lord_name'],
             "lord_name" => $this->lords[$id]["name"],
             'allyDiscardSize' => Ally::getDiscardSize(),
+            'freeLord' => true,
         ]);
 
         $this->gamestate->nextState('freeLord');

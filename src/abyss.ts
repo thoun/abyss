@@ -1911,7 +1911,7 @@ class Abyss implements AbyssGame {
 
         // Add the lord
         if (lord) {
-            this.getPlayerTable(player_id).addLord(lord);
+            this.getPlayerTable(player_id).addLord(lord, notif.args.freeLord);
         }
 
         this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
