@@ -594,6 +594,10 @@ i.icon-laurel {
   margin-right: 3px;
 }
 
+.cp_board .counters i.icon {
+  margin-right: 0;
+}
+
 .cp_board i.icon.clickable {
   border: 1px solid red;
   cursor: pointer;
@@ -1250,19 +1254,10 @@ html a.bgabutton.affiliate-button:hover {
 
 .player-board {
   .counters {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
     margin: 2px 0;
     gap: 5px;
-
-    > * {
-      flex: 1;
-      white-space: nowrap;
-    }
-
-    .key-addendum {
-      .icon-key {
-        margin: 0;
-      }
-    }
+    white-space: nowrap;
   }
 }

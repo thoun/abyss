@@ -193,14 +193,18 @@ class Abyss implements AbyssGame {
         // Tooltips
         // Hide this one, because it doesn't line up due to Zoom
         //this.setTooltip( 'explore-track-deck', '', _('Explore'), 1 );
-        this.setTooltipToClass( 'pearl-holder', _( 'Pearls' ));
-        this.setTooltipToClass( 'nebulis-holder', _( 'Nebulis' ));
+        let pearlTooltip = _('Pearls');
+        if (gamedatas.krakenExpansion) {
+            pearlTooltip += ' / ' + _('Nebulis');
+        }
+        this.setTooltipToClass('pearl-holder', pearlTooltip);
         this.setTooltipToClass( 'key-holder', _( 'Key tokens' ));
         this.setTooltipToClass( 'monster-holder', _( 'Monster tokens' ));
         
         this.setTooltipToClass( 'ally-holder', _( 'Ally cards in hand' ));
         this.setTooltipToClass( 'lordcount-holder', _( 'Number of Lords' ));
         this.setTooltipToClass( 'key-addendum', _( 'Keys from free Lords' ));
+        // TODO LEV this.setTooltipToClass('leviathan-holder', _('Wounds / Defeated Leviathans'));
         
         this.setTooltip( 'scoring-location-icon', _( 'Locations' ));
         this.setTooltip( 'scoring-lords-icon', _( 'Lords' ));
@@ -764,20 +768,22 @@ class Abyss implements AbyssGame {
                 <div class="counters">
                     <span class="pearl-holder" id="pearl-holder_p${player.id}">
                         <i class="icon icon-pearl"></i>
-                        <span id="pearlcount_p${player.id}"></span>
-                    </span>`;
+                        <span id="pearlcount_p${player.id}"></span>`;
 
             if (gamedatas.krakenExpansion) {
-                html += `<span class="nebulis-holder" id="nebulis-holder_p${player.id}">
-                    <i class="icon icon-nebulis"></i>
-                    <span id="nebuliscount_p${player.id}"></span>
-                </span>`;
+                html += `<i class="icon icon-nebulis"></i>
+                    <span id="nebuliscount_p${player.id}"></span>`;
             }
 
             html += `
+            </span>
                     <span class="key-holder" id="key-holder_p${player.id}">
                         <i class="icon icon-key"></i>
                         <span id="keycount_p${player.id}">${player.keys}</span>
+                    </span>
+                    <span class="monster-holder" id="monster-holder_p${player.id}">
+                        <i class="icon icon-monster"></i>
+                        <span id="monstercount_p${player.id}">${player.num_monsters}</span>
                     </span>
                 </div>
                 <div class="counters">
@@ -785,34 +791,28 @@ class Abyss implements AbyssGame {
                         <i class="icon icon-ally"></i>
                         <span id="allycount_p${player.id}">${player.hand_size}</span>
                     </span>
-                    <span class="monster-holder" id="monster-holder_p${player.id}">
-                        <i class="icon icon-monster"></i>
-                        <span id="monstercount_p${player.id}">${player.num_monsters}</span>
-                    </span>
                     <span>
-                        <span class="lordcount-holder">
+                        <span class="lordcount-holder" id="lordcount-holder_p${player.id}">
                             <i class="icon icon-lord"></i>
                             <span id="lordcount_p${player.id}">${player.lords.length}</span>
                         </span>
-                        <span class="key-addendum">(<i class="icon icon-key"></i> <span id="lordkeycount_p${player.id}"></span>)</span>
+                        <span class="key-addendum" id="key-addendum-holder_p${player.id}">(<i class="icon icon-key"></i> <span id="lordkeycount_p${player.id}"></span>)</span>
                     </span>
-                </div>`;
+                `;
                     
 
             if (gamedatas.leviathanExpansion) {
                 html += `
-                <div class="counters">
-                    <span class="wound-holder" id="wound-holder_p${player.id}">
+                    <span class="leviathan-holder" id="leviathan-holder_p${player.id}">
                         <i class="icon leviathan-icon icon-wound"></i>
                         <span id="woundcount_p${player.id}"></span>
-                    </span>
-                    <span class="defeated-leviathan-holder" id="defeated-leviathan-holder_p${player.id}">
                         <i class="icon leviathan-icon icon-defeated-leviathan"></i>
                         <span id="defeatedleviathancount_p${player.id}"></span>
                     </span>
-                </div>`;
+                `;
             }
             html += `
+            </div>
                 <div class="monster-hand" id="monster-hand_p${player.id}"></div>
             </div>`;
             dojo.place( html, player_board_div );

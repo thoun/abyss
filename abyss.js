@@ -1668,13 +1668,17 @@ var Abyss = /** @class */ (function () {
         // Tooltips
         // Hide this one, because it doesn't line up due to Zoom
         //this.setTooltip( 'explore-track-deck', '', _('Explore'), 1 );
-        this.setTooltipToClass('pearl-holder', _('Pearls'));
-        this.setTooltipToClass('nebulis-holder', _('Nebulis'));
+        var pearlTooltip = _('Pearls');
+        if (gamedatas.krakenExpansion) {
+            pearlTooltip += ' / ' + _('Nebulis');
+        }
+        this.setTooltipToClass('pearl-holder', pearlTooltip);
         this.setTooltipToClass('key-holder', _('Key tokens'));
         this.setTooltipToClass('monster-holder', _('Monster tokens'));
         this.setTooltipToClass('ally-holder', _('Ally cards in hand'));
         this.setTooltipToClass('lordcount-holder', _('Number of Lords'));
         this.setTooltipToClass('key-addendum', _('Keys from free Lords'));
+        // TODO LEV this.setTooltipToClass('leviathan-holder', _('Wounds / Defeated Leviathans'));
         this.setTooltip('scoring-location-icon', _('Locations'));
         this.setTooltip('scoring-lords-icon', _('Lords'));
         this.setTooltip('scoring-affiliated-icon', _('Affiliated Allies'));
@@ -2229,15 +2233,15 @@ var Abyss = /** @class */ (function () {
             var playerId = Number(player.id);
             // Setting up players boards if needed
             var player_board_div = $('player_board_' + playerId);
-            var html = "\n            <div id=\"cp_board_p".concat(player.id, "\" class=\"cp_board\" data-player-id=\"").concat(player.id, "\">\n                <div class=\"counters\">\n                    <span class=\"pearl-holder\" id=\"pearl-holder_p").concat(player.id, "\">\n                        <i class=\"icon icon-pearl\"></i>\n                        <span id=\"pearlcount_p").concat(player.id, "\"></span>\n                    </span>");
+            var html = "\n            <div id=\"cp_board_p".concat(player.id, "\" class=\"cp_board\" data-player-id=\"").concat(player.id, "\">\n                <div class=\"counters\">\n                    <span class=\"pearl-holder\" id=\"pearl-holder_p").concat(player.id, "\">\n                        <i class=\"icon icon-pearl\"></i>\n                        <span id=\"pearlcount_p").concat(player.id, "\"></span>");
             if (gamedatas.krakenExpansion) {
-                html += "<span class=\"nebulis-holder\" id=\"nebulis-holder_p".concat(player.id, "\">\n                    <i class=\"icon icon-nebulis\"></i>\n                    <span id=\"nebuliscount_p").concat(player.id, "\"></span>\n                </span>");
+                html += "<i class=\"icon icon-nebulis\"></i>\n                    <span id=\"nebuliscount_p".concat(player.id, "\"></span>");
             }
-            html += "\n                    <span class=\"key-holder\" id=\"key-holder_p".concat(player.id, "\">\n                        <i class=\"icon icon-key\"></i>\n                        <span id=\"keycount_p").concat(player.id, "\">").concat(player.keys, "</span>\n                    </span>\n                </div>\n                <div class=\"counters\">\n                    <span class=\"ally-holder\" id=\"ally-holder_p").concat(player.id, "\">\n                        <i class=\"icon icon-ally\"></i>\n                        <span id=\"allycount_p").concat(player.id, "\">").concat(player.hand_size, "</span>\n                    </span>\n                    <span class=\"monster-holder\" id=\"monster-holder_p").concat(player.id, "\">\n                        <i class=\"icon icon-monster\"></i>\n                        <span id=\"monstercount_p").concat(player.id, "\">").concat(player.num_monsters, "</span>\n                    </span>\n                    <span>\n                        <span class=\"lordcount-holder\">\n                            <i class=\"icon icon-lord\"></i>\n                            <span id=\"lordcount_p").concat(player.id, "\">").concat(player.lords.length, "</span>\n                        </span>\n                        <span class=\"key-addendum\">(<i class=\"icon icon-key\"></i> <span id=\"lordkeycount_p").concat(player.id, "\"></span>)</span>\n                    </span>\n                </div>");
+            html += "\n            </span>\n                    <span class=\"key-holder\" id=\"key-holder_p".concat(player.id, "\">\n                        <i class=\"icon icon-key\"></i>\n                        <span id=\"keycount_p").concat(player.id, "\">").concat(player.keys, "</span>\n                    </span>\n                    <span class=\"monster-holder\" id=\"monster-holder_p").concat(player.id, "\">\n                        <i class=\"icon icon-monster\"></i>\n                        <span id=\"monstercount_p").concat(player.id, "\">").concat(player.num_monsters, "</span>\n                    </span>\n                </div>\n                <div class=\"counters\">\n                    <span class=\"ally-holder\" id=\"ally-holder_p").concat(player.id, "\">\n                        <i class=\"icon icon-ally\"></i>\n                        <span id=\"allycount_p").concat(player.id, "\">").concat(player.hand_size, "</span>\n                    </span>\n                    <span>\n                        <span class=\"lordcount-holder\" id=\"lordcount-holder_p").concat(player.id, "\">\n                            <i class=\"icon icon-lord\"></i>\n                            <span id=\"lordcount_p").concat(player.id, "\">").concat(player.lords.length, "</span>\n                        </span>\n                        <span class=\"key-addendum\" id=\"key-addendum-holder_p").concat(player.id, "\">(<i class=\"icon icon-key\"></i> <span id=\"lordkeycount_p").concat(player.id, "\"></span>)</span>\n                    </span>\n                ");
             if (gamedatas.leviathanExpansion) {
-                html += "\n                <div class=\"counters\">\n                    <span class=\"wound-holder\" id=\"wound-holder_p".concat(player.id, "\">\n                        <i class=\"icon leviathan-icon icon-wound\"></i>\n                        <span id=\"woundcount_p").concat(player.id, "\"></span>\n                    </span>\n                    <span class=\"defeated-leviathan-holder\" id=\"defeated-leviathan-holder_p").concat(player.id, "\">\n                        <i class=\"icon leviathan-icon icon-defeated-leviathan\"></i>\n                        <span id=\"defeatedleviathancount_p").concat(player.id, "\"></span>\n                    </span>\n                </div>");
+                html += "\n                    <span class=\"leviathan-holder\" id=\"leviathan-holder_p".concat(player.id, "\">\n                        <i class=\"icon leviathan-icon icon-wound\"></i>\n                        <span id=\"woundcount_p").concat(player.id, "\"></span>\n                        <i class=\"icon leviathan-icon icon-defeated-leviathan\"></i>\n                        <span id=\"defeatedleviathancount_p").concat(player.id, "\"></span>\n                    </span>\n                ");
             }
-            html += "\n                <div class=\"monster-hand\" id=\"monster-hand_p".concat(player.id, "\"></div>\n            </div>");
+            html += "\n            </div>\n                <div class=\"monster-hand\" id=\"monster-hand_p".concat(player.id, "\"></div>\n            </div>");
             dojo.place(html, player_board_div);
             _this.pearlCounters[playerId] = new ebg.counter();
             _this.pearlCounters[playerId].create("pearlcount_p".concat(player.id));
