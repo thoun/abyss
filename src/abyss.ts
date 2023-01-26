@@ -398,6 +398,9 @@ class Abyss implements AbyssGame {
             case 'lord116':
                 this.onEnteringLord116(args.args);
                 break;
+            case 'placeSentinel':
+                this.onEnteringPlaceSentinel(args.args);
+                break;
         }
     }
 
@@ -441,6 +444,25 @@ class Abyss implements AbyssGame {
             args.lords.forEach(lord => 
                 this.lordManager.getCardElement(lord).classList.add('selectable')
             );
+        }
+    }
+
+    private onEnteringPlaceSentinel(args: EnteringPlaceSentinelArgs) {
+        // Put a green border around selectable lords
+        if ((this as any).isCurrentPlayerActive()) {
+            console.log(args);
+            if (args.possibleOnLords) {
+                this.visibleLords.getCards().forEach(lord => this.lordManager.getCardElement(lord).classList.add('card-current-move'));
+            }
+            if (args.possibleOnCouncil) {
+                [0,1,2,3,4].forEach(faction => document.getElementById(`council-track-${faction}`).classList.add('card-current-move'));
+            }
+            if (args.possibleOnLocations) {
+                [
+                    ...this.visibleLocations.getCards(),
+                    ...this.visibleLocationsOverflow.getCards(),
+                ].forEach(location => this.locationManager.getCardElement(location).classList.add('card-current-move'));
+            }
         }
     }
 

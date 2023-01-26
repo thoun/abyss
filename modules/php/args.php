@@ -318,22 +318,14 @@ trait ArgsTrait {
 	function argPlaceSentinel() {
 		$sentinels = $this->getSentinels();
 
-		$lords = Lord::getSlots();
-		$possibleLords = array_values(array_filter($lords, 
-			fn($lord) => !$this->array_some($sentinels, fn($sentinel) => $sentinel->location == 'lord' && $sentinel->locationArg == $lord['lord_id'])
-		));
-		$possibleCouncil = array_values(array_filter([0,1,2,3,4], 
-			fn($stack) => !$this->array_some($sentinels, fn($sentinel) => $sentinel->location == 'council' && $sentinel->locationArg == $stack)
-		));
-		$locations = Location::getAvailable();
-		$possibleLocations = array_values(array_filter($locations, 
-			fn($location) => !$this->array_some($sentinels, fn($sentinel) => $sentinel->location == 'location' && $sentinel->locationArg == $location['location_id'])
-		));
+		$possibleOnLords = !$this->array_some($sentinels, fn($sentinel) => $sentinel->location == 'lord');
+		$possibleOnCouncil = !$this->array_some($sentinels, fn($sentinel) => $sentinel->location == 'council');
+		$possibleOnLocations = !$this->array_some($sentinels, fn($sentinel) => $sentinel->location == 'location');
 
 		return [
-			'possibleLords' => $possibleLords,
-			'possibleCouncil' => $possibleCouncil,
-			'possibleLocations' => $possibleLocations,
+			'possibleOnLords' => $possibleOnLords,
+			'possibleOnCouncil' => $possibleOnCouncil,
+			'possibleOnLocations' => $possibleOnLocations,
 		];
 	}
 

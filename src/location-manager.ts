@@ -44,8 +44,6 @@ class LocationManager extends CardManager<AbyssLocation> {
         div.classList.add(`location`, `board`);
         div.dataset.locationId = `${location.location_id}`;
 
-        div.addEventListener('mouseenter', () => console.log('main', location));
-
         this.game.setTooltip(div.id, this.renderTooltip(location));
       },
       setupFrontDiv: (location, div) => {
@@ -57,7 +55,6 @@ class LocationManager extends CardManager<AbyssLocation> {
         <span class="location-desc">${desc}</span>
         <div class=""></div>
         `;
-        div.addEventListener('mouseenter', () => console.log('front', location));
 
         if ([103, 104, 105, 106].includes(location.location_id)) {
           div.insertAdjacentHTML('beforeend', `<div id="loot-stock-${location.location_id}" class="loot-stock"></div>`);

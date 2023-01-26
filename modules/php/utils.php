@@ -561,8 +561,8 @@ trait UtilTrait {
     function setSentinel(int $playerId, int $lordId, string $location /* player, lord, council, location */, /*int|null*/ $locationArg /* null, lord id, faction, location id*/) {
         $sentinels = $this->getSentinels();
 
-        if ($location != 'player' && $this->array_some($sentinels, fn($sentinel) => $sentinel->location == $location && $sentinel->locationArg == $locationArg)) {
-            throw new BgaVisibleSystemException("A sentinel is already placed here");
+        if ($location != 'player' && $this->array_some($sentinels, fn($sentinel) => $sentinel->location == $location)) {
+            throw new BgaVisibleSystemException("A sentinel is already placed on this zone");
         }
 
         $sentinel = $this->array_find($sentinels, fn($sentinel) => $sentinel->lordId == $lordId);

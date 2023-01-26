@@ -1265,7 +1265,6 @@ var LocationManager = /** @class */ (function (_super) {
                 div.prepend(lordHolder);
                 div.classList.add("location", "board");
                 div.dataset.locationId = "".concat(location.location_id);
-                div.addEventListener('mouseenter', function () { return console.log('main', location); });
                 _this.game.setTooltip(div.id, _this.renderTooltip(location));
             },
             setupFrontDiv: function (location, div) {
@@ -1273,7 +1272,6 @@ var LocationManager = /** @class */ (function (_super) {
                 var desc = _this.makeDesc(location, true);
                 div.classList.add('location-side', "location-".concat(location.location_id));
                 div.innerHTML = "\n        <div class=\"location-clicker\"></div>\n        <span class=\"location-name\">".concat(_(location.name), "</span>\n        <span class=\"location-desc\">").concat(desc, "</span>\n        <div class=\"\"></div>\n        ");
-                div.addEventListener('mouseenter', function () { return console.log('front', location); });
                 if ([103, 104, 105, 106].includes(location.location_id)) {
                     div.insertAdjacentHTML('beforeend', "<div id=\"loot-stock-".concat(location.location_id, "\" class=\"loot-stock\"></div>"));
                     _this.lootStocks[location.location_id] = new CompressedLineStock(lootManager, document.getElementById("loot-stock-".concat(location.location_id)));
@@ -1869,6 +1867,9 @@ var Abyss = /** @class */ (function () {
             case 'lord116':
                 this.onEnteringLord116(args.args);
                 break;
+            case 'placeSentinel':
+                this.onEnteringPlaceSentinel(args.args);
+                break;
         }
     };
     Abyss.prototype.onEnteringRecruitPay = function (args) {
@@ -1910,6 +1911,22 @@ var Abyss = /** @class */ (function () {
             args.lords.forEach(function (lord) {
                 return _this.lordManager.getCardElement(lord).classList.add('selectable');
             });
+        }
+    };
+    Abyss.prototype.onEnteringPlaceSentinel = function (args) {
+        var _this = this;
+        // Put a green border around selectable lords
+        if (this.isCurrentPlayerActive()) {
+            console.log(args);
+            if (args.possibleOnLords) {
+                this.visibleLords.getCards().forEach(function (lord) { return _this.lordManager.getCardElement(lord).classList.add('card-current-move'); });
+            }
+            if (args.possibleOnCouncil) {
+                [0, 1, 2, 3, 4].forEach(function (faction) { return document.getElementById("council-track-".concat(faction)).classList.add('card-current-move'); });
+            }
+            if (args.possibleOnLocations) {
+                __spreadArray(__spreadArray([], this.visibleLocations.getCards(), true), this.visibleLocationsOverflow.getCards(), true).forEach(function (location) { return _this.locationManager.getCardElement(location).classList.add('card-current-move'); });
+            }
         }
     };
     Abyss.prototype.onEnteringControlPostDraw = function (args) {

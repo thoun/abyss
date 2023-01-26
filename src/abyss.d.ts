@@ -176,6 +176,12 @@ interface EnteringFillSanctuaryArgs {
     locationId: number;
 }
 
+interface EnteringPlaceSentinelArgs {
+    possibleOnLords: boolean;
+    possibleOnCouncil: boolean;
+    possibleOnLocations: boolean;
+}
+
 interface NotifFinalRoundArgs {
     player_id: number;
 }
