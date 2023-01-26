@@ -31,6 +31,8 @@ class Abyss implements AbyssGame {
     private allyDiscardCounter: Counter;
     private pearlCounters: Counter[] = [];
     private nebulisCounters: Counter[] = [];
+    private woundCounters: Counter[] = [];
+    private defeatedLeviathanCounters: Counter[] = [];
     
     private TOOLTIP_DELAY = document.body.classList.contains('touch-device') ? 1500 : undefined;
 
@@ -41,7 +43,13 @@ class Abyss implements AbyssGame {
         log( "Starting game setup" );
         
         if (!gamedatas.krakenExpansion) {
+            (this as any).dontPreloadImage(`kraken.png`);
             (this as any).dontPreloadImage(`lords-kraken.jpg`);
+            (this as any).dontPreloadImage(`loots.jpg`);
+        }
+        if (!gamedatas.leviathanExpansion) {
+            (this as any).dontPreloadImage(`scourge.png`);
+            (this as any).dontPreloadImage(`icons-leviathan.png`);
         }
         
         this.gamedatas = gamedatas;
@@ -754,41 +762,57 @@ class Abyss implements AbyssGame {
             let html = `
             <div id="cp_board_p${player.id}" class="cp_board" data-player-id="${player.id}">
                 <div class="counters">
-                    <span class="pearl-holder spacer" id="pearl-holder_p${player.id}">
+                    <span class="pearl-holder" id="pearl-holder_p${player.id}">
                         <i class="icon icon-pearl"></i>
-                        <span class="spacer" id="pearlcount_p${player.id}"></span>
+                        <span id="pearlcount_p${player.id}"></span>
                     </span>`;
 
             if (gamedatas.krakenExpansion) {
-                html += `<span class="nebulis-holder spacer" id="nebulis-holder_p${player.id}">
+                html += `<span class="nebulis-holder" id="nebulis-holder_p${player.id}">
                     <i class="icon icon-nebulis"></i>
-                    <span class="spacer" id="nebuliscount_p${player.id}"></span>
+                    <span id="nebuliscount_p${player.id}"></span>
                 </span>`;
             }
 
             html += `
-                    <span class="key-holder spacer" id="key-holder_p${player.id}">
+                    <span class="key-holder" id="key-holder_p${player.id}">
                         <i class="icon icon-key"></i>
-                        <span class="spacer" id="keycount_p${player.id}">${player.keys}</span>
-                    </span>
-                    <span class="monster-holder spacer" id="monster-holder_p${player.id}">
-                        <i class="icon icon-monster"></i>
-                        <span class="spacer" id="monstercount_p${player.id}">${player.num_monsters}</span>
+                        <span id="keycount_p${player.id}">${player.keys}</span>
                     </span>
                 </div>
                 <div class="counters">
-                    <span class="ally-holder spacer" id="ally-holder_p${player.id}">
+                    <span class="ally-holder" id="ally-holder_p${player.id}">
                         <i class="icon icon-ally"></i>
-                        <span class="spacer" id="allycount_p${player.id}">${player.hand_size}</span>
+                        <span id="allycount_p${player.id}">${player.hand_size}</span>
                     </span>
-                    <span class="spacer">
+                    <span class="monster-holder" id="monster-holder_p${player.id}">
+                        <i class="icon icon-monster"></i>
+                        <span id="monstercount_p${player.id}">${player.num_monsters}</span>
+                    </span>
+                    <span>
                         <span class="lordcount-holder">
                             <i class="icon icon-lord"></i>
                             <span id="lordcount_p${player.id}">${player.lords.length}</span>
                         </span>
                         <span class="key-addendum">(<i class="icon icon-key"></i> <span id="lordkeycount_p${player.id}"></span>)</span>
                     </span>
-                </div>
+                </div>`;
+                    
+
+            if (gamedatas.leviathanExpansion) {
+                html += `
+                <div class="counters">
+                    <span class="wound-holder" id="wound-holder_p${player.id}">
+                        <i class="icon leviathan-icon icon-wound"></i>
+                        <span id="woundcount_p${player.id}"></span>
+                    </span>
+                    <span class="defeated-leviathan-holder" id="defeated-leviathan-holder_p${player.id}">
+                        <i class="icon leviathan-icon icon-defeated-leviathan"></i>
+                        <span id="defeatedleviathancount_p${player.id}"></span>
+                    </span>
+                </div>`;
+            }
+            html += `
                 <div class="monster-hand" id="monster-hand_p${player.id}"></div>
             </div>`;
             dojo.place( html, player_board_div );
@@ -800,6 +824,14 @@ class Abyss implements AbyssGame {
                 this.nebulisCounters[playerId] = new ebg.counter();
                 this.nebulisCounters[playerId].create(`nebuliscount_p${player.id}`);
                 this.nebulisCounters[playerId].setValue(player.nebulis);
+            }
+            if (gamedatas.leviathanExpansion) {
+                this.woundCounters[playerId] = new ebg.counter();
+                this.woundCounters[playerId].create(`woundcount_p${player.id}`);
+                // TODO LEV this.woundCounters[playerId].setValue(player.wounds);
+                this.defeatedLeviathanCounters[playerId] = new ebg.counter();
+                this.defeatedLeviathanCounters[playerId].create(`defeatedleviathancount_p${player.id}`);
+                // TODO LEV this.defeatedLeviathanCounters[playerId].setValue(player.defeatedLeviathans);
             }
 
             // kraken token

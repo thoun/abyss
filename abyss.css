@@ -1253,10 +1253,6 @@ i.icon-laurel {
   margin-top: 5px;
 }
 
-.cp_board span.spacer {
-  margin-right: 4px;
-}
-
 .cp_board .key-addendum {
   font-size: smaller;
 }
@@ -1266,7 +1262,7 @@ i.icon-laurel {
 }
 
 .cp_board i.icon {
-  margin-right: 5px;
+  margin-right: 3px;
 }
 
 .cp_board i.icon.clickable {
@@ -1357,6 +1353,23 @@ i.icon-ally {
   width: 12px;
   height: 16px;
   border-radius: 2px;
+}
+
+i.leviathan-icon {
+  background-image: url(img/icons-leviathan.png);
+  background-size: auto 100%;
+}
+
+i.icon-wound {
+  background-position-x: 85.71%;
+  width: 16px;
+  height: 16px;
+}
+
+i.icon-defeated-leviathan {
+  background-position-x: 100%;
+  width: 16px;
+  height: 16px;
 }
 
 .action-button .icon {
@@ -1865,12 +1878,31 @@ html a.bgabutton.affiliate-button:hover {
   background-image: url("img/kraken.png");
 }
 
+#scourgeToken {
+  display: inline-block;
+  position: relative;
+  width: 72px;
+  height: 80px;
+  background-image: url("img/scourge.png");
+}
+
 .icon-kraken {
   display: inline-block;
   position: relative;
   width: 48px;
   height: 48px;
   background-image: url("img/kraken.png");
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.icon-scourge {
+  display: inline-block;
+  position: relative;
+  width: 48px;
+  height: 48px;
+  background-image: url("img/scourge.png");
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
@@ -2000,6 +2032,7 @@ html a.bgabutton.affiliate-button:hover {
 .player-board .counters {
   display: flex;
   margin: 2px 0;
+  gap: 5px;
 }
 .player-board .counters > * {
   flex: 1;
