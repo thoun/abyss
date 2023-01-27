@@ -115,7 +115,8 @@ class LordManager extends CardManager<AbyssLord> {
     if (playerTable) {
       const lords = playerTable.getFreeLords();
       const keys = lords.map(lord => lord.keys).reduce((a, b) => a + b, 0);
-      document.getElementById(`lordkeycount_p${playerId}`).innerHTML = `${keys}`;
+      this.game.keyFreeLordsCounts[playerId] = keys;
+      this.game.updateKeyCounter(playerId);
     }
   }
 }

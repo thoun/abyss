@@ -31,6 +31,9 @@ class Abyss implements AbyssGame {
     private allyDiscardCounter: Counter;
     private pearlCounters: Counter[] = [];
     private nebulisCounters: Counter[] = [];
+    public keyTokenCounts: number[] = [];
+    public keyFreeLordsCounts: number[] = [];
+    private keyCounters: Counter[] = [];
     private woundCounters: Counter[] = [];
     private defeatedLeviathanCounters: Counter[] = [];
     
@@ -198,12 +201,10 @@ class Abyss implements AbyssGame {
             pearlTooltip += ' / ' + _('Nebulis');
         }
         this.setTooltipToClass('pearl-holder', pearlTooltip);
-        this.setTooltipToClass( 'key-holder', _( 'Key tokens' ));
         this.setTooltipToClass( 'monster-holder', _( 'Monster tokens' ));
         
         this.setTooltipToClass( 'ally-holder', _( 'Ally cards in hand' ));
         this.setTooltipToClass( 'lordcount-holder', _( 'Number of Lords' ));
-        this.setTooltipToClass( 'key-addendum', _( 'Keys from free Lords' ));
         // TODO LEV this.setTooltipToClass('leviathan-holder', _('Wounds / Defeated Leviathans'));
         
         this.setTooltip( 'scoring-location-icon', _( 'Locations' ));
@@ -818,7 +819,6 @@ class Abyss implements AbyssGame {
                             <i class="icon icon-lord"></i>
                             <span id="lordcount_p${player.id}">${player.lords.length}</span>
                         </span>
-                        <span class="key-addendum" id="key-addendum-holder_p${player.id}">(<i class="icon icon-key"></i> <span id="lordkeycount_p${player.id}"></span>)</span>
                     </span>
                 `;
                     
@@ -847,6 +847,13 @@ class Abyss implements AbyssGame {
                 this.nebulisCounters[playerId].create(`nebuliscount_p${player.id}`);
                 this.nebulisCounters[playerId].setValue(player.nebulis);
             }
+
+            this.keyTokenCounts[playerId] = Number(player.keys);
+            this.keyFreeLordsCounts[playerId] = 0;
+            this.keyCounters[playerId] = new ebg.counter();
+            this.keyCounters[playerId].create(`keycount_p${player.id}`);
+            this.updateKeyCounter(playerId);
+
             if (gamedatas.leviathanExpansion) {
                 this.woundCounters[playerId] = new ebg.counter();
                 this.woundCounters[playerId].create(`woundcount_p${player.id}`);
@@ -882,6 +889,15 @@ class Abyss implements AbyssGame {
             
             $('scoring-row-total').innerHTML += `<td id="scoring-row-total-p${playerId}"></td>`;
         });
+    }
+    
+    public updateKeyCounter(playerId: number) {
+        this.keyCounters[playerId].setValue(this.keyTokenCounts[playerId] + this.keyFreeLordsCounts[playerId]);
+        this.setTooltip(`key-holder_p${playerId}`, 
+            _('Keys (${keyTokens} key token(s) + ${keyFreeLords} key(s) from free Lords)')
+                .replace('${keyTokens}', this.keyTokenCounts[playerId])
+                .replace('${keyFreeLords}', this.keyFreeLordsCounts[playerId])
+        );
     }
 
     private setPearlCount(playerId: number, count: number) {

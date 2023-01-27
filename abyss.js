@@ -1221,7 +1221,8 @@ var LordManager = /** @class */ (function (_super) {
         if (playerTable) {
             var lords = playerTable.getFreeLords();
             var keys = lords.map(function (lord) { return lord.keys; }).reduce(function (a, b) { return a + b; }, 0);
-            document.getElementById("lordkeycount_p".concat(playerId)).innerHTML = "".concat(keys);
+            this.game.keyFreeLordsCounts[playerId] = keys;
+            this.game.updateKeyCounter(playerId);
         }
     };
     return LordManager;
@@ -1537,6 +1538,9 @@ var Abyss = /** @class */ (function () {
         this.councilStacks = [];
         this.pearlCounters = [];
         this.nebulisCounters = [];
+        this.keyTokenCounts = [];
+        this.keyFreeLordsCounts = [];
+        this.keyCounters = [];
         this.woundCounters = [];
         this.defeatedLeviathanCounters = [];
         this.TOOLTIP_DELAY = document.body.classList.contains('touch-device') ? 1500 : undefined;
@@ -1671,11 +1675,9 @@ var Abyss = /** @class */ (function () {
             pearlTooltip += ' / ' + _('Nebulis');
         }
         this.setTooltipToClass('pearl-holder', pearlTooltip);
-        this.setTooltipToClass('key-holder', _('Key tokens'));
         this.setTooltipToClass('monster-holder', _('Monster tokens'));
         this.setTooltipToClass('ally-holder', _('Ally cards in hand'));
         this.setTooltipToClass('lordcount-holder', _('Number of Lords'));
-        this.setTooltipToClass('key-addendum', _('Keys from free Lords'));
         // TODO LEV this.setTooltipToClass('leviathan-holder', _('Wounds / Defeated Leviathans'));
         this.setTooltip('scoring-location-icon', _('Locations'));
         this.setTooltip('scoring-lords-icon', _('Lords'));
@@ -2254,7 +2256,7 @@ var Abyss = /** @class */ (function () {
             if (gamedatas.krakenExpansion) {
                 html += "<i class=\"icon icon-nebulis margin-left\"></i>\n                    <span id=\"nebuliscount_p".concat(player.id, "\"></span>");
             }
-            html += "\n            </span>\n                    <span class=\"key-holder\" id=\"key-holder_p".concat(player.id, "\">\n                        <i class=\"icon icon-key\"></i>\n                        <span id=\"keycount_p").concat(player.id, "\">").concat(player.keys, "</span>\n                    </span>\n                    <span class=\"monster-holder\" id=\"monster-holder_p").concat(player.id, "\">\n                        <i class=\"icon icon-monster\"></i>\n                        <span id=\"monstercount_p").concat(player.id, "\">").concat(player.num_monsters, "</span>\n                    </span>\n                </div>\n                <div class=\"counters\">\n                    <span class=\"ally-holder\" id=\"ally-holder_p").concat(player.id, "\">\n                        <i class=\"icon icon-ally\"></i>\n                        <span id=\"allycount_p").concat(player.id, "\">").concat(player.hand_size, "</span>\n                    </span>\n                    <span>\n                        <span class=\"lordcount-holder\" id=\"lordcount-holder_p").concat(player.id, "\">\n                            <i class=\"icon icon-lord\"></i>\n                            <span id=\"lordcount_p").concat(player.id, "\">").concat(player.lords.length, "</span>\n                        </span>\n                        <span class=\"key-addendum\" id=\"key-addendum-holder_p").concat(player.id, "\">(<i class=\"icon icon-key\"></i> <span id=\"lordkeycount_p").concat(player.id, "\"></span>)</span>\n                    </span>\n                ");
+            html += "\n            </span>\n                    <span class=\"key-holder\" id=\"key-holder_p".concat(player.id, "\">\n                        <i class=\"icon icon-key\"></i>\n                        <span id=\"keycount_p").concat(player.id, "\">").concat(player.keys, "</span>\n                    </span>\n                    <span class=\"monster-holder\" id=\"monster-holder_p").concat(player.id, "\">\n                        <i class=\"icon icon-monster\"></i>\n                        <span id=\"monstercount_p").concat(player.id, "\">").concat(player.num_monsters, "</span>\n                    </span>\n                </div>\n                <div class=\"counters\">\n                    <span class=\"ally-holder\" id=\"ally-holder_p").concat(player.id, "\">\n                        <i class=\"icon icon-ally\"></i>\n                        <span id=\"allycount_p").concat(player.id, "\">").concat(player.hand_size, "</span>\n                    </span>\n                    <span>\n                        <span class=\"lordcount-holder\" id=\"lordcount-holder_p").concat(player.id, "\">\n                            <i class=\"icon icon-lord\"></i>\n                            <span id=\"lordcount_p").concat(player.id, "\">").concat(player.lords.length, "</span>\n                        </span>\n                    </span>\n                ");
             if (gamedatas.leviathanExpansion) {
                 html += "\n                    <span class=\"leviathan-holder\" id=\"leviathan-holder_p".concat(player.id, "\">\n                        <i class=\"icon leviathan-icon icon-wound\"></i>\n                        <span id=\"woundcount_p").concat(player.id, "\"></span>\n                        <i class=\"icon leviathan-icon icon-defeated-leviathan margin-left\"></i>\n                        <span id=\"defeatedleviathancount_p").concat(player.id, "\"></span>\n                    </span>\n                ");
             }
@@ -2268,6 +2270,11 @@ var Abyss = /** @class */ (function () {
                 _this.nebulisCounters[playerId].create("nebuliscount_p".concat(player.id));
                 _this.nebulisCounters[playerId].setValue(player.nebulis);
             }
+            _this.keyTokenCounts[playerId] = Number(player.keys);
+            _this.keyFreeLordsCounts[playerId] = 0;
+            _this.keyCounters[playerId] = new ebg.counter();
+            _this.keyCounters[playerId].create("keycount_p".concat(player.id));
+            _this.updateKeyCounter(playerId);
             if (gamedatas.leviathanExpansion) {
                 _this.woundCounters[playerId] = new ebg.counter();
                 _this.woundCounters[playerId].create("woundcount_p".concat(player.id));
@@ -2298,6 +2305,12 @@ var Abyss = /** @class */ (function () {
             }
             $('scoring-row-total').innerHTML += "<td id=\"scoring-row-total-p".concat(playerId, "\"></td>");
         });
+    };
+    Abyss.prototype.updateKeyCounter = function (playerId) {
+        this.keyCounters[playerId].setValue(this.keyTokenCounts[playerId] + this.keyFreeLordsCounts[playerId]);
+        this.setTooltip("key-holder_p".concat(playerId), _('Keys (${keyTokens} key token(s) + ${keyFreeLords} key(s) from free Lords)')
+            .replace('${keyTokens}', this.keyTokenCounts[playerId])
+            .replace('${keyFreeLords}', this.keyFreeLordsCounts[playerId]));
     };
     Abyss.prototype.setPearlCount = function (playerId, count) {
         this.pearlCounters[playerId].setValue(count);

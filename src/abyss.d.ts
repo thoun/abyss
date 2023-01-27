@@ -104,6 +104,8 @@ interface AbyssGame extends Game {
     lordManager: LordManager;
     lootManager: LootManager;
     locationManager: LocationManager;
+    keyTokenCounts: number[];
+    keyFreeLordsCounts: number[];
 
     setTooltip(id: string | HTMLElement, html: string): void;
     setTooltipToClass(className: string, html: string): void;
@@ -117,6 +119,7 @@ interface AbyssGame extends Game {
     onClickPlayerFreeLord(lord: AbyssLord): void;
     onClickPlayerLockedLord(lord: AbyssLord): void;
     onClickPlayerLocation(location: AbyssLocation): void;
+    updateKeyCounter(playerId: number): void;
 }
 
 type WithNebulis = { [nebulis: number]: boolean };
