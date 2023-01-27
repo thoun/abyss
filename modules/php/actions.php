@@ -1505,7 +1505,8 @@ trait ActionTrait {
 
         $this->setGlobalVariable(MUST_SELECT_NEW_PLAYER_FOR_KRAKEN, []);
 
-        $this->gamestate->setPlayerNonMultiactive($this->getCurrentPlayerId(), 'next');
+        $transition = boolval($this->getGameStateValue(AFTER_GIVE_KRAKEN_FINAL_SCORE)) ? 'finalScore' : 'next';
+        $this->gamestate->setPlayerNonMultiactive($this->getCurrentPlayerId(), $transition);
     }
 
     function goToPlaceSentinel() {

@@ -275,7 +275,7 @@ $machinestates = array(
  			"type" => "game",
   		"action" => "stNextPlayer",
   		"updateGameProgression" => true,
- 			"transitions" => array( "endGame" => ST_FINAL_SCORING, "plot" => ST_PRE_TURN )
+ 			"transitions" => array( "endGame" => ST_PRE_SCORING, "plot" => ST_PRE_TURN )
  	),
 
  	ST_PLAYER_CHOOSE_MONSTER_REWARD => [
@@ -432,6 +432,7 @@ $machinestates = array(
 		],
  		"transitions" => [
 			"next" => ST_PLAYER_UNUSED_LORDS,
+			"finalScore" => ST_FINAL_SCORING,
 		],
 	],
 
@@ -650,6 +651,18 @@ $machinestates = array(
 			"loopback" => ST_PLAYER_LORD116,
 		],
 	],
+
+	ST_PRE_SCORING => [
+		"name" => "preScoring",
+		"description" => '',
+		"descriptionmyturn" =>'',
+		"type" => "game",
+		"action" => "stPreScoring",
+		"transitions" => [
+			"giveKraken" => ST_MULTIPLAYER_GIVE_KRAKEN,
+			"finalScore" => ST_FINAL_SCORING,
+	    ],
+   ],
 
 	 ST_FINAL_SCORING => [
  		"name" => "finalScoring",

@@ -178,6 +178,8 @@ trait UtilTrait {
             }
         }
         $this->setGlobalVariable(MUST_SELECT_NEW_PLAYER_FOR_KRAKEN, $mustSelectNewPlayer ? $giveTo : []);
+
+        return $mustSelectNewPlayer;
     }
 
     function incPlayerNebulis(int $player_id, int $diff, string $source = '', bool $checkNewKrakenOwner = true) {
@@ -312,17 +314,6 @@ trait UtilTrait {
         $location_points = 0;
 
         $krakenExpansion = $this->isKrakenExpansion();
-
-        if ($final_scoring && $krakenExpansion) {
-            $allyHand = Ally::getPlayerHand($player_id);
-            $krakenAllies = array_filter($allyHand, fn($ally) => $ally['faction'] == 10);
-            foreach ($krakenAllies as $ally) {
-                Ally::discard($ally['ally_id']);
-                if (!Lord::playerHas(105, $player_id)) {
-                    $this->incPlayerNebulis($player_id, $ally['value'] - 1, "end-game-kraken");
-                }
-            }
-        }
 
         $playerNebulis = $krakenExpansion ? $this->getPlayerNebulis($player_id) : 0;
 

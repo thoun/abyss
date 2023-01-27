@@ -15,6 +15,11 @@ trait DebugUtilTrait {
 
 		$this->debugPickAllies(2343492);
 		$this->debugPickAllies(2343493);
+		$this->debugPickAllies(2343494);
+		
+		$this->debugPickKrakens(2343492);
+		$this->debugPickKrakens(2343493);
+		$this->debugPickKrakens(2343494);
 
 		$this->debugAddLocations(2343492);
 		//$this->debugAddLord(2343492);
@@ -27,14 +32,23 @@ trait DebugUtilTrait {
 		$this->DbQuery("UPDATE lord SET place = 0 WHERE place IN (5, 6)");
 		$this->DbQuery("UPDATE lord SET place = 5 WHERE lord_id = 116");
 		$this->DbQuery("UPDATE lord SET place = 6 WHERE lord_id = 35");
+		$this->setKrakenPlayer(2343492);
 
-		//$this->gamestate->changeActivePlayer(2343492);
+		$this->setGameStateValue('game_ending_player', 2343492);
+		$this->gamestate->changeActivePlayer(2343492);
     }
 
 	function debugPickAllies(int $playerId, int $number = 12) {
 		for ($i=0; $i<$number; $i++) {
 			$ally = Ally::draw();
-			self::DbQuery( "UPDATE ally SET place = ".($ally['faction'] == null ? 0 : ($playerId * -1))." WHERE ally_id = " . $ally["ally_id"] );
+			self::DbQuery( "UPDATE ally SET place = ".($ally['faction'] === null ? 0 : ($playerId * -1))." WHERE ally_id = " . $ally["ally_id"] );
+		}
+	}
+
+	function debugPickKrakens(int $playerId, int $number = 12) {
+		for ($i=0; $i<$number; $i++) {
+			$ally = Ally::draw();
+			self::DbQuery( "UPDATE ally SET place = ".($ally['faction'] != 10 ? 0 : ($playerId * -1))." WHERE ally_id = " . $ally["ally_id"] );
 		}
 	}
 

@@ -34,11 +34,77 @@ trait StateTrait {
         $this->gamestate->nextState( );
     }
 
-    function doFinalScoring() {
+    function stPreScoring() {
+        $krakenExpansion = $this->isKrakenExpansion();
+
+        // Then, each player affiliates the lowest-value Ally of _each_ Race still in their hands
+        // ...and we update score for each player
+        $players = self::loadPlayersBasicInfos();
+        foreach ($players as $pid => $p) {
+            $allies = Ally::getPlayerHand( $pid );
+            $lowest_per_faction = array();
+            foreach ($allies as $ally) {
+                $f = $ally["faction"];
+                if ($f != 10 && (! isset($lowest_per_faction[$f]) || $lowest_per_faction[$f]["value"] > $ally["value"])) {
+                    $lowest_per_faction[$f] = $ally;
+                }
+            }
+            // Affiliate these
+            foreach ($lowest_per_faction as $ally) {
+                Ally::affiliate( $pid, $ally["ally_id"] );
+                self::notifyAllPlayers( "affiliate", clienttranslate('${player_name} affiliates ${card_name}'), array(
+                        'ally' => $ally,
+                        'player_id' => intval($pid),
+                        'also_discard' => true,
+                        'player_name' => $p["player_name"],
+                        'card_name' => array(
+                            'log' => '<span style="color:'.$this->factions[$ally["faction"]]["colour"].'">${value} ${faction}</span>',
+                            'args' => array(
+                                'value' => $ally["value"],
+                                'faction' => $this->factions[$ally["faction"]]["ally_name"],
+                                'i18n' => ['faction']
+                            )
+                        ),
+                ) );
+            }
+
+            $krakenAllies = array_filter($allies, fn($ally) => $ally['faction'] == 10);
+            foreach ($krakenAllies as $ally) {
+                Ally::discard($ally['ally_id']);
+                if (!Lord::playerHas(105, $pid)) {
+                    $this->incPlayerNebulis($pid, $ally['value'] - 1, "end-game-kraken", false);
+                }
+            }
+
+            // Re-calculate scoring
+            self::updatePlayerScore( $pid, true );
+            
+            // Reveal all player's monster
+            self::notifyAllPlayers( "monsterHand", "", array(
+                    'player_id' => $pid,
+                    'monsters' => Monster::getPlayerHand( $pid )
+            ) );
+        }
+        
+        $mustSelectNewPlayer = false;
+        if ($krakenExpansion) {
+            $mustSelectNewPlayer = $this->checkNewKrakenOwner();
+        }
+
+        if ($mustSelectNewPlayer) {
+            $this->setGameStateValue(AFTER_GIVE_KRAKEN_FINAL_SCORE, 1);
+            $this->gamestate->nextState('giveKraken');
+        } else {
+            $this->gamestate->nextState('finalScore');
+        }
+    }
+
+    function stFinalScoring() {
         $breakdowns = [];
 
         $players = self::loadPlayersBasicInfos();
         $max_score = 0;
+
         foreach ($players as $pid => $p) {
             $breakdowns[$pid] = self::updatePlayerScore( $pid, true, false, false );
             $max_score = max($max_score, $breakdowns[$pid]["score"]);
@@ -82,12 +148,8 @@ trait StateTrait {
                 'breakdowns' => $breakdowns,
                 'winner_ids' => array($winner_id)
         ) );
-    }
 
-    function stFinalScoring() {
-        $this->doFinalScoring();
-
-        $this->gamestate->nextState( );
+        $this->gamestate->nextState();
     }
 
     function stPlotAtCourt()
@@ -298,47 +360,6 @@ trait StateTrait {
         } else {
             $next_player = self::getPlayerAfter( $player_id );
             if ($game_ending == $next_player) {
-                // Then, each player affiliates the lowest-value Ally of _each_ Race still in their hands
-                // ...and we update score for each player
-                $players = self::loadPlayersBasicInfos();
-                foreach ($players as $pid => $p) {
-                    $allies = Ally::getPlayerHand( $pid );
-                    $lowest_per_faction = array();
-                    foreach ($allies as $ally) {
-                        $f = $ally["faction"];
-                        if ($f != 10 && (! isset($lowest_per_faction[$f]) || $lowest_per_faction[$f]["value"] > $ally["value"])) {
-                            $lowest_per_faction[$f] = $ally;
-                        }
-                    }
-                    // Affiliate these
-                    foreach ($lowest_per_faction as $ally) {
-                        Ally::affiliate( $pid, $ally["ally_id"] );
-                        self::notifyAllPlayers( "affiliate", clienttranslate('${player_name} affiliates ${card_name}'), array(
-                                'ally' => $ally,
-                                'player_id' => intval($pid),
-                                'also_discard' => true,
-                                'player_name' => $p["player_name"],
-                                'card_name' => array(
-                                    'log' => '<span style="color:'.$this->factions[$ally["faction"]]["colour"].'">${value} ${faction}</span>',
-                                    'args' => array(
-                                        'value' => $ally["value"],
-                                        'faction' => $this->factions[$ally["faction"]]["ally_name"],
-                                        'i18n' => ['faction']
-                                    )
-                                ),
-                        ) );
-                    }
-
-                    // Re-calculate scoring
-                    self::updatePlayerScore( $pid, true );
-                    
-                    // Reveal all player's monster
-                    self::notifyAllPlayers( "monsterHand", "", array(
-                            'player_id' => $pid,
-                            'monsters' => Monster::getPlayerHand( $pid )
-                    ) );
-                }
-
                 $transition = "endGame";
             } else {
                 // I don't think we need this if the message exists...

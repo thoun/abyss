@@ -69,6 +69,7 @@ class Abyss extends Table {
             KRAKEN => 24,
             SELECTED_FACTION => 25,
             AFTER_PLACE_SENTINEL => 26,
+            AFTER_GIVE_KRAKEN_FINAL_SCORE => 27,
 
             SCOURGE => 30,
 
