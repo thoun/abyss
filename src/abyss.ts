@@ -793,7 +793,7 @@ class Abyss implements AbyssGame {
                         <span id="pearlcount_p${player.id}"></span>`;
 
             if (gamedatas.krakenExpansion) {
-                html += `<i class="icon icon-nebulis"></i>
+                html += `<i class="icon icon-nebulis margin-left"></i>
                     <span id="nebuliscount_p${player.id}"></span>`;
             }
 
@@ -828,7 +828,7 @@ class Abyss implements AbyssGame {
                     <span class="leviathan-holder" id="leviathan-holder_p${player.id}">
                         <i class="icon leviathan-icon icon-wound"></i>
                         <span id="woundcount_p${player.id}"></span>
-                        <i class="icon leviathan-icon icon-defeated-leviathan"></i>
+                        <i class="icon leviathan-icon icon-defeated-leviathan margin-left"></i>
                         <span id="defeatedleviathancount_p${player.id}"></span>
                     </span>
                 `;

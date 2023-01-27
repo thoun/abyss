@@ -2040,3 +2040,6 @@ html a.bgabutton.affiliate-button:hover {
   gap: 5px;
   white-space: nowrap;
 }
+.player-board .counters .margin-left {
+  margin-left: 5px;
+}
