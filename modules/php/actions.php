@@ -1214,16 +1214,11 @@ trait ActionTrait {
             }
 
             $lords = Lord::getPlayerHand( $player_id );
+            $ambassadorLord = $this->array_find($lords, fn($lord) => in_array($lord["lord_id"], [33, 34, 35]) && !$lord["turned"] && !isset($lord["location"]));
             $ambassador = false;
-            foreach ($lords as $lord) {
-                if ($lord["turned"] || isset($lord["location"])) continue;
-                if ($lord["lord_id"] == 33 || $lord["lord_id"] == 34 || $lord["lord_id"] == 35) {
-                    // You must select an ambassador if you have one!
-                    if (count($lord_ids) != 1 || ! in_array($lord["lord_id"], $lord_ids)) {
-                        throw new BgaUserException( self::_("You must choose a Location for your Ambassador.") );
-                    }
-                    $ambassador = true;
-                }
+            if ($ambassadorLord != null) {
+                $ambassador = true;
+                $lord_ids = [$ambassadorLord['lord_id']];
             }
 
             $keys_from_lords = 0;
@@ -1239,7 +1234,7 @@ trait ActionTrait {
                 if ($lord["turned"]) {
                     throw new BgaUserException( self::_("You cannot use Lords disabled by the Assassin.") );
                 }
-                if ($lord["keys"] == 0 && ! $ambassador) {
+                if ($lord["keys"] == 0 && !$ambassador) {
                     throw new BgaUserException( self::_("You can only use Lords with keys to control a Location.") );
                 }
                 $keys_from_lords += +$lord["keys"];
@@ -1248,12 +1243,12 @@ trait ActionTrait {
                 self::DbQuery( "UPDATE lord SET location = $location_id WHERE lord_id = $lord_id" );
             }
 
-            if ($keys_from_lords > 3 && ! $ambassador)
+            if ($keys_from_lords > 3 && !$ambassador)
                 throw new BgaUserException( self::_("You can not use superfluous Lords to control a Location.") );
 
             $key_tokens_needed = 3 - $keys_from_lords;
 
-            if ($key_tokens_needed > 0 && ! $ambassador) {
+            if ($key_tokens_needed > 0 && !$ambassador) {
                 $player_keys = self::getPlayerKeys( $player_id );
                 if ($player_keys < $key_tokens_needed) {
                     throw new BgaUserException( self::_("You do not have enough Key tokens. You must select additional Lords.") );
@@ -1440,7 +1435,12 @@ trait ActionTrait {
             'freeLord' => true,
         ]);
 
-        $this->gamestate->nextState('freeLord');
+        if (in_array($id, [33, 34, 35])) {
+            self::setGameStateValue('selected_lord', $id);
+            $this->gamestate->nextState('selectNewLocation');
+        } else {
+            $this->gamestate->nextState('freeLord');
+        }
     }
 
     function selectAllyRace(int $faction) {

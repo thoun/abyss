@@ -645,6 +645,7 @@ $machinestates = array(
 		],
  		"transitions" => [
 			"freeLord" => ST_PRE_CONTROL, 
+			"selectNewLocation" => ST_PLAYER_LORD_EFFECT,
 			"zombiePass" => ST_PRE_CONTROL, 
 			"loopback" => ST_PLAYER_LORD116,
 		],
