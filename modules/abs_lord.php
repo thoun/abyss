@@ -104,6 +104,21 @@ class Lord
       ";
     }
 
+    if ($leviathanExpansion) {
+      $sql .= ",
+        (201, 4, 1,  6, 1, ".self::FACTION_RED.", ".self::EFFECT_PASSIVE."),
+        (202, 6, 0,  8, 2, ".self::FACTION_RED.", ".self::EFFECT_ONCE."),
+        (203, 5, 1,  6, 1, ".self::FACTION_GREEN.", ".self::EFFECT_PASSIVE."),
+        (204, 7, 0,  8, 2, ".self::FACTION_GREEN.", ".self::EFFECT_ONCE."),
+        (205, 5, 1,  6, 1, ".self::FACTION_PURPLE.", ".self::EFFECT_PASSIVE."),
+        (206, 7, 0,  8, 2, ".self::FACTION_PURPLE.", ".self::EFFECT_ONCE."),
+        (207, 5, 1,  6, 1, ".self::FACTION_BLUE.", ".self::EFFECT_PASSIVE."),  
+        (208, 7, 0,  8, 2, ".self::FACTION_BLUE.", ".self::EFFECT_ONCE."),
+        (209, 8, 1,  8, 1, ".self::FACTION_YELLOW.", ".self::EFFECT_PASSIVE."),
+        (210,10, 0, 10, 2, ".self::FACTION_YELLOW.", ".self::EFFECT_ONCE.")
+      ";
+    }
+
     Abyss::DbQuery( $sql );
 
     self::refill();

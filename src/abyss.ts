@@ -52,6 +52,7 @@ class Abyss implements AbyssGame {
         }
         if (!gamedatas.leviathanExpansion) {
             (this as any).dontPreloadImage(`scourge.png`);
+            (this as any).dontPreloadImage(`lords-leviathan.jpg`);
             (this as any).dontPreloadImage(`icons-leviathan.png`);
             (this as any).dontPreloadImage(`icons-leviathan.png`);
             (this as any).dontPreloadImage(`allies-leviathan.jpg`);

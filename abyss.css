@@ -912,6 +912,66 @@ html body #game-holder .slot-fake {
   background-position: 100% 100%;
 }
 
+.lord-side[data-lord-id="201"] {
+  background-image: url("img/lords-leviathan.jpg");
+  background-size: 1000% 100%;
+  background-position: 0% 0%;
+}
+
+.lord-side[data-lord-id="202"] {
+  background-image: url("img/lords-leviathan.jpg");
+  background-size: 1000% 100%;
+  background-position: 11.1111111111% 0%;
+}
+
+.lord-side[data-lord-id="203"] {
+  background-image: url("img/lords-leviathan.jpg");
+  background-size: 1000% 100%;
+  background-position: 22.2222222222% 0%;
+}
+
+.lord-side[data-lord-id="204"] {
+  background-image: url("img/lords-leviathan.jpg");
+  background-size: 1000% 100%;
+  background-position: 33.3333333333% 0%;
+}
+
+.lord-side[data-lord-id="205"] {
+  background-image: url("img/lords-leviathan.jpg");
+  background-size: 1000% 100%;
+  background-position: 44.4444444444% 0%;
+}
+
+.lord-side[data-lord-id="206"] {
+  background-image: url("img/lords-leviathan.jpg");
+  background-size: 1000% 100%;
+  background-position: 55.5555555556% 0%;
+}
+
+.lord-side[data-lord-id="207"] {
+  background-image: url("img/lords-leviathan.jpg");
+  background-size: 1000% 100%;
+  background-position: 66.6666666667% 0%;
+}
+
+.lord-side[data-lord-id="208"] {
+  background-image: url("img/lords-leviathan.jpg");
+  background-size: 1000% 100%;
+  background-position: 77.7777777778% 0%;
+}
+
+.lord-side[data-lord-id="209"] {
+  background-image: url("img/lords-leviathan.jpg");
+  background-size: 1000% 100%;
+  background-position: 88.8888888889% 0%;
+}
+
+.lord-side[data-lord-id="210"] {
+  background-image: url("img/lords-leviathan.jpg");
+  background-size: 1000% 100%;
+  background-position: 100% 0%;
+}
+
 .lord .lord-name {
   font-family: TribalGaramond;
   position: absolute;

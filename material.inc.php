@@ -265,6 +265,48 @@ $this->lords = array(
     "name" => clienttranslate("The Oyster Farmer"),
     "desc" => ""
   ),
+  
+  // leviathan lords
+  "201" => array(
+    "name" => '', // TODO LEV client TODO translate("The Intrepid"),
+    "desc" => '', // TODO LEV client TODO translate("If you slay a Leviathan, you can fight a second one."),
+  ),
+  "202" => array(
+    "name" => '', // TODO LEV client TODO translate("The Border Guard"),
+    "desc" => '', // TODO LEV client TODO translate("The opponent of your choice adds a new Leviathan to the Border."),
+  ),
+  "203" => array(
+    "name" => '', // TODO LEV client TODO translate("The Taxidermist"),
+    "desc" => '', // TODO LEV client TODO translate("Earn 2 Pearls for each Health point you remove from a Leviathan."),
+  ),
+  "204" => array(
+    "name" => '', // TODO LEV client TODO translate("The Arms Dealer"),
+    "desc" => '', // TODO LEV client TODO translate("Earn 1 Pearl for each Leviathan present at the Border."),
+  ),
+  "205" => array(
+    "name" => '', // TODO LEV client TODO translate("The Metamorph"),
+    "desc" => '', // TODO LEV client TODO translate("When you fight a Leviathan, use an Ally of the Race of your choice."),
+  ),
+  "206" => array(
+    "name" => '', // TODO LEV client TODO translate("The Sorcerer"),
+    "desc" => '', // TODO LEV client TODO translate("You can immediately fight a Leviathan."),
+  ),
+  "207" => array(
+    "name" => '', // TODO LEV client TODO translate("The Altruist"),
+    "desc" => '', // TODO LEV client TODO translate("Win 1 extra Monster token for each Health point you remove from a Leviathan."),
+  ),
+  "208" => array(
+    "name" => '', // TODO LEV client TODO translate("The Rebel"),
+    "desc" => '', // TODO LEV client TODO translate("Remove 1 Health point from a Leviathan at the Border, as if you had succeeded with an attack."),
+  ),
+  "209" => array(
+    "name" => '', // TODO LEV client TODO translate("The Coward"),
+    "desc" => '', // TODO LEV client TODO translate("You can choose to ignore Monsters revealed during your Exploration, the cards are discarded."),
+  ),
+  "210" => array(
+    "name" => '', // TODO LEV client TODO translate("The Breeder"),
+    "desc" => '', // TODO LEV client TODO translate("Draw a Leviathan and place it on any free space of the Border."),
+  ),
 );
 
 $this->factions = array(

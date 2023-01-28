@@ -1559,6 +1559,7 @@ var Abyss = /** @class */ (function () {
         }
         if (!gamedatas.leviathanExpansion) {
             this.dontPreloadImage("scourge.png");
+            this.dontPreloadImage("lords-leviathan.jpg");
             this.dontPreloadImage("icons-leviathan.png");
             this.dontPreloadImage("icons-leviathan.png");
             this.dontPreloadImage("allies-leviathan.jpg");

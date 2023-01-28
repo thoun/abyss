@@ -367,6 +367,13 @@ html body #game-holder .slot-fake {
       background-position: #{($index - 1) * 100% / 8} 100%;
   }
 }
+@for $index from 1 through 10 {
+  .lord-side[data-lord-id="#{200 + $index}"] {
+      background-image: url('img/lords-leviathan.jpg');
+      background-size: 1000% 100%;
+      background-position: #{($index - 1) * 100% / 9} 0%;
+  }
+}
 
 .lord .lord-name {
   font-family: TribalGaramond;
