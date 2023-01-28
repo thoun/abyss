@@ -27,6 +27,7 @@ trait DebugUtilTrait {
 
 		$this->DbQuery("UPDATE player SET player_nebulis = 2");
 		$this->DbQuery("UPDATE player SET player_pearls = 2");
+		$this->DbQuery("UPDATE player SET `player_autopass` = '5;5;5;5;5'");
 		//$this->DbQuery("UPDATE player SET player_keys = 3");
 		//$this->DbQuery("UPDATE location SET place = 1 WHERE location_id = 103");
 		//$this->DbQuery("UPDATE lord SET place = 0 WHERE place IN (5, 6)");
@@ -34,6 +35,7 @@ trait DebugUtilTrait {
 		//$this->DbQuery("UPDATE lord SET place = 6 WHERE lord_id = 35");
 		$this->DbQuery("UPDATE lord SET place = -2343492 WHERE lord_id = 111");
 		$this->setKrakenPlayer(2343492);
+		$this->setScourgePlayer(2343492);
 
 		$this->setGameStateValue('game_ending_player', 2343492);
 		//$this->gamestate->changeActivePlayer(2343492);

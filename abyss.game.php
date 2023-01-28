@@ -352,6 +352,11 @@ class Abyss extends Table {
 			$sql = "ALTER TABLE `DBPREFIX_player` ADD `player_nebulis` INT unsigned NOT NULL DEFAULT 0";
 			self::applyDbUpgradeToAllDB( $sql );
 		}
+
+		if ($from_version <= 2301281204) {            
+			$sql = "ALTER TABLE `DBPREFIX_player` ADD `player_wounds` INT unsigned NOT NULL DEFAULT 0";
+			self::applyDbUpgradeToAllDB( $sql );
+		}
     }
 
 	// Hacks

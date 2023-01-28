@@ -116,6 +116,10 @@ trait UtilTrait {
         return intval(self::getUniqueValueFromDB( "SELECT player_keys FROM player WHERE player_id = $player_id"));
     }
 
+    function getPlayerWounds(int $player_id) {
+        return intval(self::getUniqueValueFromDB( "SELECT player_wounds FROM player WHERE player_id = $player_id"));
+    }
+
     function incPlayerPearls(int $player_id, int $diff, string $source) {
         self::DbQuery( "UPDATE player SET player_pearls = player_pearls + $diff WHERE player_id = $player_id" );
         $players = self::loadPlayersBasicInfos();
@@ -314,6 +318,7 @@ trait UtilTrait {
         $location_points = 0;
 
         $krakenExpansion = $this->isKrakenExpansion();
+        $leviathanExpansion = $this->isLeviathanExpansion();
 
         $playerNebulis = $krakenExpansion ? $this->getPlayerNebulis($player_id) : 0;
 
@@ -361,11 +366,21 @@ trait UtilTrait {
 
         $nebulisPoints = 0;
         $krakenPoints = 0;
+        $woundPoints = 0;
+        $scourgePoints = 0;
         if ($final_scoring && $krakenExpansion) {
             $nebulisPoints = -$playerNebulis;
 
             if (intval($this->getGameStateValue(KRAKEN)) == $player_id) {
                 $krakenPoints = -5;
+            }
+        }
+        if ($final_scoring && $leviathanExpansion) {
+            $playerWounds = $this->getPlayerWounds($player_id);
+            $woundPoints = -$playerWounds;
+
+            if (intval($this->getGameStateValue(SCOURGE)) == $player_id) {
+                $scourgePoints = 5;
             }
         }
 
@@ -376,7 +391,7 @@ trait UtilTrait {
             self::setStat( $location_points, "points_from_locations", $player_id );
         }
 
-        $score = $affiliated_points + $lord_points + $monster_points + $location_points + $nebulisPoints + $krakenPoints;
+        $score = $affiliated_points + $lord_points + $monster_points + $location_points + $nebulisPoints + $krakenPoints + $woundPoints + $scourgePoints;
         $player_pearls = self::getPlayerPearls( $player_id );
 
         if ($update) {
@@ -398,6 +413,11 @@ trait UtilTrait {
         if ($krakenExpansion) {
             $breakdown['nebulis_points'] = $nebulisPoints;
             $breakdown['kraken_points'] = $krakenPoints;
+        }
+
+        if ($leviathanExpansion) {
+            $breakdown['wound_points'] = $woundPoints;
+            $breakdown['scourge_points'] = $scourgePoints;
         }
         
         if ($log) {
@@ -600,6 +620,20 @@ trait UtilTrait {
 
         $log = $playerId == 0 ? '' : clienttranslate('${player_name} gets the Kraken (most corrupted player)');
         $this->notifyAllPlayers("kraken", $log, [
+            'playerId' => $playerId,
+            'player_name' => $playerId == 0 ? '' : $this->getPlayerName($playerId),
+        ]);
+    }
+
+    function setScourgePlayer(int $playerId) { // 0 means no-one
+        if (intval($this->getGameStateValue(SCOURGE)) == $playerId) {
+            return;
+        }
+
+        $this->setGameStateValue(SCOURGE, $playerId);
+
+        $log = $playerId == 0 ? '' : '';//  client TODO LEV translate('${player_name} gets the Scourge');
+        $this->notifyAllPlayers("scourge", $log, [
             'playerId' => $playerId,
             'player_name' => $playerId == 0 ? '' : $this->getPlayerName($playerId),
         ]);

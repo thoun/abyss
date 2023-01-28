@@ -97,6 +97,16 @@ class Abyss implements AbyssGame {
                 </tr>
             `);
         }
+        if (gamedatas.leviathanExpansion) {
+            document.getElementById('scoring-row-total').insertAdjacentHTML('beforebegin', `
+                <tr id="scoring-row-wound">
+                    <td class="first-column"><span class="arrow">→</span><i id="scoring-wound-icon" class="icon leviathan-icon icon-wound"></i></td>
+                </tr>
+                <tr id="scoring-row-scourge">
+                    <td class="first-column"><span class="arrow">→</span><i id="scoring-scourge-icon" class="icon-scourge"></i></td>
+                </tr>
+            `);
+        }
         
         // Setting up player boards
         this.createPlayerPanels(gamedatas);
@@ -111,6 +121,10 @@ class Abyss implements AbyssGame {
         if (gamedatas.krakenExpansion) {
             $('scoring-row-nebulis').innerHTML += `<td></td>`;
             $('scoring-row-kraken').innerHTML += `<td></td>`;  
+        }
+        if (gamedatas.leviathanExpansion) {
+            $('scoring-row-wound').innerHTML += `<td></td>`;
+            $('scoring-row-scourge').innerHTML += `<td></td>`;  
         }
         
         $('scoring-row-total').innerHTML += `<td></td>`;
@@ -214,6 +228,10 @@ class Abyss implements AbyssGame {
         if (gamedatas.krakenExpansion) {
             this.setTooltip('scoring-nebulis-icon', _( 'Nebulis' ));
             this.setTooltip('scoring-kraken-icon', _( 'Kraken' ));
+        }
+        if (gamedatas.leviathanExpansion) {
+            // TODO LEV this.setTooltip('scoring-nebulis-icon', _( 'Wounds' ));
+            // TODO LEV this.setTooltip('scoring-kraken-icon', _( 'Scourge' ));
         }
         
         // Localisation of options box
@@ -863,11 +881,14 @@ class Abyss implements AbyssGame {
                 // TODO LEV this.defeatedLeviathanCounters[playerId].setValue(player.defeatedLeviathans);
             }
 
-            // kraken token
-            dojo.place(`<div id="player_board_${player.id}_krakenWrapper" class="krakenWrapper"></div>`, `player_board_${player.id}`);
+            // kraken & scourge tokens
+            dojo.place(`<div id="player_board_${player.id}_figurinesWrapper" class="figurinesWrapper"></div>`, `player_board_${player.id}`);
 
             if (gamedatas.kraken == playerId) {
-                this.placeKrakenToken(playerId);
+                this.placeFigurineToken(playerId, 'kraken');
+            }
+            if (gamedatas.scourge == playerId) {
+                this.placeFigurineToken(playerId, 'scourge');
             }
             
             // Set up scoring table in advance (helpful for testing!)
@@ -885,6 +906,10 @@ class Abyss implements AbyssGame {
             if (gamedatas.krakenExpansion) {
                 $('scoring-row-nebulis').innerHTML += `<td id="scoring-row-nebulis-p${playerId}"></td>`;
                 $('scoring-row-kraken').innerHTML += `<td id="scoring-row-kraken-p${playerId}"></td>`;  
+            }
+            if (gamedatas.leviathanExpansion) {
+                $('scoring-row-wound').innerHTML += `<td id="scoring-row-wound-p${playerId}"></td>`;
+                $('scoring-row-scourge').innerHTML += `<td id="scoring-row-scourge-p${playerId}"></td>`;  
             }
             
             $('scoring-row-total').innerHTML += `<td id="scoring-row-total-p${playerId}"></td>`;
@@ -907,25 +932,33 @@ class Abyss implements AbyssGame {
         this.nebulisCounters[playerId]?.setValue(count);
     }
 
-    private placeKrakenToken(playerId: number) {
-        const krakenToken = document.getElementById('krakenToken');
-        if (krakenToken) {
+    private placeFigurineToken(playerId: number, type: 'kraken' | 'scourge') {
+        const figurineToken = document.getElementById(`${type}Token`);
+        if (figurineToken) {
             if (playerId == 0) {
-                (this as any).fadeOutAndDestroy(krakenToken);
+                (this as any).fadeOutAndDestroy(figurineToken);
             } else {
-                const parentElement = krakenToken.parentElement;
+                const parentElement = figurineToken.parentElement;
 
-                document.getElementById(`player_board_${playerId}_krakenWrapper`).appendChild(krakenToken);
+                document.getElementById(`player_board_${playerId}_figurinesWrapper`).appendChild(figurineToken);
                 stockSlideAnimation({
-                    element: krakenToken,
+                    element: figurineToken,
                     fromElement: parentElement
                 });
             }
         } else {
             if (playerId != 0) {
-                dojo.place('<div id="krakenToken" class="token"></div>', `player_board_${playerId}_krakenWrapper`);
+                dojo.place(`<div id="${type}Token" class="token"></div>`, `player_board_${playerId}_figurinesWrapper`);
 
-                this.setTooltip('krakenToken', _("The Kraken figure allows players to identify, during the game, the most corrupt player. The figure is given to the first player to receive any Nebulis. As soon as an opponent ties or gains more Nebulis than the most corrupt player, they get the Kraken figure"));
+                let tooltip = null;
+                if (type === 'kraken') {
+                    tooltip = _("The Kraken figure allows players to identify, during the game, the most corrupt player. The figure is given to the first player to receive any Nebulis. As soon as an opponent ties or gains more Nebulis than the most corrupt player, they get the Kraken figure");
+                } else if (type === 'scourge') {
+                    // TODO LEV tooltip = _("If you are the first player to kill a Leviathan, take the Scourge of the Abyss. As soon as an opponent reaches or exceeds the number of Leviathans killed by the most valorous defender, they take the statue from the player who currently holds it. The player who owns the statue at the end of the game gains 5 Influence Points.");
+                }
+                if (tooltip) {
+                    this.setTooltip(`${type}Token`, tooltip);
+                }
             }
         }
     }
@@ -1559,7 +1592,7 @@ class Abyss implements AbyssGame {
             ['kraken', 500],
             ['placeSentinel', 500],
             ['placeKraken', 500],
-            ['endGame_scoring', 5000 * num_players + 3000],
+            ['endGame_scoring', (5000 + (this.gamedatas.krakenExpansion ? 2000 : 0) + (this.gamedatas.leviathanExpansion ? 2000 : 0)) * num_players + 3000],
         ];
     
         notifs.forEach((notif) => {
@@ -1611,6 +1644,9 @@ class Abyss implements AbyssGame {
         const lines = ['location', 'lord', 'affiliated', 'monster'];
         if (this.gamedatas.krakenExpansion) {
             lines.push('nebulis', 'kraken');
+        }
+        if (this.gamedatas.leviathanExpansion) {
+            lines.push('wound', 'scourge');
         }
         lines.push('total');
         log(breakdowns);
@@ -2098,7 +2134,11 @@ class Abyss implements AbyssGame {
     }
 
     notif_kraken(notif: Notif<any>) {
-        this.placeKrakenToken(notif.args.playerId);
+        this.placeFigurineToken(notif.args.playerId, 'kraken');
+    }
+
+    notif_scourge(notif: Notif<any>) {
+        this.placeFigurineToken(notif.args.playerId, 'scourge');
     }
 
     notif_placeSentinel(notif: Notif<NotifPlaceSentinelArgs>) {
