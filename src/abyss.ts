@@ -1575,6 +1575,10 @@ class Abyss implements AbyssGame {
     
     setScoringRowText(stage: string, player_id: string, value: string) {
             $('scoring-row-' + stage + '-p' + player_id).innerHTML = value;
+
+            if (stage === 'total') {
+                (this as any).scoreCtrl[player_id].toValue(value);
+            }
         }
     
     setScoringRowWinner(winner_ids: string[], lines: string[]) {
@@ -1642,7 +1646,7 @@ class Abyss implements AbyssGame {
         var score = notif.args.score;
         var player_id = notif.args.player_id;
 
-        (this as any).scoreCtrl[player_id].toValue(score)
+        (this as any).scoreCtrl[player_id].toValue(score);
     }
 
     notif_control( notif: Notif<NotifControlArgs> ) {

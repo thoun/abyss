@@ -2894,6 +2894,9 @@ var Abyss = /** @class */ (function () {
     };
     Abyss.prototype.setScoringRowText = function (stage, player_id, value) {
         $('scoring-row-' + stage + '-p' + player_id).innerHTML = value;
+        if (stage === 'total') {
+            this.scoreCtrl[player_id].toValue(value);
+        }
     };
     Abyss.prototype.setScoringRowWinner = function (winner_ids, lines) {
         var _loop_6 = function (i) {

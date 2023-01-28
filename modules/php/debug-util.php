@@ -33,9 +33,9 @@ trait DebugUtilTrait {
 		//$this->DbQuery("UPDATE lord SET place = 5 WHERE lord_id = 116");
 		//$this->DbQuery("UPDATE lord SET place = 6 WHERE lord_id = 35");
 		$this->DbQuery("UPDATE lord SET place = -2343492 WHERE lord_id = 111");
-		//$this->setKrakenPlayer(2343492);
+		$this->setKrakenPlayer(2343492);
 
-		//$this->setGameStateValue('game_ending_player', 2343492);
+		$this->setGameStateValue('game_ending_player', 2343492);
 		//$this->gamestate->changeActivePlayer(2343492);
     }
 

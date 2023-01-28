@@ -106,7 +106,7 @@ trait StateTrait {
         $max_score = 0;
 
         foreach ($players as $pid => $p) {
-            $breakdowns[$pid] = self::updatePlayerScore( $pid, true, false, false );
+            $breakdowns[$pid] = self::updatePlayerScore( $pid, true, false, true);
             $max_score = max($max_score, $breakdowns[$pid]["score"]);
         }
 
