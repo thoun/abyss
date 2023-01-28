@@ -14,6 +14,9 @@ class AllyManager extends CardManager<AbyssAlly> {
       setupFrontDiv: (ally, div) => {
         div.dataset.faction = `${ally.faction}`;
         div.dataset.value = `${ally.value}`;
+        if (ally.effect) {
+          div.dataset.effect = `${ally.effect}`;
+        }
         div.classList.add('ally-side', `ally-${ally.faction}-${ally.value}`);
       },
       setupBackDiv: (ally, div) => {

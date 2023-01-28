@@ -9,6 +9,7 @@ interface AbyssAlly {
     just_spent: boolean;
     affiliated: boolean;
     place: number;
+    effect: number | null;
 }
 
 interface AbyssLord {

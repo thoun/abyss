@@ -2039,3 +2039,35 @@ html a.bgabutton.affiliate-button:hover {
 .player-board .counters .margin-left {
   margin-left: 5px;
 }
+
+.ally-side[data-effect] {
+  background-image: url("img/allies-leviathan.jpg");
+  background-size: 400% 500%;
+}
+.ally-side[data-effect][data-faction="0"] {
+  background-position-y: 0%;
+}
+.ally-side[data-effect][data-faction="1"] {
+  background-position-y: 25%;
+}
+.ally-side[data-effect][data-faction="2"] {
+  background-position-y: 50%;
+}
+.ally-side[data-effect][data-faction="3"] {
+  background-position-y: 75%;
+}
+.ally-side[data-effect][data-faction="4"] {
+  background-position-y: 100%;
+}
+.ally-side[data-effect][data-value="1"] {
+  background-position-x: 0%;
+}
+.ally-side[data-effect][data-value="2"] {
+  background-position-x: 33.3333333333%;
+}
+.ally-side[data-effect][data-value="3"] {
+  background-position-x: 66.6666666667%;
+}
+.ally-side[data-effect][data-value="4"] {
+  background-position-x: 100%;
+}

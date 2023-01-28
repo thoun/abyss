@@ -1261,3 +1261,20 @@ html a.bgabutton.affiliate-button:hover {
     }
   }
 }
+
+.ally-side[data-effect] {
+  background-image: url('img/allies-leviathan.jpg');
+  background-size: 400% 500%;
+
+  @for $index from 0 through 4 {
+    &[data-faction="#{$index}"] {
+        background-position-y: #{$index * 100% / 4};
+    }
+  }
+
+  @for $index from 1 through 4 {
+    &[data-value="#{$index}"] {
+        background-position-x: #{($index - 1) * 100% / 3};
+    }
+  }
+}

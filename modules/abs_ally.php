@@ -5,7 +5,8 @@ class Ally {
     $sql = "INSERT INTO ally (`faction`, `value`) VALUES ";
 
     // 6 monsters
-    for ($i=0; $i<6; $i++) {
+    $monsterCount = $leviathanExpansion ? 9 : 6;
+    for ($i=0; $i < $monsterCount; $i++) {
       if ($i > 0) $sql .= ", ";
       $sql .= "(NULL, 0)";
     }
@@ -25,7 +26,21 @@ class Ally {
       for ($j=0; $j<2; $j++) $sql .= ", (10, 2)";
     }
 
-    Abyss::DbQuery( $sql );
+    Abyss::DbQuery($sql);
+
+    if ($leviathanExpansion) {
+      $sql = "INSERT INTO ally (`faction`, `value`, `effect`) VALUES (1, 1, NULL)";
+
+      for ($i=0; $i<=4; $i++) {
+        $sql .= ", ($i, 1, 1), ($i, 2, 1), ($i, 3, 2), ($i, 4, 2)";
+      }
+
+      Abyss::DbQuery($sql);
+
+      foreach ($playersIds as $playerId) {
+        Ally::setStartingSoldierAlly($playerId);
+      }
+    }
   }
 
   public static function getExploreSlots() {
@@ -49,9 +64,16 @@ class Ally {
 
   public static function draw() {
     $nextSlot = count(Ally::getExploreSlots()) + 1;
-    $ally = self::typedAlly(Abyss::getObject("SELECT * FROM ally WHERE place = 0 ORDER BY RAND() LIMIT 1" ));
+    $ally = self::typedAlly(Abyss::getObject("SELECT * FROM `ally` WHERE `place` = 0 ORDER BY RAND() LIMIT 1" ));
     Abyss::DbQuery( "UPDATE ally SET place = $nextSlot WHERE ally_id = " . $ally['ally_id'] );
     $ally['place'] = $nextSlot;
+    return $ally;
+  }
+
+  public static function setStartingSoldierAlly(int $playerId) {
+    $ally = self::typedAlly(Abyss::getObject("SELECT * FROM `ally` WHERE `place` = 0 AND `faction` = 1 AND `value` = 1 AND `effect` IS NULL LIMIT 1" ));
+    Abyss::DbQuery( "UPDATE ally SET place = -$playerId WHERE ally_id = " . $ally['ally_id'] );
+    $ally['place'] = -$playerId;
     return $ally;
   }
 

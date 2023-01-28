@@ -1058,6 +1058,9 @@ var AllyManager = /** @class */ (function (_super) {
             setupFrontDiv: function (ally, div) {
                 div.dataset.faction = "".concat(ally.faction);
                 div.dataset.value = "".concat(ally.value);
+                if (ally.effect) {
+                    div.dataset.effect = "".concat(ally.effect);
+                }
                 div.classList.add('ally-side', "ally-".concat(ally.faction, "-").concat(ally.value));
             },
             setupBackDiv: function (ally, div) {
@@ -1557,6 +1560,8 @@ var Abyss = /** @class */ (function () {
         if (!gamedatas.leviathanExpansion) {
             this.dontPreloadImage("scourge.png");
             this.dontPreloadImage("icons-leviathan.png");
+            this.dontPreloadImage("icons-leviathan.png");
+            this.dontPreloadImage("allies-leviathan.jpg");
         }
         this.gamedatas = gamedatas;
         log('gamedatas', gamedatas);

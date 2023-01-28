@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS `ally` (
   `just_spent` tinyint(1) unsigned DEFAULT 0 NOT NULL,
   `affiliated` tinyint(1) unsigned DEFAULT 0 NOT NULL,
   `place` int(11) NOT NULL DEFAULT 0,
+  `effect` smallint unsigned NULL DEFAULT NULL,
   PRIMARY KEY (`ally_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 

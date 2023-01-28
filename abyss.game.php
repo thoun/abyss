@@ -117,6 +117,10 @@ class Abyss extends Table {
         /************ Start the game initialization *****/
 
         $krakenExpansion = $this->isKrakenExpansion();
+        // TODO TEMP        
+        if ($this->getBgaEnvironment() == 'studio') { 
+            self::setGameStateValue(LEVIATHAN_EXPANSION, 2);
+        }
         $leviathanExpansion = $this->isLeviathanExpansion();
 
         // Init global values with their initial values
@@ -357,6 +361,11 @@ class Abyss extends Table {
 			$sql = "ALTER TABLE `DBPREFIX_player` ADD `player_wounds` INT unsigned NOT NULL DEFAULT 0";
 			self::applyDbUpgradeToAllDB( $sql );
 		}
+
+		if ($from_version <= 2301281311) {            
+			$sql = "ALTER TABLE `DBPREFIX_ally` ADD `effect` smallint unsigned NULL DEFAULT NULL";
+			self::applyDbUpgradeToAllDB( $sql );
+		}        
     }
 
 	// Hacks
