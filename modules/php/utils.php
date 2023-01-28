@@ -418,11 +418,12 @@ trait UtilTrait {
         }
 
         $playerPearls = $this->getPlayerPearls($playerId);
-        if ($playerPearls - $pearlCost > 0 && !Lord::playerHas(103, $playerId)) {
+        if ($playerPearls > $pearlCost && !Lord::playerHas(103, $playerId)) {
             return false;
         }
 
-        return $nebulisCost <= $this->getPlayerNebulis($playerId);
+        $playerNebulis = $this->getPlayerNebulis($playerId);
+        return $playerNebulis >= $nebulisCost && $playerPearls >= $pearlCost;
     }
 
     function applySearchSanctuary(int $playerId, int $locationId) {

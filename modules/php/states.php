@@ -241,7 +241,6 @@ trait StateTrait {
             }
 
             $playerPearls = self::getPlayerPearls( $player_id );
-            $playerNebulis = $this->isKrakenExpansion() ? $this->getPlayerNebulis($player_id) : 0;
             $player_obj = self::getObjectFromDB( "SELECT player_id id, player_autopass, player_has_purchased FROM player WHERE player_id = " . $player_id );
             $has_purchased = intval($player_obj["player_has_purchased"]);
             $maxPurchase = Lord::playerHas(111, $player_id) ? 2 : 1;
@@ -257,11 +256,15 @@ trait StateTrait {
                     }
                 }
             }
-            if (($playerPearls + $playerNebulis) >= $purchase_cost && $has_purchased < $maxPurchase) {
-                // They have enough money and haven't purchased yet!
-                $this->gamestate->changeActivePlayer( $player_id );
-                $this->gamestate->nextState( 'purchase' );
-                return;
+            if ($has_purchased < $maxPurchase) {
+                $withNebulis = $this->getWithNebulis($player_id, $purchase_cost);
+
+                if ($playerPearls >= $purchase_cost || $this->array_some($withNebulis, fn($nebulis) => $nebulis === true)) {
+                    // They have enough money and haven't purchased yet!
+                    $this->gamestate->changeActivePlayer( $player_id );
+                    $this->gamestate->nextState( 'purchase' );
+                    return;
+                }
             }
         } while (true);
     }
