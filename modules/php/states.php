@@ -257,7 +257,7 @@ trait StateTrait {
                 }
             }
             if ($has_purchased < $maxPurchase) {
-                $withNebulis = $this->getWithNebulis($player_id, $purchase_cost);
+                $withNebulis = $this->getWithNebulis($player_id, $purchase_cost) ?? [];
 
                 if ($playerPearls >= $purchase_cost || $this->array_some($withNebulis, fn($nebulis) => $nebulis === true)) {
                     // They have enough money and haven't purchased yet!
