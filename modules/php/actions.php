@@ -828,10 +828,14 @@ trait ActionTrait {
         }
     }
     
-    function chooseMonsterTokens(int $target_player_id ) {
+    function chooseMonsterTokens(int $target_player_id, int $type) {
         self::checkAction( 'chooseMonsterTokens' );
 
         $player_id = intval(self::getCurrentPlayerId());
+
+        if ($player_id == $target_player_id) {
+            throw new BgaUserException("You are stealing yourself");
+        }
 
         $hand = Monster::getPlayerHand( $target_player_id );
 
@@ -843,7 +847,12 @@ trait ActionTrait {
             throw new BgaUserException( self::_("That player is protected by The Shaman.") );
 
         // Pick a random Monster and give it to the current player
-        $monster = $hand[array_rand($hand)];
+        $monstersOfType = array_values(array_filter($hand, fn($token) => $token['type'] == $type));
+        if (count($monstersOfType) == 0) {
+            throw new BgaUserException("That player doesn't have this type of Monster token");
+        }
+
+        $monster = $monstersOfType[bga_rand(0, count($monstersOfType) - 1)];
         Monster::giveToPlayer( $player_id, $monster["monster_id"] );
 
         // Notify all
@@ -852,7 +861,7 @@ trait ActionTrait {
             if ($pid == $player_id || $pid == $target_player_id) {
                 self::notifyPlayer( $pid, "diff", '', array(
                         'player_id' => $player_id,
-                        'monster' => array($monster),
+                        'monster' => [$monster],
                         'source' => "player_$target_player_id",
                         'allyDiscardSize' => Ally::getDiscardSize(),
                 ) );
@@ -871,7 +880,7 @@ trait ActionTrait {
             'player_name2' => $players[$target_player_id]['player_name'],
             'player_id' => $player_id,
             'player_name' => self::getActivePlayerName(),
-            'rewards' => '<i class="icon icon-monster"></i>'
+            'rewards' =>  $type == 1 ? '<i class="icon icon-monster-leviathan"></i>' : '<i class="icon icon-monster"></i>',
         ) );
 
         $this->gamestate->nextState( "next" );

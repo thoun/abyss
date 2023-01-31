@@ -141,12 +141,14 @@
         self::ajaxResponse( );
     }
 
-    public function chooseMonsterTokens()
-    {
+    public function chooseMonsterTokens() {
       self::setAjaxMode();
-      $player_id = self::getArg( "player_id", AT_posint, true );
-      $this->game->chooseMonsterTokens( $player_id );
-      self::ajaxResponse( );
+
+      $player_id = self::getArg("player_id", AT_posint, true);
+      $type = self::getArg("type", AT_posint, false) || 0;
+      $this->game->chooseMonsterTokens($player_id, $type);
+
+      self::ajaxResponse();
     }
 
     public function selectAlly()

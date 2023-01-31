@@ -1330,6 +1330,14 @@ i.icon-laurel {
   cursor: pointer;
 }
 
+.monster-hand.clickable {
+  border: 1px solid red;
+  cursor: pointer;
+}
+.monster-hand.clickable .card, .monster-hand.clickable .card-side {
+  cursor: pointer;
+}
+
 i.icon-pearl {
   background-size: 2226% 202%;
   background-position: 190.2% 0%;
@@ -1376,6 +1384,14 @@ i.icon-affiliated-ally {
 
 i.icon-monster {
   background-position: 80% 0%;
+  width: 16px;
+  height: 16px;
+}
+
+i.icon-monster-leviathan {
+  background-image: url("img/icons-leviathan.png");
+  background-position: 0% 0%;
+  background-size: auto 100%;
   width: 16px;
   height: 16px;
 }

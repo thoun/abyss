@@ -58,8 +58,10 @@ trait DebugUtilTrait {
 	}
 
 	function debugPickMonsters(int $playerId, int $number = 10) {
+		$leviathanExpansion = $this->isLeviathanExpansion();
+
 		for ($i=0; $i<$number; $i++) {
-			Monster::draw($playerId, bga_rand(0, 1));
+			Monster::draw($playerId, $leviathanExpansion ? bga_rand(0, 1) : 0);
 		}
 	}
 

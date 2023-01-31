@@ -199,7 +199,6 @@ class Abyss implements AbyssGame {
         // Clickers
         document.getElementById('explore-track-deck').addEventListener('click', e => this.onClickExploreDeck(e));
         document.getElementById('council-track').addEventListener('click', e => this.onClickCouncilTrack(e));
-        (this as any).addEventToClass('icon-monster', 'onclick', 'onClickMonsterIcon');
 
         // Tooltips
         // Hide this one, because it doesn't line up due to Zoom
@@ -427,7 +426,11 @@ class Abyss implements AbyssGame {
         if ((this as any).isCurrentPlayerActive()) {
             for( var player_id in this.gamedatas.players ) {
                 if (player_id != (this as any).player_id) {
-                    dojo.query("#cp_board_p" + player_id + " .icon.icon-monster").addClass("clickable");
+                    if (this.gamedatas.leviathanExpansion) {
+                        document.getElementById(`monster-hand_p${player_id}`).classList.add("clickable");
+                    } else {
+                        dojo.query("#cp_board_p" + player_id + " .icon.icon-monster").addClass("clickable");
+                    }
                 }
             }
         }
@@ -537,7 +540,11 @@ class Abyss implements AbyssGame {
                 break;
             case 'lord7':
                 // Put a red border around the player monster tokens (who aren't me)
-                dojo.query(".cp_board .icon.icon-monster").removeClass("clickable");
+                if (this.gamedatas.leviathanExpansion) {
+                    document.querySelectorAll(`.monster-hand.clickable`).forEach(elem => elem.classList.remove("clickable"));
+                } else {
+                    dojo.query(".cp_board .icon.icon-monster").removeClass("clickable");
+                }
                 break;
             case 'controlPostDraw': case 'control':
                 dojo.query("#locations-holder .location").removeClass("unavailable");
@@ -652,12 +659,16 @@ class Abyss implements AbyssGame {
                     (this as any).addActionButton( 'button_discard', _('Discard'), 'onDiscard' );
                     break;
                 case 'lord7':
-                    // Put a red border around the player monster tokens (who aren't me)
-                    for( var player_id in this.gamedatas.players ) {
-                        if (Number(player_id) != this.getPlayerId()) {
-                            var num_tokens = this.monsterCounters[player_id].getValue();
-                            if (num_tokens > 0) {
-                                (this as any).addActionButton( 'button_steal_monster_token_' + player_id, this.gamedatas.players[player_id].name, 'onClickMonsterIcon' );
+                    if (!this.gamedatas.leviathanExpansion) {
+                        // Put a red border around the player monster tokens (who aren't me)
+                        for( var player_id in this.gamedatas.players ) {
+                            const playerId = Number(player_id);
+                            if (playerId != this.getPlayerId()) {
+                                var num_tokens = this.monsterCounters[playerId].getValue();
+                                if (num_tokens > 0) {
+                                    (this as any).addActionButton(`button_steal_monster_token_${playerId}`, this.gamedatas.players[playerId].name, () => this.onClickMonsterIcon(playerId));
+                                    document.getElementById(`button_steal_monster_token_${playerId}`).style.border = `3px solid #${this.gamedatas.players[playerId].color}`;
+                                }
                             }
                         }
                     }
@@ -817,7 +828,7 @@ class Abyss implements AbyssGame {
                         <span id="keycount_p${player.id}">${player.keys}</span>
                     </span>
                     <span class="monster-holder" id="monster-holder_p${player.id}">
-                        <i class="icon icon-monster"></i>
+                        <i id="icon-monster_p${player.id}" class="icon icon-monster"></i>
                         <span id="monstercount_p${player.id}"></span>
                     </span>
                 </div>
@@ -850,6 +861,10 @@ class Abyss implements AbyssGame {
                 <div class="monster-hand" id="monster-hand_p${player.id}"></div>
             </div>`;
             dojo.place( html, player_board_div );
+
+            if (!gamedatas.leviathanExpansion) {
+                document.getElementById(`icon-monster_p${playerId}`).addEventListener('click', () => this.onClickMonsterIcon(playerId));
+            }
 
             this.pearlCounters[playerId] = new ebg.counter();
             this.pearlCounters[playerId].create(`pearlcount_p${player.id}`);
@@ -888,6 +903,7 @@ class Abyss implements AbyssGame {
                 center: false,
                 gap: '2px',
             });
+            this.monsterTokens[playerId].onCardClick = card => this.onClickMonsterIcon(playerId, card.type);
 
             player.monsters?.forEach(monster => 
                 this.monsterTokens[playerId].addCards(player.monsters, undefined, {
@@ -1355,27 +1371,14 @@ class Abyss implements AbyssGame {
         }
     }
 
-    onClickMonsterIcon( evt ) {
-        if (dojo.hasClass(evt.target, 'clickable')) {
-        if( (this as any).checkAction( 'chooseMonsterTokens', true ) ) {
-            dojo.stopEvent( evt );
-
-            // Discard this card...
-            var player_id: Number = dojo.attr(dojo.query(evt.target).closest('.cp_board')[0], 'data-player-id');
-            this.takeAction('chooseMonsterTokens', {
-                player_id,
-            });
-        }
-        } else {
+    onClickMonsterIcon(playerId: number, type: number = 0) {
             if( (this as any).checkAction( 'chooseMonsterTokens' ) ) {
-            dojo.stopEvent( evt );
+                console.log(playerId);
 
-            // Discard this card...
-            var player_id: Number = +evt.target.id.replace("button_steal_monster_token_", "");
             this.takeAction('chooseMonsterTokens', {
-                player_id,
+                player_id: playerId,
+                type,
             });
-            }
         }
     }
 
@@ -2099,6 +2102,7 @@ class Abyss implements AbyssGame {
             if (player_id == currentPlayerId) {
                 // Add it to me
                 this.monsterTokens[currentPlayerId].addCards(notif.args.monster);
+                notif.args.monster.forEach(monster => this.monsterManager.setCardVisible(monster, true));
             }
         }
 

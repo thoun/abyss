@@ -1717,7 +1717,6 @@ var Abyss = /** @class */ (function () {
         // Clickers
         document.getElementById('explore-track-deck').addEventListener('click', function (e) { return _this.onClickExploreDeck(e); });
         document.getElementById('council-track').addEventListener('click', function (e) { return _this.onClickCouncilTrack(e); });
-        this.addEventToClass('icon-monster', 'onclick', 'onClickMonsterIcon');
         // Tooltips
         // Hide this one, because it doesn't line up due to Zoom
         //this.setTooltip( 'explore-track-deck', '', _('Explore'), 1 );
@@ -1939,7 +1938,12 @@ var Abyss = /** @class */ (function () {
         if (this.isCurrentPlayerActive()) {
             for (var player_id in this.gamedatas.players) {
                 if (player_id != this.player_id) {
-                    dojo.query("#cp_board_p" + player_id + " .icon.icon-monster").addClass("clickable");
+                    if (this.gamedatas.leviathanExpansion) {
+                        document.getElementById("monster-hand_p".concat(player_id)).classList.add("clickable");
+                    }
+                    else {
+                        dojo.query("#cp_board_p" + player_id + " .icon.icon-monster").addClass("clickable");
+                    }
                 }
             }
         }
@@ -2039,7 +2043,12 @@ var Abyss = /** @class */ (function () {
                 break;
             case 'lord7':
                 // Put a red border around the player monster tokens (who aren't me)
-                dojo.query(".cp_board .icon.icon-monster").removeClass("clickable");
+                if (this.gamedatas.leviathanExpansion) {
+                    document.querySelectorAll(".monster-hand.clickable").forEach(function (elem) { return elem.classList.remove("clickable"); });
+                }
+                else {
+                    dojo.query(".cp_board .icon.icon-monster").removeClass("clickable");
+                }
                 break;
             case 'controlPostDraw':
             case 'control':
@@ -2165,13 +2174,21 @@ var Abyss = /** @class */ (function () {
                     this.addActionButton('button_discard', _('Discard'), 'onDiscard');
                     break;
                 case 'lord7':
-                    // Put a red border around the player monster tokens (who aren't me)
-                    for (var player_id in this.gamedatas.players) {
-                        if (Number(player_id) != this.getPlayerId()) {
-                            var num_tokens = this.monsterCounters[player_id].getValue();
-                            if (num_tokens > 0) {
-                                this.addActionButton('button_steal_monster_token_' + player_id, this.gamedatas.players[player_id].name, 'onClickMonsterIcon');
+                    if (!this.gamedatas.leviathanExpansion) {
+                        var _loop_5 = function () {
+                            var playerId = Number(player_id);
+                            if (playerId != this_1.getPlayerId()) {
+                                num_tokens = this_1.monsterCounters[playerId].getValue();
+                                if (num_tokens > 0) {
+                                    this_1.addActionButton("button_steal_monster_token_".concat(playerId), this_1.gamedatas.players[playerId].name, function () { return _this.onClickMonsterIcon(playerId); });
+                                    document.getElementById("button_steal_monster_token_".concat(playerId)).style.border = "3px solid #".concat(this_1.gamedatas.players[playerId].color);
+                                }
                             }
+                        };
+                        var this_1 = this, num_tokens;
+                        // Put a red border around the player monster tokens (who aren't me)
+                        for (var player_id in this.gamedatas.players) {
+                            _loop_5();
                         }
                     }
                     break;
@@ -2228,13 +2245,13 @@ var Abyss = /** @class */ (function () {
                     }
                     break;
                 case 'lord114':
-                    var _loop_5 = function (i_5) {
-                        this_1.addActionButton("selectAllyRace".concat(i_5), this_1.allyManager.allyNameText(i_5), function () { return _this.selectAllyRace(i_5); });
+                    var _loop_6 = function (i_5) {
+                        this_2.addActionButton("selectAllyRace".concat(i_5), this_2.allyManager.allyNameText(i_5), function () { return _this.selectAllyRace(i_5); });
                         document.getElementById("selectAllyRace".concat(i_5)).classList.add('affiliate-button');
                     };
-                    var this_1 = this;
+                    var this_2 = this;
                     for (var i_5 = 0; i_5 < 5; i_5++) {
-                        _loop_5(i_5);
+                        _loop_6(i_5);
                     }
                     break;
                 case 'giveKraken':
@@ -2312,12 +2329,15 @@ var Abyss = /** @class */ (function () {
             if (gamedatas.krakenExpansion) {
                 html += "<i class=\"icon icon-nebulis margin-left\"></i>\n                    <span id=\"nebuliscount_p".concat(player.id, "\"></span>");
             }
-            html += "\n            </span>\n                    <span class=\"key-holder\" id=\"key-holder_p".concat(player.id, "\">\n                        <i class=\"icon icon-key\"></i>\n                        <span id=\"keycount_p").concat(player.id, "\">").concat(player.keys, "</span>\n                    </span>\n                    <span class=\"monster-holder\" id=\"monster-holder_p").concat(player.id, "\">\n                        <i class=\"icon icon-monster\"></i>\n                        <span id=\"monstercount_p").concat(player.id, "\"></span>\n                    </span>\n                </div>\n                <div class=\"counters\">\n                    <span class=\"ally-holder\" id=\"ally-holder_p").concat(player.id, "\">\n                        <i class=\"icon icon-ally\"></i>\n                        <span id=\"allycount_p").concat(player.id, "\"></span>\n                    </span>\n                    <span>\n                        <span class=\"lordcount-holder\" id=\"lordcount-holder_p").concat(player.id, "\">\n                            <i class=\"icon icon-lord\"></i>\n                            <span id=\"lordcount_p").concat(player.id, "\"></span>\n                        </span>\n                    </span>\n                ");
+            html += "\n            </span>\n                    <span class=\"key-holder\" id=\"key-holder_p".concat(player.id, "\">\n                        <i class=\"icon icon-key\"></i>\n                        <span id=\"keycount_p").concat(player.id, "\">").concat(player.keys, "</span>\n                    </span>\n                    <span class=\"monster-holder\" id=\"monster-holder_p").concat(player.id, "\">\n                        <i id=\"icon-monster_p").concat(player.id, "\" class=\"icon icon-monster\"></i>\n                        <span id=\"monstercount_p").concat(player.id, "\"></span>\n                    </span>\n                </div>\n                <div class=\"counters\">\n                    <span class=\"ally-holder\" id=\"ally-holder_p").concat(player.id, "\">\n                        <i class=\"icon icon-ally\"></i>\n                        <span id=\"allycount_p").concat(player.id, "\"></span>\n                    </span>\n                    <span>\n                        <span class=\"lordcount-holder\" id=\"lordcount-holder_p").concat(player.id, "\">\n                            <i class=\"icon icon-lord\"></i>\n                            <span id=\"lordcount_p").concat(player.id, "\"></span>\n                        </span>\n                    </span>\n                ");
             if (gamedatas.leviathanExpansion) {
                 html += "\n                    <span class=\"leviathan-holder\" id=\"leviathan-holder_p".concat(player.id, "\">\n                        <i class=\"icon leviathan-icon icon-wound\"></i>\n                        <span id=\"woundcount_p").concat(player.id, "\"></span>\n                        <i class=\"icon leviathan-icon icon-defeated-leviathan margin-left\"></i>\n                        <span id=\"defeatedleviathancount_p").concat(player.id, "\"></span>\n                    </span>\n                ");
             }
             html += "\n            </div>\n                <div class=\"monster-hand\" id=\"monster-hand_p".concat(player.id, "\"></div>\n            </div>");
             dojo.place(html, player_board_div);
+            if (!gamedatas.leviathanExpansion) {
+                document.getElementById("icon-monster_p".concat(playerId)).addEventListener('click', function () { return _this.onClickMonsterIcon(playerId); });
+            }
             _this.pearlCounters[playerId] = new ebg.counter();
             _this.pearlCounters[playerId].create("pearlcount_p".concat(player.id));
             _this.pearlCounters[playerId].setValue(player.pearls);
@@ -2352,6 +2372,7 @@ var Abyss = /** @class */ (function () {
                 center: false,
                 gap: '2px',
             });
+            _this.monsterTokens[playerId].onCardClick = function (card) { return _this.onClickMonsterIcon(playerId, card.type); };
             (_a = player.monsters) === null || _a === void 0 ? void 0 : _a.forEach(function (monster) {
                 return _this.monsterTokens[playerId].addCards(player.monsters, undefined, {
                     visible: !!(monster.value || monster.effect)
@@ -2752,26 +2773,14 @@ var Abyss = /** @class */ (function () {
             });
         }
     };
-    Abyss.prototype.onClickMonsterIcon = function (evt) {
-        if (dojo.hasClass(evt.target, 'clickable')) {
-            if (this.checkAction('chooseMonsterTokens', true)) {
-                dojo.stopEvent(evt);
-                // Discard this card...
-                var player_id = dojo.attr(dojo.query(evt.target).closest('.cp_board')[0], 'data-player-id');
-                this.takeAction('chooseMonsterTokens', {
-                    player_id: player_id,
-                });
-            }
-        }
-        else {
-            if (this.checkAction('chooseMonsterTokens')) {
-                dojo.stopEvent(evt);
-                // Discard this card...
-                var player_id = +evt.target.id.replace("button_steal_monster_token_", "");
-                this.takeAction('chooseMonsterTokens', {
-                    player_id: player_id,
-                });
-            }
+    Abyss.prototype.onClickMonsterIcon = function (playerId, type) {
+        if (type === void 0) { type = 0; }
+        if (this.checkAction('chooseMonsterTokens')) {
+            console.log(playerId);
+            this.takeAction('chooseMonsterTokens', {
+                player_id: playerId,
+                type: type,
+            });
         }
     };
     Abyss.prototype.onClickPlayerFreeLord = function (lord) {
@@ -2998,7 +3007,7 @@ var Abyss = /** @class */ (function () {
         }
     };
     Abyss.prototype.setScoringRowWinner = function (winner_ids, lines) {
-        var _loop_6 = function (i) {
+        var _loop_7 = function (i) {
             var player_id = winner_ids[i];
             dojo.addClass($('scoring-row-name-p' + player_id), 'wavetext');
             lines.forEach(function (stage) {
@@ -3006,7 +3015,7 @@ var Abyss = /** @class */ (function () {
             });
         };
         for (var i in winner_ids) {
-            _loop_6(i);
+            _loop_7(i);
         }
     };
     Abyss.prototype.notif_finalRound = function (notif) {
@@ -3178,28 +3187,28 @@ var Abyss = /** @class */ (function () {
         // For each slot, animate to the council pile, fade out and destroy, then increase the council pile by 1
         var delay = 0;
         var cards = this.visibleAllies.getCards();
-        var _loop_7 = function () {
+        var _loop_8 = function () {
             var ally = cards.find(function (ally) { return ally.place == i; });
             if (ally) {
                 var faction = ally.faction;
                 if (faction === null) {
                     // Monster just fades out
-                    this_2.visibleAllies.removeCard(ally);
+                    this_3.visibleAllies.removeCard(ally);
                     delay += 200;
                 }
                 else if (i != slot) {
                     if (faction != 10) {
                         // Animate to the council!
                         var deck_1 = dojo.query('#council-track .slot-' + faction);
-                        this_2.councilStacks[faction].addCard(ally, null, { visible: false })
+                        this_3.councilStacks[faction].addCard(ally, null, { visible: false })
                             .then(function () { return _this.setDeckSize(deck_1, +dojo.attr(deck_1[0], 'data-size') + 1); });
                         delay += 200;
                     }
                 }
                 else {
                     // This is the card that was taken - animate it to hand or player board
-                    var theAlly_1 = this_2.allyManager.getCardElement(ally);
-                    if (player_id == this_2.getPlayerId()) {
+                    var theAlly_1 = this_3.allyManager.getCardElement(ally);
+                    if (player_id == this_3.getPlayerId()) {
                         setTimeout(function () {
                             _this.getPlayerTable(Number(player_id)).addHandAlly(notif.args.ally, theAlly_1);
                             _this.incAllyCount(player_id, 1);
@@ -3209,7 +3218,7 @@ var Abyss = /** @class */ (function () {
                     else {
                         dojo.setStyle(theAlly_1, "zIndex", "1");
                         dojo.setStyle(theAlly_1, "transition", "none");
-                        animation = this_2.slideToObject(theAlly_1, $('player_board_' + player_id), 600, delay);
+                        animation = this_3.slideToObject(theAlly_1, $('player_board_' + player_id), 600, delay);
                         animation.onEnd = function () {
                             _this.visibleAllies.removeCard(ally);
                             _this.incAllyCount(player_id, 1);
@@ -3220,9 +3229,9 @@ var Abyss = /** @class */ (function () {
                 }
             }
         };
-        var this_2 = this, animation;
+        var this_3 = this, animation;
         for (var i = 1; i <= 5; i++) {
-            _loop_7();
+            _loop_8();
         }
         this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
         this.organisePanelMessages();
@@ -3360,6 +3369,7 @@ var Abyss = /** @class */ (function () {
         this.setDeckSize(dojo.query('#lords-track .slot-0'), deck_size);
     };
     Abyss.prototype.notif_diff = function (notif) {
+        var _this = this;
         var player_id = +notif.args.player_id;
         var source = notif.args.source;
         var source_player_id = null;
@@ -3397,6 +3407,7 @@ var Abyss = /** @class */ (function () {
             if (player_id == currentPlayerId) {
                 // Add it to me
                 this.monsterTokens[currentPlayerId].addCards(notif.args.monster);
+                notif.args.monster.forEach(function (monster) { return _this.monsterManager.setCardVisible(monster, true); });
             }
         }
         if (notif.args.monster_count) {
