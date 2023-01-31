@@ -1285,3 +1285,58 @@ html a.bgabutton.affiliate-button:hover {
     }
   }
 }
+
+.card.monster {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  line-height: 32px;  
+  /*width: 48px;
+  height: 48px;
+  line-height: 48px;*/
+  text-align: center;
+  color: white;
+  font-style: normal;
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  -webkit-touch-callout: none;
+  cursor: default;
+
+  .card-sides .card-side {
+    box-shadow: none;
+  }
+
+  .back {
+    background-size: auto 100%;
+    background-image: url(img/icons.png);
+    background-position-x: 80%;
+  }
+
+  .front {
+    background-size: auto 100%;
+    background-image: url(img/icons.png);
+    
+    @for $index from 2 through 4 {
+      &[data-value="#{$index}"] {
+          background-position-x: #{($index + 3) * 100% / 10};
+      }
+    }
+  }
+
+  &[data-type="1"] {
+    .back {
+      background-image: url(img/icons-leviathan.png);
+      background-position-x: 0%;
+    }
+    .front {
+      background-image: url(img/icons-leviathan.png);
+
+      @for $index from 1 through 4 {
+        &[data-effect="#{$index}"] {
+            background-position-x: #{($index) * 100% / 7};
+        }
+      }
+    }
+  }
+}

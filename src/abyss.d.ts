@@ -39,6 +39,8 @@ interface AbyssMonster {
     monster_id: number;
     value: number;
     place: number;
+    type: 0 | 1;
+    effect?: number | null;
 }
 
 interface AbyssLoot {

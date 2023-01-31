@@ -31,11 +31,24 @@ class Monster {
 
   public function typedMonster(array $dbResult) {
     $dbResult['monster_id'] = intval($dbResult['monster_id']);
+    $dbResult['type'] = $dbResult['effect'] !== null ? 1 : 0;
     $dbResult['value'] = intval($dbResult['value']);
     $dbResult['place'] = intval($dbResult['place']);
     $dbResult['effect'] = array_key_exists('effect', $dbResult) && $dbResult['effect'] != null ? intval($dbResult['effect']) : null;
 
     return $dbResult;
+  }
+
+  public static function onlyId(array $card) {
+      return [
+        'monster_id' => $card['monster_id'],
+        'type' => $card['type'],
+        'place' => $card['place'],
+      ];
+  }
+
+  public static function onlyIds(array $cards) {
+      return array_map(fn($card) => self::onlyId($card), $cards);
   }
 
   public function typedMonsters(array $dbResults) {

@@ -2131,3 +2131,61 @@ html a.bgabutton.affiliate-button:hover {
 .ally-side[data-effect][data-value="4"] {
   background-position-x: 100%;
 }
+
+.card.monster {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  line-height: 32px;
+  /*width: 48px;
+  height: 48px;
+  line-height: 48px;*/
+  text-align: center;
+  color: white;
+  font-style: normal;
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  -webkit-touch-callout: none;
+  cursor: default;
+}
+.card.monster .card-sides .card-side {
+  box-shadow: none;
+}
+.card.monster .back {
+  background-size: auto 100%;
+  background-image: url(img/icons.png);
+  background-position-x: 80%;
+}
+.card.monster .front {
+  background-size: auto 100%;
+  background-image: url(img/icons.png);
+}
+.card.monster .front[data-value="2"] {
+  background-position-x: 50%;
+}
+.card.monster .front[data-value="3"] {
+  background-position-x: 60%;
+}
+.card.monster .front[data-value="4"] {
+  background-position-x: 70%;
+}
+.card.monster[data-type="1"] .back {
+  background-image: url(img/icons-leviathan.png);
+  background-position-x: 0%;
+}
+.card.monster[data-type="1"] .front {
+  background-image: url(img/icons-leviathan.png);
+}
+.card.monster[data-type="1"] .front[data-effect="1"] {
+  background-position-x: 14.2857142857%;
+}
+.card.monster[data-type="1"] .front[data-effect="2"] {
+  background-position-x: 28.5714285714%;
+}
+.card.monster[data-type="1"] .front[data-effect="3"] {
+  background-position-x: 42.8571428571%;
+}
+.card.monster[data-type="1"] .front[data-effect="4"] {
+  background-position-x: 57.1428571429%;
+}

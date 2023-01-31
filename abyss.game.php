@@ -118,9 +118,9 @@ class Abyss extends Table {
 
         $krakenExpansion = $this->isKrakenExpansion();
         // TODO TEMP        
-        /*if ($this->getBgaEnvironment() == 'studio') { 
+        if ($this->getBgaEnvironment() == 'studio') { 
             self::setGameStateValue(LEVIATHAN_EXPANSION, 2);
-        }*/
+        }
         $leviathanExpansion = $this->isLeviathanExpansion();
 
         // Init global values with their initial values
@@ -213,8 +213,12 @@ class Abyss extends Table {
 			
 			$state = $this->gamestate->state();
 			if ($player['id'] == $current_player_id || $state["name"] == "gameEnd") {
-				$player['monsters'] = Monster::getPlayerHand( $player['id'] );
-			}
+				$player['monsters'] = Monster::getPlayerHand($player['id']);
+			} else {
+                if ($leviathanExpansion) {
+                    $player['monsters'] = Monster::onlyIds(Monster::getPlayerHand($player['id']));
+                }
+            }
 		}
 
         // Gather all information about current game situation (visible by player $current_player_id).

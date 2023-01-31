@@ -13,10 +13,10 @@ trait DebugUtilTrait {
 
 		//$this->debugCouncilAllies();
 
-		//$this->debugPickMonsters(2343492);
-		//$this->debugPickMonsters(2343493);
-		//$this->debugPickAllies(2343492);
-		//$this->debugPickAllies(2343493);
+		$this->debugPickMonsters(2343492, 10);
+		$this->debugPickMonsters(2343493, 2);
+		$this->debugPickAllies(2343492);
+		$this->debugPickAllies(2343493);
 		//$this->debugPickAllies(2343494);
 		
 		//$this->debugPickKrakens(2343492);
@@ -32,8 +32,8 @@ trait DebugUtilTrait {
 		$this->DbQuery("UPDATE player SET `player_autopass` = '5;5;5;5;5'");
 		//$this->DbQuery("UPDATE player SET player_keys = 3");
 		//$this->DbQuery("UPDATE location SET place = 1 WHERE location_id = 103");
-		//$this->DbQuery("UPDATE lord SET place = 0 WHERE place IN (5, 6)");
-		//$this->DbQuery("UPDATE lord SET place = 5 WHERE lord_id = 116");
+		$this->DbQuery("UPDATE lord SET place = 0 WHERE place IN (5)");
+		$this->DbQuery("UPDATE lord SET place = 5 WHERE lord_id = 7");
 		//$this->DbQuery("UPDATE lord SET place = 6 WHERE lord_id = 35");
 		//$this->DbQuery("UPDATE lord SET place = -2343492 WHERE lord_id = 111");
 		//$this->setKrakenPlayer(2343492);

@@ -26,6 +26,7 @@
         "src/lord-manager.ts",
         "src/location-manager.ts",
         "src/loot-manager.ts",
+        "src/monster-manager.ts",
         "src/helpers.ts",
         "src/player-table.ts",
         "src/abyss.ts",

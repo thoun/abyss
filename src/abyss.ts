@@ -18,6 +18,7 @@ class Abyss implements AbyssGame {
     public lordManager: LordManager;
     public lootManager: LootManager;
     public locationManager: LocationManager;
+    public monsterManager: MonsterManager;
 
     private gamedatas: AbyssGamedatas;
     private zoomManager: ZoomManager;
@@ -28,6 +29,7 @@ class Abyss implements AbyssGame {
     private visibleLords: SlotStock<AbyssLord>;
     private visibleLocations: LineStock<AbyssLocation>;
     private visibleLocationsOverflow: LineStock<AbyssLocation>;
+    private monsterTokens: LineStock<AbyssMonster>[] = [];
     private allyDiscardCounter: Counter;
     private pearlCounters: Counter[] = [];
     private nebulisCounters: Counter[] = [];
@@ -69,6 +71,7 @@ class Abyss implements AbyssGame {
         this.lordManager = new LordManager(this);
         this.lootManager = new LootManager(this);
         this.locationManager = new LocationManager(this, this.lordManager, this.lootManager);
+        this.monsterManager = new MonsterManager(this);
         
         dojo.connect($('modified-layout-checkbox'), 'onchange', () => {
             dojo.toggleClass($('game-board-holder'), "playmat", $('modified-layout-checkbox').checked);
@@ -150,21 +153,6 @@ class Abyss implements AbyssGame {
 
             p = gamedatas.turn_order[p];
         } while (p != (this as any).player_id);
-
-        // Monsters
-        for( var playerId in gamedatas.players ) {
-            var monster_hand = $('monster-hand_p' + playerId);
-            if (monster_hand) {
-                var player = gamedatas.players[playerId];
-
-                if (player.monsters && Object.keys(player.monsters).length > 0) {
-                    dojo.style(monster_hand, "display", "block");
-                    for (var i in player.monsters) {
-                        dojo.place( '<i class="icon icon-monster-faceup icon-monster-'+ player.monsters[i].value +'">'+ player.monsters[i].value +'</i>', monster_hand );
-                    }
-                }
-            }
-        }
 
         // Lords
         this.visibleLords = new SlotStock<AbyssLord>(this.lordManager, document.getElementById('visible-lords-stock'), {
@@ -895,6 +883,18 @@ class Abyss implements AbyssGame {
                 this.defeatedLeviathanCounters[playerId].create(`defeatedleviathancount_p${player.id}`);
                 // TODO LEV this.defeatedLeviathanCounters[playerId].setValue(player.defeatedLeviathans);
             }
+
+            this.monsterTokens[playerId] = new LineStock<AbyssMonster>(this.monsterManager, document.getElementById('monster-hand_p' + playerId), {
+                center: false,
+                gap: '2px',
+            });
+
+            player.monsters?.forEach(monster => 
+                this.monsterTokens[playerId].addCards(player.monsters, undefined, {
+                    visible: !!(monster.value || monster.effect)
+                })
+            );
+            
 
             // kraken & scourge tokens
             dojo.place(`<div id="player_board_${player.id}_figurinesWrapper" class="figurinesWrapper"></div>`, `player_board_${player.id}`);
@@ -1775,31 +1775,16 @@ class Abyss implements AbyssGame {
         this.notif_setThreat({args: {threat: 0}} as Notif<NotifThreatArgs>);
     }
 
-    notif_monsterTokens( notif: Notif<NotifMonsterTokensArgs> )
-    {
-        var monsters = notif.args.monsters;
-
-        var monster_hand = $('monster-hand_p' + (this as any).player_id);
-        if (monster_hand) {
-        dojo.style(monster_hand, "display", "block");
-        for (var i in monsters) {
-            dojo.place( '<i class="icon icon-monster-faceup icon-monster-'+ monsters[i].value +'">'+ monsters[i].value +'</i>', monster_hand );
-        }
-        }
+    notif_monsterTokens(notif: Notif<NotifMonsterTokensArgs>) {
+        this.monsterTokens[this.getPlayerId()].addCards(notif.args.monsters);
     }
     
     notif_monsterHand( notif: Notif<NotifMonsterHandArgs> ) {
         var monsters = notif.args.monsters;
         var playerId = notif.args.player_id;
 
-        var monster_hand = $('monster-hand_p' + playerId);
-        if (monster_hand) {
-            dojo.style(monster_hand, "display", "block");
-            monster_hand.innerHTML = '';
-            for (var i in monsters) {
-                dojo.place( '<i class="icon icon-monster-faceup icon-monster-'+ monsters[i].value +'">'+ monsters[i].value +'</i>', monster_hand );
-            }
-        }
+        this.monsterTokens[playerId].removeAll();
+        this.monsterTokens[playerId].addCards(monsters);
     }
 
     notif_plot( notif: Notif<NotifPlotArgs> ) {
@@ -2103,30 +2088,17 @@ class Abyss implements AbyssGame {
 
         if (notif.args.monster) {
             this.incMonsterCount(player_id, notif.args.monster.length);
+            const currentPlayerId = this.getPlayerId();
             if (source_player_id) {
                 this.incMonsterCount(source_player_id, -notif.args.monster.length);
-                if (source_player_id == (this as any).player_id) {
+                if (source_player_id == currentPlayerId) {
                     // Remove it from me
-                    var monster_hand = $('monster-hand_p' + (this as any).player_id);
-                    if (monster_hand) {
-                    for (var i in notif.args.monster) {
-                        var tokens = dojo.query(".icon-monster-" + notif.args.monster[i].value, monster_hand);
-                        if (tokens.length > 0) {
-                            dojo.destroy(tokens[0]);
-                        }
-                    }
-                    }
+                    this.monsterTokens[currentPlayerId].removeCards(notif.args.monster);
                 }
             }
-            if (player_id == (this as any).player_id) {
+            if (player_id == currentPlayerId) {
                 // Add it to me
-                var monster_hand = $('monster-hand_p' + (this as any).player_id);
-                if (monster_hand) {
-                    dojo.style(monster_hand, "display", "block");
-                    for (var i in notif.args.monster) {
-                        dojo.place( '<i class="icon icon-monster-faceup icon-monster-'+ notif.args.monster[i].value +'">'+ notif.args.monster[i].value +'</i>', monster_hand );
-                    }
-                }
+                this.monsterTokens[currentPlayerId].addCards(notif.args.monster);
             }
         }
 

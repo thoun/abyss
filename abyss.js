@@ -1380,6 +1380,57 @@ var LootManager = /** @class */ (function (_super) {
     };
     return LootManager;
 }(CardManager));
+var MonsterManager = /** @class */ (function (_super) {
+    __extends(MonsterManager, _super);
+    function MonsterManager(game) {
+        var _this = _super.call(this, game, {
+            getId: function (monster) { return "monster-".concat(monster.monster_id); },
+            setupDiv: function (monster, div) {
+                div.classList.add("monster");
+                div.dataset.type = "".concat(monster.type);
+            },
+            setupFrontDiv: function (monster, div) {
+                div.id = "".concat(_this.getId(monster), "-front");
+                if (monster.value) {
+                    div.dataset.value = "".concat(monster.value);
+                    div.innerHTML = "".concat(monster.value);
+                }
+                if (monster.effect) {
+                    div.dataset.effect = "".concat(monster.effect);
+                }
+                _this.game.setTooltip(div.id, _this.renderTooltip(monster));
+            },
+            setupBackDiv: function (monster, div) {
+                div.id = "".concat(_this.getId(monster), "-back");
+                div.dataset.value = "".concat(monster.value);
+                if (monster.effect) {
+                    div.dataset.effect = "".concat(monster.effect);
+                }
+                _this.game.setTooltip(div.id, monster.type == 1 ? /* TODO LEV _*/ ('Leviathan Monster token') : /* TODO LEV _*/ ('Base game Monster token'));
+            },
+        }) || this;
+        _this.game = game;
+        return _this;
+    }
+    MonsterManager.prototype.getEffect = function (value) {
+        switch (value) {
+            case 1:
+                return /*TODO LEV_*/ ('Gain 2 pearls');
+            case 2:
+                return /*TODO LEV_*/ ('Gain 3 pearls');
+            case 3:
+                return /*TODO LEV_*/ ('Gain 1 key');
+            case 4:
+                return /*TODO LEV_*/ ('Gain 1 Council stack');
+            default:
+                return _('Nothing');
+        }
+    };
+    MonsterManager.prototype.renderTooltip = function (monster) {
+        return "<div>\n      ".concat(_('Monster token'), "<br>\n      ").concat(monster.value ? "<span style=\"font-size: smaller\"><b>".concat(_("Value"), ": </b> ").concat(monster.value, "</span>") : '', "\n      ").concat(monster.effect ? "<span style=\"font-size: smaller\"><b>".concat(_("Effect"), ": </b> ").concat(this.getEffect(monster.effect), "</span>") : '', "\n    </div>");
+    };
+    return MonsterManager;
+}(CardManager));
 var PlayerTable = /** @class */ (function () {
     function PlayerTable(game, player) {
         var _this = this;
@@ -1534,6 +1585,7 @@ var Abyss = /** @class */ (function () {
     function Abyss() {
         this.playersTables = [];
         this.councilStacks = [];
+        this.monsterTokens = [];
         this.pearlCounters = [];
         this.nebulisCounters = [];
         this.keyTokenCounts = [];
@@ -1568,6 +1620,7 @@ var Abyss = /** @class */ (function () {
         this.lordManager = new LordManager(this);
         this.lootManager = new LootManager(this);
         this.locationManager = new LocationManager(this, this.lordManager, this.lootManager);
+        this.monsterManager = new MonsterManager(this);
         dojo.connect($('modified-layout-checkbox'), 'onchange', function () {
             dojo.toggleClass($('game-board-holder'), "playmat", $('modified-layout-checkbox').checked);
         });
@@ -1619,24 +1672,11 @@ var Abyss = /** @class */ (function () {
             if (players_done[p])
                 break;
             players_done[p] = 1;
-            var player_1 = gamedatas.players[p];
-            var table = new PlayerTable(this, player_1);
+            var player = gamedatas.players[p];
+            var table = new PlayerTable(this, player);
             this.playersTables.push(table);
             p = gamedatas.turn_order[p];
         } while (p != this.player_id);
-        // Monsters
-        for (var playerId in gamedatas.players) {
-            var monster_hand = $('monster-hand_p' + playerId);
-            if (monster_hand) {
-                var player = gamedatas.players[playerId];
-                if (player.monsters && Object.keys(player.monsters).length > 0) {
-                    dojo.style(monster_hand, "display", "block");
-                    for (var i in player.monsters) {
-                        dojo.place('<i class="icon icon-monster-faceup icon-monster-' + player.monsters[i].value + '">' + player.monsters[i].value + '</i>', monster_hand);
-                    }
-                }
-            }
-        }
         // Lords
         this.visibleLords = new SlotStock(this.lordManager, document.getElementById('visible-lords-stock'), {
             slotsIds: [1, 2, 3, 4, 5, 6],
@@ -2264,6 +2304,7 @@ var Abyss = /** @class */ (function () {
     Abyss.prototype.createPlayerPanels = function (gamedatas) {
         var _this = this;
         Object.values(gamedatas.players).forEach(function (player) {
+            var _a;
             var playerId = Number(player.id);
             // Setting up players boards if needed
             var player_board_div = $('player_board_' + playerId);
@@ -2307,6 +2348,15 @@ var Abyss = /** @class */ (function () {
                 _this.defeatedLeviathanCounters[playerId].create("defeatedleviathancount_p".concat(player.id));
                 // TODO LEV this.defeatedLeviathanCounters[playerId].setValue(player.defeatedLeviathans);
             }
+            _this.monsterTokens[playerId] = new LineStock(_this.monsterManager, document.getElementById('monster-hand_p' + playerId), {
+                center: false,
+                gap: '2px',
+            });
+            (_a = player.monsters) === null || _a === void 0 ? void 0 : _a.forEach(function (monster) {
+                return _this.monsterTokens[playerId].addCards(player.monsters, undefined, {
+                    visible: !!(monster.value || monster.effect)
+                });
+            });
             // kraken & scourge tokens
             dojo.place("<div id=\"player_board_".concat(player.id, "_figurinesWrapper\" class=\"figurinesWrapper\"></div>"), "player_board_".concat(player.id));
             if (gamedatas.kraken == playerId) {
@@ -3060,26 +3110,13 @@ var Abyss = /** @class */ (function () {
         this.notif_setThreat({ args: { threat: 0 } });
     };
     Abyss.prototype.notif_monsterTokens = function (notif) {
-        var monsters = notif.args.monsters;
-        var monster_hand = $('monster-hand_p' + this.player_id);
-        if (monster_hand) {
-            dojo.style(monster_hand, "display", "block");
-            for (var i in monsters) {
-                dojo.place('<i class="icon icon-monster-faceup icon-monster-' + monsters[i].value + '">' + monsters[i].value + '</i>', monster_hand);
-            }
-        }
+        this.monsterTokens[this.getPlayerId()].addCards(notif.args.monsters);
     };
     Abyss.prototype.notif_monsterHand = function (notif) {
         var monsters = notif.args.monsters;
         var playerId = notif.args.player_id;
-        var monster_hand = $('monster-hand_p' + playerId);
-        if (monster_hand) {
-            dojo.style(monster_hand, "display", "block");
-            monster_hand.innerHTML = '';
-            for (var i in monsters) {
-                dojo.place('<i class="icon icon-monster-faceup icon-monster-' + monsters[i].value + '">' + monsters[i].value + '</i>', monster_hand);
-            }
-        }
+        this.monsterTokens[playerId].removeAll();
+        this.monsterTokens[playerId].addCards(monsters);
     };
     Abyss.prototype.notif_plot = function (notif) {
         var lord = notif.args.lord;
@@ -3349,30 +3386,17 @@ var Abyss = /** @class */ (function () {
         }
         if (notif.args.monster) {
             this.incMonsterCount(player_id, notif.args.monster.length);
+            var currentPlayerId = this.getPlayerId();
             if (source_player_id) {
                 this.incMonsterCount(source_player_id, -notif.args.monster.length);
-                if (source_player_id == this.player_id) {
+                if (source_player_id == currentPlayerId) {
                     // Remove it from me
-                    var monster_hand = $('monster-hand_p' + this.player_id);
-                    if (monster_hand) {
-                        for (var i in notif.args.monster) {
-                            var tokens = dojo.query(".icon-monster-" + notif.args.monster[i].value, monster_hand);
-                            if (tokens.length > 0) {
-                                dojo.destroy(tokens[0]);
-                            }
-                        }
-                    }
+                    this.monsterTokens[currentPlayerId].removeCards(notif.args.monster);
                 }
             }
-            if (player_id == this.player_id) {
+            if (player_id == currentPlayerId) {
                 // Add it to me
-                var monster_hand = $('monster-hand_p' + this.player_id);
-                if (monster_hand) {
-                    dojo.style(monster_hand, "display", "block");
-                    for (var i in notif.args.monster) {
-                        dojo.place('<i class="icon icon-monster-faceup icon-monster-' + notif.args.monster[i].value + '">' + notif.args.monster[i].value + '</i>', monster_hand);
-                    }
-                }
+                this.monsterTokens[currentPlayerId].addCards(notif.args.monster);
             }
         }
         if (notif.args.monster_count) {
