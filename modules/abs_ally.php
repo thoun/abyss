@@ -54,6 +54,7 @@ class Ally {
     $dbResult['just_spent'] = boolval($dbResult['just_spent']);
     $dbResult['affiliated'] = boolval($dbResult['affiliated']);
     $dbResult['place'] = intval($dbResult['place']);
+    $dbResult['effect'] = array_key_exists('effect', $dbResult) && $dbResult['effect'] != null ? intval($dbResult['effect']) : null;
 
     return $dbResult;
   }

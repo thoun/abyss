@@ -34,6 +34,9 @@ class Abyss implements AbyssGame {
     public keyTokenCounts: number[] = [];
     public keyFreeLordsCounts: number[] = [];
     private keyCounters: Counter[] = [];
+    private monsterCounters: Counter[] = [];
+    private allyCounters: Counter[] = [];
+    private lordCounters: Counter[] = [];
     private woundCounters: Counter[] = [];
     private defeatedLeviathanCounters: Counter[] = [];
     
@@ -664,7 +667,7 @@ class Abyss implements AbyssGame {
                     // Put a red border around the player monster tokens (who aren't me)
                     for( var player_id in this.gamedatas.players ) {
                         if (Number(player_id) != this.getPlayerId()) {
-                            var num_tokens = +$('monstercount_p' + player_id).innerHTML;
+                            var num_tokens = this.monsterCounters[player_id].getValue();
                             if (num_tokens > 0) {
                                 (this as any).addActionButton( 'button_steal_monster_token_' + player_id, this.gamedatas.players[player_id].name, 'onClickMonsterIcon' );
                             }
@@ -827,18 +830,18 @@ class Abyss implements AbyssGame {
                     </span>
                     <span class="monster-holder" id="monster-holder_p${player.id}">
                         <i class="icon icon-monster"></i>
-                        <span id="monstercount_p${player.id}">${player.num_monsters}</span>
+                        <span id="monstercount_p${player.id}"></span>
                     </span>
                 </div>
                 <div class="counters">
                     <span class="ally-holder" id="ally-holder_p${player.id}">
                         <i class="icon icon-ally"></i>
-                        <span id="allycount_p${player.id}">${player.hand_size}</span>
+                        <span id="allycount_p${player.id}"></span>
                     </span>
                     <span>
                         <span class="lordcount-holder" id="lordcount-holder_p${player.id}">
                             <i class="icon icon-lord"></i>
-                            <span id="lordcount_p${player.id}">${player.lords.length}</span>
+                            <span id="lordcount_p${player.id}"></span>
                         </span>
                     </span>
                 `;
@@ -874,6 +877,15 @@ class Abyss implements AbyssGame {
             this.keyCounters[playerId] = new ebg.counter();
             this.keyCounters[playerId].create(`keycount_p${player.id}`);
             this.updateKeyCounter(playerId);
+            this.monsterCounters[playerId] = new ebg.counter();
+            this.monsterCounters[playerId].create(`monstercount_p${player.id}`);
+            this.monsterCounters[playerId].setValue(player.num_monsters);
+            this.allyCounters[playerId] = new ebg.counter();
+            this.allyCounters[playerId].create(`allycount_p${player.id}`);
+            this.allyCounters[playerId].setValue(player.hand_size);
+            this.lordCounters[playerId] = new ebg.counter();
+            this.lordCounters[playerId].create(`lordcount_p${player.id}`);
+            this.lordCounters[playerId].setValue(player.lords.length);
 
             if (gamedatas.leviathanExpansion) {
                 this.woundCounters[playerId] = new ebg.counter();
@@ -933,6 +945,18 @@ class Abyss implements AbyssGame {
     }
     private setNebulisCount(playerId: number, count: number) {
         this.nebulisCounters[playerId]?.setValue(count);
+    }
+
+    private incMonsterCount(playerId: number, inc: number) {
+        this.monsterCounters[playerId].setValue(this.monsterCounters[playerId].getValue() + inc);
+    }
+
+    private incAllyCount(playerId: number, inc: number) {
+        this.allyCounters[playerId].setValue(this.allyCounters[playerId].getValue() + inc);
+    }
+
+    private incLordCount(playerId: number, inc: number) {
+        this.lordCounters[playerId].setValue(this.lordCounters[playerId].getValue() + inc);
     }
 
     private placeFigurineToken(playerId: number, type: 'kraken' | 'scourge') {
@@ -1739,10 +1763,11 @@ class Abyss implements AbyssGame {
     }
 
     notif_lootReward( notif: Notif<NotifMonsterRewardArgs> ) {
-        const player_id = notif.args.player_id;
-        this.setPearlCount(player_id, notif.args.playerPearls);
-        $('monstercount_p' + player_id).innerHTML = +($('monstercount_p' + player_id).innerHTML) + +notif.args.monsters;
-        $('keycount_p' + player_id).innerHTML = +($('keycount_p' + player_id).innerHTML) + +notif.args.keys;
+        const playerId = notif.args.player_id;
+        this.setPearlCount(playerId, notif.args.playerPearls);
+        this.incMonsterCount(playerId, notif.args.monsters);
+        this.keyTokenCounts[playerId] += notif.args.keys;
+        this.updateKeyCounter(playerId);
     }
 
     notif_monsterReward( notif: Notif<NotifMonsterRewardArgs>) {
@@ -1801,7 +1826,7 @@ class Abyss implements AbyssGame {
         
         if (notif.args.also_discard) {
             // Also discard this ally from my hand!
-            $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) - 1;
+            this.incAllyCount(player_id, -1);
 
             // If it's me, also delete the actual ally
             if (player_id == this.getPlayerId()) {
@@ -1870,7 +1895,7 @@ class Abyss implements AbyssGame {
                     if (player_id == this.getPlayerId()) {
                         setTimeout(() => {
                             this.getPlayerTable(Number(player_id)).addHandAlly(notif.args.ally, theAlly);
-                            $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
+                            this.incAllyCount(player_id, 1);
                         }, delay);
                         delay += 200;
                     } else {
@@ -1879,7 +1904,7 @@ class Abyss implements AbyssGame {
                         var animation = (this as any).slideToObject( theAlly, $('player_board_' + player_id), 600, delay );
                         animation.onEnd = () => {
                             this.visibleAllies.removeCard(ally);
-                            $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
+                            this.incAllyCount(player_id, 1);
                         };
                         animation.play();
                         delay += 200;
@@ -1900,7 +1925,7 @@ class Abyss implements AbyssGame {
             this.getPlayerTable(Number(player_id)).addHandAlly(notif.args.ally, $('game-extra'));
 
         }
-        $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
+        this.incAllyCount(player_id, 1);
 
         this.allyDiscardCounter.setValue(notif.args.discardSize);
         
@@ -1921,7 +1946,7 @@ class Abyss implements AbyssGame {
 
         if (player_id == this.getPlayerId()) {
             this.getPlayerTable(Number(player_id)).addHandAlly(ally);
-            $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
+            this.incAllyCount(player_id, 1);
         } else {
             const theAlly = this.allyManager.getCardElement(ally);
             dojo.setStyle(theAlly, "zIndex", "1");
@@ -1929,7 +1954,7 @@ class Abyss implements AbyssGame {
             var animation = (this as any).slideToObject( theAlly, $('player_board_' + player_id), 600 );
             animation.onEnd = () => {
                 this.visibleAllies.removeCard(ally);
-                $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
+                this.incAllyCount(player_id, 1);
             };
             animation.play();
         }
@@ -1965,11 +1990,11 @@ class Abyss implements AbyssGame {
         for (var i = 0; i < num; i++) {
             var anim = (this as any).slideTemporaryObject( this.allyManager.renderBack(), 'council-track', 'council-track-' + faction, $('player_board_' + player_id), 600, i * 200 );
             dojo.connect(anim, 'onEnd', () => {
-                $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
+                this.incAllyCount(player_id, 1);
             });
         }
         } else {
-            $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + num;
+            this.incAllyCount(player_id, num);
         }
         
         this.organisePanelMessages();
@@ -2003,7 +2028,7 @@ class Abyss implements AbyssGame {
 
         // Spend pearls and allies
         if (spent_allies) {
-            $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) - spent_allies.length;
+            this.incAllyCount(player_id, -spent_allies.length);
         }
         if (notif.args.playerPearls !== undefined && notif.args.playerPearls !== null) {
             this.setPearlCount(player_id, notif.args.playerPearls);
@@ -2019,11 +2044,16 @@ class Abyss implements AbyssGame {
 
         if (spent_lords) {
             this.getPlayerTable(player_id).removeLords(spent_lords);
+            this.incLordCount(player_id, -spent_lords);
         }
 
         // Add the lord
         if (lord) {
-            this.getPlayerTable(player_id).addLord(lord, notif.args.freeLord);
+            this.getPlayerTable(player_id).addLord(lord);
+            
+            if (!notif.args.freeLord) {
+                this.incLordCount(player_id, 1);
+            }
         }
 
         this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
@@ -2059,22 +2089,22 @@ class Abyss implements AbyssGame {
         }
 
         if (notif.args.keys) {
-            var keys = notif.args.keys;
-            $('keycount_p' + player_id).innerHTML = +($('keycount_p' + player_id).innerHTML) + +keys;
-            }
+            this.keyTokenCounts[player_id] += notif.args.keys;
+            this.updateKeyCounter(player_id);
+        }
 
-            if (notif.args.allies_lost) {
+        if (notif.args.allies_lost) {
             var allies = notif.args.allies_lost;
-            $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) - +allies.length;
+            this.incAllyCount(player_id, -allies.length);
 
             // If it's me, also delete the actual ally
             this.getPlayerTable(notif.args.player_id).removeAllies(allies);
         }
 
         if (notif.args.monster) {
-            $('monstercount_p' + player_id).innerHTML = +($('monstercount_p' + player_id).innerHTML) + notif.args.monster.length;
+            this.incMonsterCount(player_id, notif.args.monster.length);
             if (source_player_id) {
-                $('monstercount_p' + source_player_id).innerHTML = +($('monstercount_p' + source_player_id).innerHTML) - notif.args.monster.length;
+                this.incMonsterCount(source_player_id, -notif.args.monster.length);
                 if (source_player_id == (this as any).player_id) {
                     // Remove it from me
                     var monster_hand = $('monster-hand_p' + (this as any).player_id);
@@ -2101,9 +2131,9 @@ class Abyss implements AbyssGame {
         }
 
         if (notif.args.monster_count) {
-            $('monstercount_p' + player_id).innerHTML = +($('monstercount_p' + player_id).innerHTML) + +notif.args.monster_count;
+            this.incMonsterCount(player_id, notif.args.monster_count);
             if (source_player_id) {
-                $('monstercount_p' + source_player_id).innerHTML = +($('monstercount_p' + source_player_id).innerHTML) - +notif.args.monster_count;
+                this.incMonsterCount(source_player_id, -notif.args.monster_count);
             }
         }
 
@@ -2131,7 +2161,7 @@ class Abyss implements AbyssGame {
     notif_searchSanctuaryAlly(notif: Notif<NotifSearchSanctuaryAllyArgs>) {
         const playerId = notif.args.playerId;
         this.getPlayerTable(playerId).addHandAlly(notif.args.ally, document.getElementById('explore-track-deck'));
-        $('allycount_p' + playerId).innerHTML = +($('allycount_p' + playerId).innerHTML) + 1;
+        this.incAllyCount(playerId, 1);
 
         this.setDeckSize(dojo.query('#explore-track .slot-0'), notif.args.deck_size);
         this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);

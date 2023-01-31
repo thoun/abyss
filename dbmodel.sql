@@ -54,8 +54,9 @@ CREATE TABLE IF NOT EXISTS `location` (
 
 CREATE TABLE IF NOT EXISTS `monster` (
   `monster_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `value` int(11) unsigned NOT NULL,
+  `value` tinyint unsigned NOT NULL DEFAULT 0,
   `place` int(11) NOT NULL DEFAULT 0,
+  `effect` smallint unsigned NULL DEFAULT NULL,
   PRIMARY KEY (`monster_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 

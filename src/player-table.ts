@@ -58,7 +58,6 @@ class PlayerTable {
         player.locations.forEach(location => this.addLocation(location, player.lords.filter(lord => lord.location == location.location_id), true));
 
         this.game.lordManager.updateLordKeys(this.playerId, this);
-        $('lordcount_p' + this.playerId).innerHTML = ''+player.lords.length;
     }
     
     public addHandAlly(ally: AbyssAlly, fromElement?: HTMLElement, originalSide?, rotationDelta?: number) {
@@ -118,15 +117,11 @@ class PlayerTable {
         this.affiliatedStocks[ally.faction].addCard(ally);
     }
     
-    public addLord(lord: AbyssLord, freeLord?: boolean) {
-        if (!freeLord) {
-            $('lordcount_p' + this.playerId).innerHTML = Number($('lordcount_p' + this.playerId).innerHTML) + 1;
-        }
+    public addLord(lord: AbyssLord) {
         this.freeLords.addCard(lord);
     }
     
     public removeLords(lords: AbyssLord[]) {
-        $('lordcount_p' + this.playerId).innerHTML = Number($('lordcount_p' + this.playerId).innerHTML) - lords.length;
         this.freeLords.removeCards(lords);
     }
 

@@ -1413,7 +1413,6 @@ var PlayerTable = /** @class */ (function () {
         this.locations.onCardClick = function (card) { return _this.game.onClickPlayerLocation(card); };
         player.locations.forEach(function (location) { return _this.addLocation(location, player.lords.filter(function (lord) { return lord.location == location.location_id; }), true); });
         this.game.lordManager.updateLordKeys(this.playerId, this);
-        $('lordcount_p' + this.playerId).innerHTML = '' + player.lords.length;
     }
     PlayerTable.prototype.addHandAlly = function (ally, fromElement, originalSide, rotationDelta) {
         this.hand.addCard(ally, {
@@ -1466,14 +1465,10 @@ var PlayerTable = /** @class */ (function () {
     PlayerTable.prototype.addAffiliated = function (ally) {
         this.affiliatedStocks[ally.faction].addCard(ally);
     };
-    PlayerTable.prototype.addLord = function (lord, freeLord) {
-        if (!freeLord) {
-            $('lordcount_p' + this.playerId).innerHTML = Number($('lordcount_p' + this.playerId).innerHTML) + 1;
-        }
+    PlayerTable.prototype.addLord = function (lord) {
         this.freeLords.addCard(lord);
     };
     PlayerTable.prototype.removeLords = function (lords) {
-        $('lordcount_p' + this.playerId).innerHTML = Number($('lordcount_p' + this.playerId).innerHTML) - lords.length;
         this.freeLords.removeCards(lords);
     };
     PlayerTable.prototype.getAffiliatedAllies = function () {
@@ -1544,6 +1539,9 @@ var Abyss = /** @class */ (function () {
         this.keyTokenCounts = [];
         this.keyFreeLordsCounts = [];
         this.keyCounters = [];
+        this.monsterCounters = [];
+        this.allyCounters = [];
+        this.lordCounters = [];
         this.woundCounters = [];
         this.defeatedLeviathanCounters = [];
         this.TOOLTIP_DELAY = document.body.classList.contains('touch-device') ? 1500 : undefined;
@@ -2130,7 +2128,7 @@ var Abyss = /** @class */ (function () {
                     // Put a red border around the player monster tokens (who aren't me)
                     for (var player_id in this.gamedatas.players) {
                         if (Number(player_id) != this.getPlayerId()) {
-                            var num_tokens = +$('monstercount_p' + player_id).innerHTML;
+                            var num_tokens = this.monsterCounters[player_id].getValue();
                             if (num_tokens > 0) {
                                 this.addActionButton('button_steal_monster_token_' + player_id, this.gamedatas.players[player_id].name, 'onClickMonsterIcon');
                             }
@@ -2273,7 +2271,7 @@ var Abyss = /** @class */ (function () {
             if (gamedatas.krakenExpansion) {
                 html += "<i class=\"icon icon-nebulis margin-left\"></i>\n                    <span id=\"nebuliscount_p".concat(player.id, "\"></span>");
             }
-            html += "\n            </span>\n                    <span class=\"key-holder\" id=\"key-holder_p".concat(player.id, "\">\n                        <i class=\"icon icon-key\"></i>\n                        <span id=\"keycount_p").concat(player.id, "\">").concat(player.keys, "</span>\n                    </span>\n                    <span class=\"monster-holder\" id=\"monster-holder_p").concat(player.id, "\">\n                        <i class=\"icon icon-monster\"></i>\n                        <span id=\"monstercount_p").concat(player.id, "\">").concat(player.num_monsters, "</span>\n                    </span>\n                </div>\n                <div class=\"counters\">\n                    <span class=\"ally-holder\" id=\"ally-holder_p").concat(player.id, "\">\n                        <i class=\"icon icon-ally\"></i>\n                        <span id=\"allycount_p").concat(player.id, "\">").concat(player.hand_size, "</span>\n                    </span>\n                    <span>\n                        <span class=\"lordcount-holder\" id=\"lordcount-holder_p").concat(player.id, "\">\n                            <i class=\"icon icon-lord\"></i>\n                            <span id=\"lordcount_p").concat(player.id, "\">").concat(player.lords.length, "</span>\n                        </span>\n                    </span>\n                ");
+            html += "\n            </span>\n                    <span class=\"key-holder\" id=\"key-holder_p".concat(player.id, "\">\n                        <i class=\"icon icon-key\"></i>\n                        <span id=\"keycount_p").concat(player.id, "\">").concat(player.keys, "</span>\n                    </span>\n                    <span class=\"monster-holder\" id=\"monster-holder_p").concat(player.id, "\">\n                        <i class=\"icon icon-monster\"></i>\n                        <span id=\"monstercount_p").concat(player.id, "\"></span>\n                    </span>\n                </div>\n                <div class=\"counters\">\n                    <span class=\"ally-holder\" id=\"ally-holder_p").concat(player.id, "\">\n                        <i class=\"icon icon-ally\"></i>\n                        <span id=\"allycount_p").concat(player.id, "\"></span>\n                    </span>\n                    <span>\n                        <span class=\"lordcount-holder\" id=\"lordcount-holder_p").concat(player.id, "\">\n                            <i class=\"icon icon-lord\"></i>\n                            <span id=\"lordcount_p").concat(player.id, "\"></span>\n                        </span>\n                    </span>\n                ");
             if (gamedatas.leviathanExpansion) {
                 html += "\n                    <span class=\"leviathan-holder\" id=\"leviathan-holder_p".concat(player.id, "\">\n                        <i class=\"icon leviathan-icon icon-wound\"></i>\n                        <span id=\"woundcount_p").concat(player.id, "\"></span>\n                        <i class=\"icon leviathan-icon icon-defeated-leviathan margin-left\"></i>\n                        <span id=\"defeatedleviathancount_p").concat(player.id, "\"></span>\n                    </span>\n                ");
             }
@@ -2292,6 +2290,15 @@ var Abyss = /** @class */ (function () {
             _this.keyCounters[playerId] = new ebg.counter();
             _this.keyCounters[playerId].create("keycount_p".concat(player.id));
             _this.updateKeyCounter(playerId);
+            _this.monsterCounters[playerId] = new ebg.counter();
+            _this.monsterCounters[playerId].create("monstercount_p".concat(player.id));
+            _this.monsterCounters[playerId].setValue(player.num_monsters);
+            _this.allyCounters[playerId] = new ebg.counter();
+            _this.allyCounters[playerId].create("allycount_p".concat(player.id));
+            _this.allyCounters[playerId].setValue(player.hand_size);
+            _this.lordCounters[playerId] = new ebg.counter();
+            _this.lordCounters[playerId].create("lordcount_p".concat(player.id));
+            _this.lordCounters[playerId].setValue(player.lords.length);
             if (gamedatas.leviathanExpansion) {
                 _this.woundCounters[playerId] = new ebg.counter();
                 _this.woundCounters[playerId].create("woundcount_p".concat(player.id));
@@ -2342,6 +2349,15 @@ var Abyss = /** @class */ (function () {
     Abyss.prototype.setNebulisCount = function (playerId, count) {
         var _a;
         (_a = this.nebulisCounters[playerId]) === null || _a === void 0 ? void 0 : _a.setValue(count);
+    };
+    Abyss.prototype.incMonsterCount = function (playerId, inc) {
+        this.monsterCounters[playerId].setValue(this.monsterCounters[playerId].getValue() + inc);
+    };
+    Abyss.prototype.incAllyCount = function (playerId, inc) {
+        this.allyCounters[playerId].setValue(this.allyCounters[playerId].getValue() + inc);
+    };
+    Abyss.prototype.incLordCount = function (playerId, inc) {
+        this.lordCounters[playerId].setValue(this.lordCounters[playerId].getValue() + inc);
     };
     Abyss.prototype.placeFigurineToken = function (playerId, type) {
         var figurineToken = document.getElementById("".concat(type, "Token"));
@@ -3033,10 +3049,11 @@ var Abyss = /** @class */ (function () {
         this.allyDiscardCounter.setValue(0);
     };
     Abyss.prototype.notif_lootReward = function (notif) {
-        var player_id = notif.args.player_id;
-        this.setPearlCount(player_id, notif.args.playerPearls);
-        $('monstercount_p' + player_id).innerHTML = +($('monstercount_p' + player_id).innerHTML) + +notif.args.monsters;
-        $('keycount_p' + player_id).innerHTML = +($('keycount_p' + player_id).innerHTML) + +notif.args.keys;
+        var playerId = notif.args.player_id;
+        this.setPearlCount(playerId, notif.args.playerPearls);
+        this.incMonsterCount(playerId, notif.args.monsters);
+        this.keyTokenCounts[playerId] += notif.args.keys;
+        this.updateKeyCounter(playerId);
     };
     Abyss.prototype.notif_monsterReward = function (notif) {
         this.notif_lootReward(notif);
@@ -3085,7 +3102,7 @@ var Abyss = /** @class */ (function () {
         this.getPlayerTable(player_id).addAffiliated(ally);
         if (notif.args.also_discard) {
             // Also discard this ally from my hand!
-            $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) - 1;
+            this.incAllyCount(player_id, -1);
             // If it's me, also delete the actual ally
             if (player_id == this.getPlayerId()) {
                 this.getCurrentPlayerTable().removeAllies([ally]);
@@ -3148,7 +3165,7 @@ var Abyss = /** @class */ (function () {
                     if (player_id == this_2.getPlayerId()) {
                         setTimeout(function () {
                             _this.getPlayerTable(Number(player_id)).addHandAlly(notif.args.ally, theAlly_1);
-                            $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
+                            _this.incAllyCount(player_id, 1);
                         }, delay);
                         delay += 200;
                     }
@@ -3158,7 +3175,7 @@ var Abyss = /** @class */ (function () {
                         animation = this_2.slideToObject(theAlly_1, $('player_board_' + player_id), 600, delay);
                         animation.onEnd = function () {
                             _this.visibleAllies.removeCard(ally);
-                            $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
+                            _this.incAllyCount(player_id, 1);
                         };
                         animation.play();
                         delay += 200;
@@ -3178,7 +3195,7 @@ var Abyss = /** @class */ (function () {
         if (player_id == this.getPlayerId()) {
             this.getPlayerTable(Number(player_id)).addHandAlly(notif.args.ally, $('game-extra'));
         }
-        $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
+        this.incAllyCount(player_id, 1);
         this.allyDiscardCounter.setValue(notif.args.discardSize);
         this.organisePanelMessages();
     };
@@ -3195,7 +3212,7 @@ var Abyss = /** @class */ (function () {
         }
         if (player_id == this.getPlayerId()) {
             this.getPlayerTable(Number(player_id)).addHandAlly(ally);
-            $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
+            this.incAllyCount(player_id, 1);
         }
         else {
             var theAlly = this.allyManager.getCardElement(ally);
@@ -3204,7 +3221,7 @@ var Abyss = /** @class */ (function () {
             var animation = this.slideToObject(theAlly, $('player_board_' + player_id), 600);
             animation.onEnd = function () {
                 _this.visibleAllies.removeCard(ally);
-                $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
+                _this.incAllyCount(player_id, 1);
             };
             animation.play();
         }
@@ -3224,6 +3241,7 @@ var Abyss = /** @class */ (function () {
         this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
     };
     Abyss.prototype.notif_requestSupport = function (notif) {
+        var _this = this;
         var player_id = notif.args.player_id;
         var faction = notif.args.faction;
         var num = notif.args.num;
@@ -3234,12 +3252,12 @@ var Abyss = /** @class */ (function () {
             for (var i = 0; i < num; i++) {
                 var anim = this.slideTemporaryObject(this.allyManager.renderBack(), 'council-track', 'council-track-' + faction, $('player_board_' + player_id), 600, i * 200);
                 dojo.connect(anim, 'onEnd', function () {
-                    $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + 1;
+                    _this.incAllyCount(player_id, 1);
                 });
             }
         }
         else {
-            $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) + num;
+            this.incAllyCount(player_id, num);
         }
         this.organisePanelMessages();
     };
@@ -3268,7 +3286,7 @@ var Abyss = /** @class */ (function () {
         var spent_allies = notif.args.spent_allies;
         // Spend pearls and allies
         if (spent_allies) {
-            $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) - spent_allies.length;
+            this.incAllyCount(player_id, -spent_allies.length);
         }
         if (notif.args.playerPearls !== undefined && notif.args.playerPearls !== null) {
             this.setPearlCount(player_id, notif.args.playerPearls);
@@ -3282,10 +3300,14 @@ var Abyss = /** @class */ (function () {
         }
         if (spent_lords) {
             this.getPlayerTable(player_id).removeLords(spent_lords);
+            this.incLordCount(player_id, -spent_lords);
         }
         // Add the lord
         if (lord) {
-            this.getPlayerTable(player_id).addLord(lord, notif.args.freeLord);
+            this.getPlayerTable(player_id).addLord(lord);
+            if (!notif.args.freeLord) {
+                this.incLordCount(player_id, 1);
+            }
         }
         this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
         this.lordManager.updateLordKeys(player_id);
@@ -3316,19 +3338,19 @@ var Abyss = /** @class */ (function () {
             this.setNebulisCount(player_id, notif.args.playerNebulis);
         }
         if (notif.args.keys) {
-            var keys = notif.args.keys;
-            $('keycount_p' + player_id).innerHTML = +($('keycount_p' + player_id).innerHTML) + +keys;
+            this.keyTokenCounts[player_id] += notif.args.keys;
+            this.updateKeyCounter(player_id);
         }
         if (notif.args.allies_lost) {
             var allies = notif.args.allies_lost;
-            $('allycount_p' + player_id).innerHTML = +($('allycount_p' + player_id).innerHTML) - +allies.length;
+            this.incAllyCount(player_id, -allies.length);
             // If it's me, also delete the actual ally
             this.getPlayerTable(notif.args.player_id).removeAllies(allies);
         }
         if (notif.args.monster) {
-            $('monstercount_p' + player_id).innerHTML = +($('monstercount_p' + player_id).innerHTML) + notif.args.monster.length;
+            this.incMonsterCount(player_id, notif.args.monster.length);
             if (source_player_id) {
-                $('monstercount_p' + source_player_id).innerHTML = +($('monstercount_p' + source_player_id).innerHTML) - notif.args.monster.length;
+                this.incMonsterCount(source_player_id, -notif.args.monster.length);
                 if (source_player_id == this.player_id) {
                     // Remove it from me
                     var monster_hand = $('monster-hand_p' + this.player_id);
@@ -3354,9 +3376,9 @@ var Abyss = /** @class */ (function () {
             }
         }
         if (notif.args.monster_count) {
-            $('monstercount_p' + player_id).innerHTML = +($('monstercount_p' + player_id).innerHTML) + +notif.args.monster_count;
+            this.incMonsterCount(player_id, notif.args.monster_count);
             if (source_player_id) {
-                $('monstercount_p' + source_player_id).innerHTML = +($('monstercount_p' + source_player_id).innerHTML) - +notif.args.monster_count;
+                this.incMonsterCount(source_player_id, -notif.args.monster_count);
             }
         }
         this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
@@ -3377,7 +3399,7 @@ var Abyss = /** @class */ (function () {
     Abyss.prototype.notif_searchSanctuaryAlly = function (notif) {
         var playerId = notif.args.playerId;
         this.getPlayerTable(playerId).addHandAlly(notif.args.ally, document.getElementById('explore-track-deck'));
-        $('allycount_p' + playerId).innerHTML = +($('allycount_p' + playerId).innerHTML) + 1;
+        this.incAllyCount(playerId, 1);
         this.setDeckSize(dojo.query('#explore-track .slot-0'), notif.args.deck_size);
         this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
     };
