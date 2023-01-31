@@ -38,7 +38,6 @@ $game_options = [
                 'name' => totranslate('Enabled'),
                 'tmdisplay' => totranslate('Kraken expansion'),
                 'nobeginner' => true,
-                'beta' => true,
             ],
         ],
         'default' => 1,
