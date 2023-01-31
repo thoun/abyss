@@ -449,7 +449,7 @@ trait UtilTrait {
     function applySearchSanctuary(int $playerId, int $locationId) {
         $newLoot = LootManager::draw($locationId);
 
-        self::notifyAllPlayers("newLoot", clienttranslate('${player_name} draw a new Loot card (value : ${value})'), [
+        self::notifyAllPlayers("newLoot", clienttranslate('${player_name} draws a new Loot card (value : ${value})'), [
             'playerId' => $playerId,
             'player_name' => self::getActivePlayerName(),
             'locationId' => $locationId,
@@ -490,6 +490,12 @@ trait UtilTrait {
                 'player_name' => self::getActivePlayerName(),
                 'rewards' => $message,
             ]);
+
+            if (count($monsters) > 0) {
+                self::notifyPlayer($playerId, "monsterTokens", '', [
+                    'monsters' => $monsters,
+                ]);
+            }
         }
 
         if ($newLoot->value == 6) {

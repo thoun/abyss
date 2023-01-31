@@ -3253,8 +3253,7 @@ var Abyss = /** @class */ (function () {
         var ROTATIONS = [-25, -10, 0, 13, 28];
         allies.forEach(function (ally) {
             setTimeout(function () {
-                _this.getPlayerTable(Number(player_id)).addHandAlly(ally, document.getElementById('council-track-' + faction), 'back', ROTATIONS[faction]);
-                _this.organisePanelMessages();
+                return _this.getPlayerTable(Number(player_id)).addHandAlly(ally, document.getElementById('council-track-' + faction), 'back', ROTATIONS[faction]);
             }, delay);
             delay += 250;
         });
@@ -3376,7 +3375,9 @@ var Abyss = /** @class */ (function () {
         this.locationManager.discardLoots(notif.args.locationId, notif.args.loots);
     };
     Abyss.prototype.notif_searchSanctuaryAlly = function (notif) {
-        this.getPlayerTable(notif.args.playerId).addHandAlly(notif.args.ally, document.getElementById('explore-track-deck'));
+        var playerId = notif.args.playerId;
+        this.getPlayerTable(playerId).addHandAlly(notif.args.ally, document.getElementById('explore-track-deck'));
+        $('allycount_p' + playerId).innerHTML = +($('allycount_p' + playerId).innerHTML) + 1;
         this.setDeckSize(dojo.query('#explore-track .slot-0'), notif.args.deck_size);
         this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
     };

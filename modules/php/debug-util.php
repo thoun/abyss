@@ -13,8 +13,8 @@ trait DebugUtilTrait {
 
 		//$this->debugCouncilAllies();
 
-		//$this->debugPickAllies(2343492);
-		//$this->debugPickAllies(2343493);
+		$this->debugPickAllies(2343492);
+		$this->debugPickAllies(2343493);
 		//$this->debugPickAllies(2343494);
 		
 		//$this->debugPickKrakens(2343492);
@@ -25,10 +25,10 @@ trait DebugUtilTrait {
 		//$this->debugAddLord(2343492);
 		//$this->debugAddAffiliated(2343492);
 
-		$this->DbQuery("UPDATE player SET player_nebulis = 2");
-		$this->DbQuery("UPDATE player SET player_pearls = 2");
-		$this->DbQuery("UPDATE player SET `player_autopass` = '5;5;5;5;5'");
-		//$this->DbQuery("UPDATE player SET player_keys = 3");
+		//$this->DbQuery("UPDATE player SET player_nebulis = 2");
+		//$this->DbQuery("UPDATE player SET player_pearls = 2");
+		//$this->DbQuery("UPDATE player SET `player_autopass` = '5;5;5;5;5'");
+		$this->DbQuery("UPDATE player SET player_keys = 3");
 		//$this->DbQuery("UPDATE location SET place = 1 WHERE location_id = 103");
 		//$this->DbQuery("UPDATE lord SET place = 0 WHERE place IN (5, 6)");
 		//$this->DbQuery("UPDATE lord SET place = 5 WHERE lord_id = 116");

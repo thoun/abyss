@@ -1984,10 +1984,9 @@ class Abyss implements AbyssGame {
         var delay = 0;
         const ROTATIONS = [-25, -10, 0, 13, 28];
         allies.forEach(ally => {
-            setTimeout(() => {
-                this.getPlayerTable(Number(player_id)).addHandAlly(ally, document.getElementById('council-track-' + faction), 'back', ROTATIONS[faction]);
-                this.organisePanelMessages();
-            }, delay);
+            setTimeout(() => 
+                this.getPlayerTable(Number(player_id)).addHandAlly(ally, document.getElementById('council-track-' + faction), 'back', ROTATIONS[faction])
+            , delay);
             delay += 250;
         });
     }
@@ -2130,7 +2129,9 @@ class Abyss implements AbyssGame {
     }
 
     notif_searchSanctuaryAlly(notif: Notif<NotifSearchSanctuaryAllyArgs>) {
-        this.getPlayerTable(notif.args.playerId).addHandAlly(notif.args.ally, document.getElementById('explore-track-deck'));
+        const playerId = notif.args.playerId;
+        this.getPlayerTable(playerId).addHandAlly(notif.args.ally, document.getElementById('explore-track-deck'));
+        $('allycount_p' + playerId).innerHTML = +($('allycount_p' + playerId).innerHTML) + 1;
 
         this.setDeckSize(dojo.query('#explore-track .slot-0'), notif.args.deck_size);
         this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
