@@ -1830,6 +1830,9 @@ var Abyss = /** @class */ (function () {
         this.allyDiscardCounter = new ebg.counter();
         this.allyDiscardCounter.create("ally-discard-size");
         this.allyDiscardCounter.setValue(gamedatas.allyDiscardSize);
+        if (gamedatas.leviathanExpansion) {
+            document.getElementById('threat-track').style.display = 'none';
+        }
         this.organisePanelMessages();
         this.zoomManager = new ZoomManager({
             element: document.getElementById('table'),
@@ -2112,6 +2115,13 @@ var Abyss = /** @class */ (function () {
                     }
                     this.addActionButton('button_pass', _('Pass'), 'onPass');
                     break;
+                case 'explore':
+                    var exploreArgs_1 = args;
+                    if (exploreArgs_1.monster && this.gamedatas.leviathanExpansion) {
+                        this.addActionButton('button_fightMonster', _('Fight the Monster'), function () { return _this.exploreTake(exploreArgs_1.ally.place); });
+                        this.addActionButton('button_keepExploring', _('Keep exploring'), function () { return _this.exploreDeck(); }, null, null, 'red');
+                    }
+                    break;
                 case 'chooseMonsterReward':
                     for (var i in args.rewards) {
                         var r = args.rewards[i];
@@ -2140,6 +2150,7 @@ var Abyss = /** @class */ (function () {
                         this.addActionButton(btnId, r, 'onChooseAffiliate');
                         dojo.addClass($(btnId), 'affiliate-button');
                     }
+                    //(this as any).addActionButton('cancelRecruit_button', _('Cancel'), () => this.cancelRecruit(), null, null, 'gray');
                     break;
                 case 'plotAtCourt':
                     this.addActionButton('button_plot', _('Plot') + " (1 <i class=\"icon icon-pearl\"></i>)", 'onPlot');
@@ -2575,6 +2586,12 @@ var Abyss = /** @class */ (function () {
             ally_id: ally_id,
         });
     };
+    Abyss.prototype.cancelRecruit = function () {
+        if (!this.checkAction('cancelRecruit')) {
+            return;
+        }
+        this.takeAction('cancelRecruit');
+    };
     Abyss.prototype.onClickCouncilTrack = function (evt) {
         if (dojo.hasClass(evt.target, 'ally')) {
             // Draw this stack??
@@ -2670,6 +2687,9 @@ var Abyss = /** @class */ (function () {
     };
     Abyss.prototype.onClickExploreDeck = function (evt) {
         dojo.stopEvent(evt);
+        this.exploreDeck();
+    };
+    Abyss.prototype.exploreDeck = function () {
         if (!this.checkAction('explore')) {
             return;
         }
@@ -2680,11 +2700,14 @@ var Abyss = /** @class */ (function () {
             this.onPurchase(0); // TODO BGA ?
             return;
         }
+        this.exploreTake(ally.place);
+    };
+    Abyss.prototype.exploreTake = function (slot) {
         if (!this.checkAction('exploreTake')) {
             return;
         }
         this.takeAction('exploreTake', {
-            slot: ally.place,
+            slot: slot,
         });
     };
     Abyss.prototype.onPurchase = function (withNebulis) {
@@ -3451,6 +3474,24 @@ var Abyss = /** @class */ (function () {
         this.councilStacks[notif.args.faction].addCard(notif.args.ally);
         var deck = dojo.query('#council-track .slot-' + notif.args.faction);
         this.setDeckSize(deck, notif.args.deckSize);
+    };
+    /* This enable to inject translatable styled things to logs or action bar */
+    /* @Override */
+    Abyss.prototype.format_string_recursive = function (log, args) {
+        try {
+            if (log && args && !args.processed) {
+                // Representation of the color of a card
+                ['die1', 'die2'].forEach(function (property) {
+                    if (args[property] && typeof args[property] === 'number') {
+                        args[property] = "<div class=\"log-die\" data-value=\"".concat(args[property], "\"></div>");
+                    }
+                });
+            }
+        }
+        catch (e) {
+            console.error(log, args, "Exception thrown", e.stack);
+        }
+        return this.inherited(arguments);
     };
     return Abyss;
 }());

@@ -23,6 +23,7 @@ require_once('modules/abs_ally.php');
 require_once('modules/abs_monster.php');
 require_once('modules/abs_location.php');
 require_once('modules/abs_loot.php');
+require_once('modules/abs_leviathan.php');
 
 require_once('modules/php/constants.inc.php');
 require_once('modules/php/utils.php');
@@ -118,9 +119,9 @@ class Abyss extends Table {
 
         $krakenExpansion = $this->isKrakenExpansion();
         // TODO TEMP        
-        /*if ($this->getBgaEnvironment() == 'studio') { 
+        if ($this->getBgaEnvironment() == 'studio') { 
             self::setGameStateValue(LEVIATHAN_EXPANSION, 2);
-        }*/
+        }
         $leviathanExpansion = $this->isLeviathanExpansion();
 
         // Init global values with their initial values
@@ -158,6 +159,19 @@ class Abyss extends Table {
 		Monster::setup($leviathanExpansion);
         if ($krakenExpansion) {
             LootManager::setup();
+        }
+        if ($leviathanExpansion) {
+            LeviathanManager::setup();
+
+            $dice = $this->getDoubleDieRoll();
+            $sum = $dice[0] + $dice[1];
+            LeviathanManager::draw($this, LEVIATHAN_SLOTS[$sum]);
+
+            self::notifyAllPlayers("log", /*client TODO LEV translate*/('Dice rolled to ${die1} and ${die2}, a new Leviathan takes place on the spot ${spot}'), [
+                'die1' => $dice[0],
+                'die2' => $dice[1],
+                'spot' => $sum,
+            ]);
         }
 
         // TODO TEMP
@@ -244,6 +258,7 @@ class Abyss extends Table {
         }
         if ($leviathanExpansion) {
             $result['scourge'] = intval(self::getGameStateValue(SCOURGE));
+            $result['leviathans'] = LeviathanManager::getVisibleLeviathans($this);
         }
 
         return $result;

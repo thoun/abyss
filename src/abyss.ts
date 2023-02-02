@@ -315,7 +315,9 @@ class Abyss implements AbyssGame {
         this.allyDiscardCounter.create(`ally-discard-size`);
         this.allyDiscardCounter.setValue(gamedatas.allyDiscardSize);
 
-        
+        if (gamedatas.leviathanExpansion) {
+            document.getElementById('threat-track').style.display = 'none';
+        }
         
         this.organisePanelMessages();
 
@@ -606,6 +608,13 @@ class Abyss implements AbyssGame {
                     }
                     (this as any).addActionButton( 'button_pass', _('Pass'), 'onPass' );
                     break;
+                case 'explore':
+                    const exploreArgs = args as EnteringExploreArgs;
+                    if (exploreArgs.monster && this.gamedatas.leviathanExpansion) {
+                        (this as any).addActionButton('button_fightMonster', _('Fight the Monster'), () => this.exploreTake(exploreArgs.ally.place));
+                        (this as any).addActionButton('button_keepExploring', _('Keep exploring'), () => this.exploreDeck(), null, null, 'red');
+                    }
+                    break;
                 case 'chooseMonsterReward':
                     for (var i in args.rewards) {
                         var r: string = args.rewards[i];
@@ -634,8 +643,9 @@ class Abyss implements AbyssGame {
                         var r: string = ally.value + ' ' + this.allyManager.allyNameText(ally.faction);
                         var btnId = 'button_affiliate_' + ally.ally_id;
                         (this as any).addActionButton( btnId, r, 'onChooseAffiliate' );
-                        dojo.addClass($(btnId), 'affiliate-button')
+                        dojo.addClass($(btnId), 'affiliate-button');
                     }
+                    //(this as any).addActionButton('cancelRecruit_button', _('Cancel'), () => this.cancelRecruit(), null, null, 'gray');
                     break;
                 case 'plotAtCourt':
                     (this as any).addActionButton( 'button_plot', _('Plot') + ` (1 <i class="icon icon-pearl"></i>)`, 'onPlot' );
@@ -1133,6 +1143,14 @@ class Abyss implements AbyssGame {
         });
     }
 
+    cancelRecruit() {
+        if (!(this as any).checkAction('cancelRecruit')) {
+            return;
+        }
+
+        this.takeAction('cancelRecruit');
+    }
+
     onClickCouncilTrack(evt) {
         if (dojo.hasClass(evt.target, 'ally')) {
             // Draw this stack??
@@ -1246,6 +1264,10 @@ class Abyss implements AbyssGame {
     onClickExploreDeck( evt ) {
         dojo.stopEvent( evt );
 
+        this.exploreDeck();
+    }
+
+    exploreDeck() {
         if (!(this as any).checkAction('explore')) {
             return;
         }
@@ -1259,12 +1281,16 @@ class Abyss implements AbyssGame {
             return;
         }
 
-        if(!(this as any).checkAction('exploreTake')) {
+        this.exploreTake(ally.place);
+    }
+
+    exploreTake(slot: number) {
+        if (!(this as any).checkAction('exploreTake')) {
             return;
         }
 
         this.takeAction('exploreTake', {
-            slot: ally.place,
+            slot,
         });
     }
 
@@ -2160,6 +2186,24 @@ class Abyss implements AbyssGame {
 
         var deck = dojo.query('#council-track .slot-' + notif.args.faction);
         this.setDeckSize(deck, notif.args.deckSize);
+    }
+
+    /* This enable to inject translatable styled things to logs or action bar */
+    /* @Override */
+    public format_string_recursive(log: string, args: any) {
+        try {
+            if (log && args && !args.processed) {
+                // Representation of the color of a card
+                ['die1', 'die2'].forEach(property => {
+                    if (args[property] && typeof args[property] === 'number') {
+                        args[property] = `<div class="log-die" data-value="${args[property]}"></div>`;
+                    }
+                });
+            }
+        } catch (e) {
+            console.error(log,args,"Exception thrown", e.stack);
+        }
+        return (this as any).inherited(arguments);
     }
 
 }

@@ -751,4 +751,11 @@ trait UtilTrait {
         
         return $potentialFound;
     }
+
+    function getDoubleDieRoll() {
+        return [
+            bga_rand(1, 6),
+            bga_rand(1, 6),
+        ];
+    }
 }

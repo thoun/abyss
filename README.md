@@ -39,3 +39,4 @@ go on tests dir and start execute file, for example `php ./abyss.game.test-recru
 The Healer cannot take a Monster with its effect
 The Assassin have no effect on Sentinel lords
 You cannot look at ally discard
+Leviathan monster tokens can only be drawn when fighting Leviathans

@@ -147,7 +147,7 @@ $machinestates = array(
  			"description" => clienttranslate('${actplayer} must take the last card or explore'),
  			"descriptionmyturn" => clienttranslate('${you} must take the last card or explore'),
  			"type" => "activeplayer",
- 			"args" => "argPurchase",
+ 			"args" => "argExplore",
  			"possibleactions" => array( "explore", "exploreTake", "lordEffect" ),
  			"transitions" => [
 				"explore" => ST_PRE_PURCHASE, 
@@ -167,7 +167,7 @@ $machinestates = array(
  			"description" => clienttranslate('${actplayer} must explore'),
  			"descriptionmyturn" => clienttranslate('${you} must explore'),
  			"type" => "activeplayer",
- 			"args" => "argPurchase",
+ 			"args" => "argExplore",
  			"action" => "stMustExplore",
  			"possibleactions" => array( "explore", "lordEffect" ),
  			"transitions" => array( "explore" => ST_PRE_PURCHASE, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_EXPLORE2 )
@@ -178,7 +178,7 @@ $machinestates = array(
 		"description" => clienttranslate('${actplayer} must take the last card'),
 		"descriptionmyturn" => clienttranslate('${you} must take the last card'),
 		"type" => "activeplayer",
-		"args" => "argPurchase",
+		"args" => "argExplore",
 		"action" => "stMustExploreTake",
 		"possibleactions" => array( "exploreTake", "lordEffect" ),
 		"transitions" => [
@@ -300,26 +300,52 @@ $machinestates = array(
 		],
  	],
 
- 	ST_PLAYER_RECRUIT_PAY => array(
- 			"name" => "recruitPay",
+ 	ST_PLAYER_RECRUIT_PAY => [
+ 		"name" => "recruitPay",
   		"description" => clienttranslate('${actplayer} must pay for the chosen Lord'),
- 			"descriptionmyturn" => clienttranslate('${you} must pay for the chosen Lord'),
- 			"type" => "activeplayer",
+		"descriptionmyturn" => clienttranslate('${you} must pay for the chosen Lord'),
+		"type" => "activeplayer",
   		"args" => "argRecruitPay",
-  		"possibleactions" => array( "pay", "pass", "lordEffect" ),
- 			"transitions" => array( "pay" => ST_PLAYER_AFFILIATE, "pass" => ST_PLAYER_PLOT_AT_COURT, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_RECRUIT_PAY )
- 	),
+  		"possibleactions" => [
+			"recruit",
+			"pay", 
+			"pass", 
+			"lordEffect",
+		],
+ 		"transitions" => [
+			"pay" => ST_PLAYER_AFFILIATE, 
+			"pass" => ST_PLAYER_PLOT_AT_COURT, 
+			"recruit" => ST_PLAYER_RECRUIT_PAY,
+			"lord_17" => ST_PLAYER_LORD17, 
+			"lord_21" => ST_PLAYER_LORD21, 
+			"lord_12" => ST_PLAYER_LORD12, 
+			"zombiePass" => ST_PRE_CONTROL, 
+			"loopback" => ST_PLAYER_RECRUIT_PAY,
+		],
+	],
 
- 	ST_PLAYER_AFFILIATE => array(
- 			"name" => "affiliate",
+ 	ST_PLAYER_AFFILIATE => [
+ 		"name" => "affiliate",
   		"description" => clienttranslate('${actplayer} must choose an Ally to affiliate'),
- 			"descriptionmyturn" => clienttranslate('${you} must choose an Ally to affiliate'),
- 			"type" => "activeplayer",
+		"descriptionmyturn" => clienttranslate('${you} must choose an Ally to affiliate'),
+		"type" => "activeplayer",
   		"args" => "argAffiliate",
   		"action" => "stAffiliate",
-  		"possibleactions" => array( "affiliate", "lordEffect" ),
- 			"transitions" => array( "affiliate" => ST_PLAYER_LORD_EFFECT, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_AFFILIATE )
- 	),
+  		"possibleactions" => [
+			"affiliate", 
+			"cancelRecruit",
+			"lordEffect",
+		],
+ 		"transitions" => [
+			"cancel" => ST_PLAYER_RECRUIT_PAY,
+			"affiliate" => ST_PLAYER_LORD_EFFECT, 
+			"lord_17" => ST_PLAYER_LORD17, 
+			"lord_21" => ST_PLAYER_LORD21, 
+			"lord_12" => ST_PLAYER_LORD12, 
+			"zombiePass" => ST_PRE_CONTROL, 
+			"loopback" => ST_PLAYER_AFFILIATE,
+		],
+ 	],
 
  	ST_PLAYER_LORD_EFFECT => array(
  			"name" => "lordEffect",

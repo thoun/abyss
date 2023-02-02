@@ -48,6 +48,12 @@ interface AbyssLoot {
     value: number;
 }
 
+interface AbyssLeviathan {
+    id: number;
+    place: number;
+    life: number;
+}
+
 interface AbyssPlayer extends Player {
     hand: AbyssAlly[];
     affiliated: AbyssAlly[];
@@ -100,6 +106,7 @@ interface AbyssGamedatas {
 
     leviathanExpansion: boolean;
     scourge?: number;
+    leviathans?: AbyssLeviathan[];
 }
 
 interface AbyssGame extends Game {
@@ -148,12 +155,20 @@ interface EnteringLocationEffectBlackSmokersArgs {
     };
 }
 
-interface EnteringPurchaseArgs {
+interface EnteringExplorePurchaseArgs {
     passed_players: number[];
     first_player: number;
+}
+
+interface EnteringPurchaseArgs extends EnteringExplorePurchaseArgs {
     cost: number;
     canPayWithPearls: boolean;
     withNebulis?: WithNebulis;
+}
+
+interface EnteringExploreArgs extends EnteringExplorePurchaseArgs {
+    ally: AbyssAlly;
+    monster: boolean;
 }
 
 interface EnteringMartialLawArgs {

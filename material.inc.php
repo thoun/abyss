@@ -18,6 +18,7 @@
  * are available everywhere in your game logic code.
  *
  */
+require_once('modules/php/objects/leviathan.php');
 
 $this->locations = array(
   "1" => array( "name" => clienttranslate('Sargasso Silos'), "desc" => clienttranslate('2$ for each of your {farmer} Lords + 5$')),
@@ -342,3 +343,81 @@ $this->factions = array(
     "colour" => "darkgray",
   ),
 );
+
+$this->LEVIATHANS = [
+  1 => new LeviathanType(FACTION_PURPLE, [
+    new CombatCondition(3, 1),
+    new CombatCondition(7, 2),
+    new CombatCondition(5, 1),
+  ], PENALTY_ALLIES),
+  2 => new LeviathanType(FACTION_PURPLE, [
+    new CombatCondition(6, 2),
+    new CombatCondition(4, 1),
+  ], PENALTY_ALLIES),
+  3 => new LeviathanType(FACTION_PURPLE, [
+    new CombatCondition(9, 3),
+  ], PENALTY_WOUNDS),
+  4 => new LeviathanType(FACTION_PURPLE, [
+    new CombatCondition(6, 1),
+  ], PENALTY_WOUNDS, 2),
+  5 => new LeviathanType(FACTION_GREEN, [
+   new CombatCondition(4, 1),
+   new CombatCondition(6, 2),
+   new CombatCondition(5, 1),
+  ], PENALTY_PEARLS),
+  6 => new LeviathanType(FACTION_GREEN, [
+   new CombatCondition(6, 2),
+   new CombatCondition(4, 1),
+  ], PENALTY_PEARLS),
+  7 => new LeviathanType(FACTION_GREEN, [
+    new CombatCondition(8, 3),
+  ], PENALTY_WOUNDS),
+  8 => new LeviathanType(FACTION_GREEN, [
+    new CombatCondition(6, 1),
+  ], PENALTY_WOUNDS, 2),
+  9 => new LeviathanType(FACTION_BLUE, [
+   new CombatCondition(3, 1),
+   new CombatCondition(7, 2),
+   new CombatCondition(5, 1),
+  ], PENALTY_LORD),
+  10 => new LeviathanType(FACTION_BLUE, [
+   new CombatCondition(6, 2),
+   new CombatCondition(4, 1),
+  ], PENALTY_LORD),
+  11 => new LeviathanType(FACTION_BLUE, [
+    new CombatCondition(7, 2),
+  ], PENALTY_WOUNDS),
+  12 => new LeviathanType(FACTION_BLUE, [
+    new CombatCondition(5, 1),
+  ], PENALTY_WOUNDS, 2),
+  13 => new LeviathanType(FACTION_YELLOW, [
+    new CombatCondition(3, 1),
+    new CombatCondition(7, 1),
+    new CombatCondition(5, 2),
+  ], PENALTY_WOUNDS),
+  14 => new LeviathanType(FACTION_YELLOW, [
+    new CombatCondition(6, 2),
+    new CombatCondition(4, 2),
+  ], PENALTY_WOUNDS, 2),
+  15 => new LeviathanType(FACTION_YELLOW, [
+    new CombatCondition(7, 4),
+  ], PENALTY_WOUNDS),
+  16 => new LeviathanType(FACTION_YELLOW, [
+    new CombatCondition(5, 2),
+  ], PENALTY_WOUNDS, 2),
+  17 => new LeviathanType(null, [
+   new CombatCondition(4, 1),
+   new CombatCondition(7, 1),
+   new CombatCondition(6, 1),
+  ], PENALTY_WOUNDS, 4),
+  18 => new LeviathanType(null, [
+   new CombatCondition(7, 1),
+   new CombatCondition(5, 1),
+  ], PENALTY_WOUNDS),
+  19 => new LeviathanType(null, [
+   new CombatCondition(9, 2),
+  ], PENALTY_WOUNDS),
+  20 => new LeviathanType(null, [
+   new CombatCondition(7, 1),
+  ], PENALTY_WOUNDS, 2),
+];

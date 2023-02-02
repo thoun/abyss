@@ -127,6 +127,14 @@
         self::ajaxResponse( );
     }
 
+    public function cancelRecruit() {
+        self::setAjaxMode();
+        
+        $this->game->cancelRecruit();
+
+        self::ajaxResponse();
+    }
+
     public function discard()
     {
         self::setAjaxMode();

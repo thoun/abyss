@@ -65,11 +65,19 @@ trait ArgsTrait {
 
 		return $withNebulis;
 	}
+
+	function argExplorePurchase() {
+		$passed_players = self::getObjectListFromDB( "SELECT player_id id FROM player WHERE player_has_purchased", true);
+
+		return [
+			'passed_players' => array_map(fn($pId) => intval($pId), $passed_players), 
+			'first_player' => intval(self::getGameStateValue( "first_player_id")),
+		];
+	}
 	
 	function argPurchase() {
+		$argExplorePurchase = $this->argExplorePurchase();
 		$playerId = self::getActivePlayerId();
-
-		$passed_players = self::getObjectListFromDB( "SELECT player_id id FROM player WHERE player_has_purchased", true );
 
 		$cost = intval(self::getGameStateValue('purchase_cost'));
 		
@@ -77,12 +85,23 @@ trait ArgsTrait {
 
 		$withNebulis = $this->getWithNebulis($playerId, $cost);
 
-		return [
-			'passed_players' => array_map(fn($pId) => intval($pId), $passed_players), 
-			'first_player' => intval(self::getGameStateValue( "first_player_id")),
+		return $argExplorePurchase + [
 			'cost' => $cost,
 			'canPayWithPearls' => $pearls >= $cost,
 			'withNebulis' => $withNebulis,
+		];
+	}
+
+	function argExplore() {
+		$argExplorePurchase = $this->argExplorePurchase();
+		
+        $slots = Ally::getExploreSlots();
+        $ally = end($slots);
+		$monster = $ally !== false && $ally['faction'] === NULL;
+
+		return $argExplorePurchase + [
+			'ally' => $ally,
+			'monster' => $monster,
 		];
 	}
 
@@ -208,7 +227,10 @@ trait ArgsTrait {
 		$withNebulis = $this->getWithNebulis($playerId, $cost);
 		$canAlwaysUseNebulis = Lord::playerHas(103, $playerId);
 
+		$argAffordableLords = $this->argAffordableLords();
+
 		return [
+			'_private' => $argAffordableLords['_private'],
 			'lord_id' => $lord_id, 
 			'lord' => $lord, 
 			'cost' => $cost,

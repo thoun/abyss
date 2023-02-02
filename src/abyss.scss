@@ -1357,3 +1357,18 @@ html a.bgabutton.affiliate-button:hover {
     }
   }
 }
+
+.log-die {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  vertical-align: middle;
+  background-size: auto 100%;
+  background-image: url(img/icons.png); // TODO LEV
+
+  @for $index from 1 through 6 {
+    &[data-value="#{$index}"] {
+        background-position-x: #{($index - 1) * 100% / 5};
+    }
+  }
+}

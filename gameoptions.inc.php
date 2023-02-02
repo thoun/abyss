@@ -57,6 +57,16 @@ $game_options = [
             ],
         ],
         'default' => 1,
+        'startcondition' => [
+            1 => [
+                [
+                    'type' => 'maxplayers',
+                    'value' => 4,
+                    'message' => totranslate('You can only player with 5 players if Leviathan expansion is activated'),
+                ]
+            ],
+            2 => [],
+        ],
     ],*/
 
 ];

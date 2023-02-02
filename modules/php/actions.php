@@ -35,12 +35,37 @@ trait ActionTrait {
 
         if (count($slots) > 0) {
             $ally = end($slots);
-            if ($ally["faction"] === null && self::getGameStateValue( 'threat_level' ) < 5 && self::checkAction( 'exploreTake', false )) {
-                // Increase the threat track
-                $threat = intval(self::incGameStateValue('threat_level', 1));
-                self::notifyAllPlayers("setThreat", '', [
-                    'threat' => $threat,
-                ]);
+            if ($ally["faction"] === null && self::checkAction( 'exploreTake', false )) {
+                $leviathanExpansion = $this->isLeviathanExpansion();
+
+                if ($leviathanExpansion) {
+
+                    $dice = $this->getDoubleDieRoll();
+                    $sum = $dice[0] + $dice[1];
+
+                    $isFree = LeviathanManager::isSlotFree(LEVIATHAN_SLOTS[$sum]);
+
+                    if ($isFree) {
+                        $leviathan = LeviathanManager::draw($this, LEVIATHAN_SLOTS[$sum]);
+
+                        self::notifyAllPlayers("newLeviathan", /*client TODO LEV translate*/('Dice rolled to ${die1} and ${die2}, a new Leviathan takes place on the spot ${spot}'), [
+                            'die1' => $dice[0],
+                            'die2' => $dice[1],
+                            'spot' => $sum,
+                            'leviathan = ' => $leviathan,
+                        ]);
+
+                        // TODO LEV discard the monster
+                    } else {
+                        // TODO LEV take damage!
+                    }
+                } else if (self::getGameStateValue( 'threat_level' ) < 5) {
+                    // Increase the threat track
+                    $threat = intval(self::incGameStateValue('threat_level', 1));
+                    self::notifyAllPlayers("setThreat", '', [
+                        'threat' => $threat,
+                    ]);
+                }
             }
         }
 
@@ -595,29 +620,65 @@ trait ActionTrait {
                 clienttranslate('${player_name} recruits ${lord_name} with ${num_allies} Allies');
         }
 
-        self::notifyAllPlayers( "recruit", $message, array(
-                'lord' => $lord,
-                'spent_allies' => array_values($allies),
-                'spent_pearls' => $pearlCost,
-                'spent_nebulis' => $nebulisCost,
-                'playerPearls' => $this->getPlayerPearls($player_id),
-                'playerNebulis' => $this->getPlayerNebulis($player_id),
-                'player_id' => $player_id,
-                'player_name' => self::getActivePlayerName(),
-                "i18n" => array('lord_name'),
-                "lord_name" => $this->lords[$lord_id]["name"],
-                'num_allies' => count($allies),
-                'allyDiscardSize' => Ally::getDiscardSize(),
-        ));
+        self::notifyAllPlayers( "recruit", $message, [
+            'lord' => $lord,
+            'spent_allies' => array_values($allies),
+            'spent_pearls' => $pearlCost,
+            'spent_nebulis' => $nebulisCost,
+            'playerPearls' => $this->getPlayerPearls($player_id),
+            'playerNebulis' => $this->getPlayerNebulis($player_id),
+            'player_id' => $player_id,
+            'player_name' => self::getActivePlayerName(),
+            "i18n" => array('lord_name'),
+            "lord_name" => $this->lords[$lord_id]["name"],
+            'num_allies' => count($allies),
+            'allyDiscardSize' => Ally::getDiscardSize(),
+        ]);
 
+        $used109 = null;
         $opponentsIds = $this->getOpponentsIds($player_id);
         foreach($opponentsIds as $opponentId) {
             if (Lord::playerHas(109, $opponentId)) {
+                $used109 = $opponentId;
                 $this->incPlayerPearls($opponentId, 1, "lord_109");
             }
         }
 
-        $this->gamestate->nextState( "pay" );
+        $this->setGlobalVariable(CANCEL_RECRUIT, [
+            'lord' => $lord,
+            'spent_allies' => array_values($allies),
+            'spent_pearls' => $pearlCost,
+            'spent_nebulis' => $nebulisCost,
+            'used109' => $used109,
+        ]);
+
+        $this->gamestate->nextState("pay");
+    }
+
+    function cancelRecruit() {
+        self::checkAction('cancelRecruit');
+        
+        $cancel = $this->getGlobalVariable(CANCEL_RECRUIT);
+        //'spent_allies' => array_values($allies), // TODO on cancel, take back nebulis from spent Krakens
+
+        $this->debug($cancel);
+
+        /* TODO self::notifyAllPlayers( "cancelRecruit", $message, [
+            'lord' => $lord,
+            'spent_allies' => array_values($allies),
+            'spent_pearls' => $pearlCost,
+            'spent_nebulis' => $nebulisCost,
+            'playerPearls' => $this->getPlayerPearls($player_id),
+            'playerNebulis' => $this->getPlayerNebulis($player_id),
+            'player_id' => $player_id,
+            'player_name' => self::getActivePlayerName(),
+            "i18n" => array('lord_name'),
+            "lord_name" => $this->lords[$lord_id]["name"],
+            'num_allies' => count($allies),
+            'allyDiscardSize' => Ally::getDiscardSize(),
+        ]);*/
+
+        $this->gamestate->nextState("cancel");
     }
     
     function requestSupport(int $faction) {

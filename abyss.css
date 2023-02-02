@@ -2205,3 +2205,30 @@ html a.bgabutton.affiliate-button:hover {
 .card.monster[data-type="1"] .front[data-effect="4"] {
   background-position-x: 57.1428571429%;
 }
+
+.log-die {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  vertical-align: middle;
+  background-size: auto 100%;
+  background-image: url(img/icons.png);
+}
+.log-die[data-value="1"] {
+  background-position-x: 0%;
+}
+.log-die[data-value="2"] {
+  background-position-x: 20%;
+}
+.log-die[data-value="3"] {
+  background-position-x: 40%;
+}
+.log-die[data-value="4"] {
+  background-position-x: 60%;
+}
+.log-die[data-value="5"] {
+  background-position-x: 80%;
+}
+.log-die[data-value="6"] {
+  background-position-x: 100%;
+}

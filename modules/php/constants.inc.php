@@ -1,5 +1,19 @@
 <?php
 
+define('LEVIATHAN_SLOTS', [
+    2 => 1,
+    3 => 1,
+    4 => 2,
+    5 => 3,
+    6 => 4,
+    7 => 5,
+    8 => 6,
+    9 => 7,
+    10 => 8,
+    11 => 9,
+    12 => 9,
+]);
+
 /*
  * State constants
  */
@@ -82,5 +96,6 @@ define('AFTER_GIVE_KRAKEN_FINAL_SCORE', 'AFTER_GIVE_KRAKEN_FINAL_SCORE');
  */
 define('SENTINELS', 'SENTINELS');
 define('MUST_SELECT_NEW_PLAYER_FOR_KRAKEN', 'MUST_SELECT_NEW_PLAYER_FOR_KRAKEN');
+define('CANCEL_RECRUIT', 'CANCEL_RECRUIT');
 
 ?>

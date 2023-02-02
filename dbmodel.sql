@@ -73,6 +73,13 @@ CREATE TABLE IF NOT EXISTS `global_variables` (
   PRIMARY KEY (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE IF NOT EXISTS `leviathan` (
+  `id` smallint unsigned NOT NULL,
+  `place` int(11) NOT NULL DEFAULT 0,
+  `life` smallint unsigned NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
 
 ALTER TABLE `player` ADD `player_pearls` INT UNSIGNED NOT NULL DEFAULT 0;
 ALTER TABLE `player` ADD `player_nebulis` INT UNSIGNED NOT NULL DEFAULT 0;
