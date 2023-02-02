@@ -23,8 +23,8 @@ trait DebugUtilTrait {
 		//$this->debugPickKrakens(2343493);
 		//$this->debugPickKrakens(2343494);
 
-		//$this->debugAddLocations(2343492);
-		//$this->debugAddLord(2343492);
+		$this->debugAddLocations(2343492);
+		$this->debugAddLord(2343492);
 		//$this->debugAddLord(2343493);
 		//$this->debugAddAffiliated(2343492);
 

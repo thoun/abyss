@@ -1604,6 +1604,10 @@ trait ActionTrait {
             throw new BgaVisibleSystemException("Invalid zone");
         }
 
+        if ($location == 3 && Location::get($locationArg)['place'] != 1) {
+            throw new BgaVisibleSystemException("This location is not free");
+        }
+
         $playerId = intval($this->getActivePlayerId());
 
         $sentinel = $this->mustPlaceSentinel($playerId);
