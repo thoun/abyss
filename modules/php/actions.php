@@ -645,7 +645,7 @@ trait ActionTrait {
         }
 
         $this->setGlobalVariable(CANCEL_RECRUIT, [
-            'lord' => $lord,
+            'lord_id' => $lord['lord_id'],
             'spent_allies' => array_values($allies),
             'spent_pearls' => $pearlCost,
             'spent_nebulis' => $nebulisCost,
