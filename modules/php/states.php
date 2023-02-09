@@ -40,6 +40,7 @@ trait StateTrait {
         // Then, each player affiliates the lowest-value Ally of _each_ Race still in their hands
         // ...and we update score for each player
         $players = self::loadPlayersBasicInfos();
+        $newKrakenOwner = false;
         foreach ($players as $pid => $p) {
             $allies = Ally::getPlayerHand( $pid );
             $lowest_per_faction = array();
@@ -73,6 +74,7 @@ trait StateTrait {
                 Ally::discard($ally['ally_id']);
                 if (!Lord::playerHas(105, $pid)) {
                     $this->incPlayerNebulis($pid, $ally['value'] - 1, "end-game-kraken", false);
+                    $newKrakenOwner = $this->getPlayerNebulis($pid) >= intval($this->getUniqueValueFromDB("SELECT max(`player_nebulis`) FROM `player`"));
                 }
             }
 
@@ -87,7 +89,7 @@ trait StateTrait {
         }
         
         $mustSelectNewPlayer = false;
-        if ($krakenExpansion) {
+        if ($krakenExpansion && $newKrakenOwner) {
             $mustSelectNewPlayer = $this->checkNewKrakenOwner();
         }
 
