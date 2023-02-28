@@ -527,14 +527,21 @@ $machinestates = array(
   		"possibleactions" => array( "chooseLocation", "pass" ),
  			"transitions" => array( "chooseLocation" => ST_PLAYER_LORD19B, "pass" => ST_PRE_CONTROL, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_LORD19 )
  	),
- 	ST_PLAYER_LORD19B => array(
- 			"name" => "lord19b",
+ 	ST_PLAYER_LORD19B => [
+ 		"name" => "lord19b",
   		"description" => clienttranslate('${actplayer} may swap a Location for an available one'),
- 			"descriptionmyturn" => clienttranslate('${you} may choose an available Location to gain'),
- 			"type" => "activeplayer",
-  		"possibleactions" => array( "chooseLocation", "pass" ),
- 			"transitions" => array( "chooseLocation" => ST_PRE_CONTROL, "locationEffectBlackSmokers" => ST_PLAYER_LOCATION_EFFECT_BLACK_SMOKERS, "pass" => ST_PRE_CONTROL, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_LORD19B )
- 	),
+		"descriptionmyturn" => clienttranslate('${you} may choose an available Location to gain'),
+		"type" => "activeplayer",
+  		"possibleactions" => ["chooseLocation", "pass"],
+		"transitions" => [
+			"chooseLocation" => ST_PRE_CONTROL, 
+			"locationEffectBlackSmokers" => ST_PLAYER_LOCATION_EFFECT_BLACK_SMOKERS,			
+			"fillSanctuary" => ST_PLAYER_FILL_SANCTUARY,
+			"pass" => ST_PRE_CONTROL, 
+			"zombiePass" => ST_PRE_CONTROL, 
+			"loopback" => ST_PLAYER_LORD19B,
+		],
+	],
  	ST_PLAYER_LORD22 => array(
  			"name" => "lord22",
   		"description" => clienttranslate('${actplayer} may recruit a second Lord for 5 Pearls'),
