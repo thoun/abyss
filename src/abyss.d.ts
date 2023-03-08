@@ -323,7 +323,7 @@ interface NotifRequestSupportCardsArgs {
 }
 
 interface NotifRecruitArgs {
-    lord: AbyssLord;
+    lord?: AbyssLord;
     player_id: number;
     playerPearls: number;
     playerNebulis: number;

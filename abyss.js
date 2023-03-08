@@ -3367,9 +3367,9 @@ var Abyss = /** @class */ (function () {
         if (spent_allies && player_id == this.getPlayerId()) {
             this.getCurrentPlayerTable().removeAllies(spent_allies);
         }
-        if (spent_lords) {
+        if (spent_lords === null || spent_lords === void 0 ? void 0 : spent_lords.length) {
             this.getPlayerTable(player_id).removeLords(spent_lords);
-            this.incLordCount(player_id, -spent_lords);
+            this.incLordCount(player_id, -spent_lords.length);
         }
         // Add the lord
         if (lord) {

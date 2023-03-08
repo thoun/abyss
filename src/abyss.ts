@@ -2056,9 +2056,9 @@ class Abyss implements AbyssGame {
             this.getCurrentPlayerTable().removeAllies(spent_allies);
         }
 
-        if (spent_lords) {
+        if (spent_lords?.length) {
             this.getPlayerTable(player_id).removeLords(spent_lords);
-            this.incLordCount(player_id, -spent_lords);
+            this.incLordCount(player_id, -spent_lords.length);
         }
 
         // Add the lord
