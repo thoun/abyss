@@ -473,11 +473,24 @@ trait StateTrait {
                     case 16;
                         // The Apprentice - Add 1 stack from council (if any is non-empty)
                         $council = Ally::getCouncilSlots();
-                        foreach ($council as $size) {
+                        $canTake = false;
+                        foreach ($council as $faction => $size) {
                             if ($size > 0) {
-                                $transition = "lord_16";
-                                break;
+                                if ($this->isKrakenExpansion()) {
+                                    $guarded = $this->guardedBySentinel('council', $faction);
+                                    if ($guarded === null || $guarded->playerId == $player_id) {
+                                        $canTake = true;
+                                        break;
+                                    }
+                                } else {
+                                    $canTake = true;
+                                    break;
+                                }
                             }
+                        }
+
+                        if ($canTake) {
+                            $transition = "lord_16";
                         }
                         
                         if ($transition == "done") {

@@ -24,8 +24,8 @@ trait DebugUtilTrait {
 		//$this->debugPickKrakens(2343494);
 
 		//$this->debugAddLocations(2343492);
-		$this->debugAddLord(2343492);
-		$this->debugAddLord(2343493);
+		//$this->debugAddLord(2343492);
+		//$this->debugAddLord(2343493);
 		//$this->debugAddAffiliated(2343492);
 
 		//$this->DbQuery("UPDATE player SET player_nebulis = 2");
@@ -34,7 +34,7 @@ trait DebugUtilTrait {
 		//$this->DbQuery("UPDATE player SET player_keys = 3");
 		//$this->DbQuery("UPDATE location SET place = 1 WHERE location_id = 103");
 		$this->DbQuery("UPDATE lord SET place = 0 WHERE place IN (5, 6)");
-		$this->DbQuery("UPDATE lord SET place = 5 WHERE lord_id = 23");
+		$this->DbQuery("UPDATE lord SET place = 5 WHERE lord_id = 16");
 		$this->DbQuery("UPDATE lord SET place = 6 WHERE lord_id = 108");
 		//$this->DbQuery("UPDATE lord SET place = -2343492 WHERE lord_id = 111");
 		//$this->setKrakenPlayer(2343492);
