@@ -649,7 +649,13 @@ trait StateTrait {
                 self::incPlayerNebulis($player_id, 1, "lord_$lord_id" );
                 $this->setGameStateValue(AFTER_PLACE_SENTINEL, ST_PRE_CONTROL);
                 $this->setSentinel($player_id, $lord_id, 'player', null);
-                $transition = "lord_sentinel";
+
+                $args = $this->argPlaceSentinel();
+                $canPlaceSentinel = $args["possibleOnLords"] || $args["possibleOnCouncil"] || $args["possibleOnLocations"];
+
+                if ($canPlaceSentinel) {
+                    $transition = "lord_sentinel";
+                }
             } 
         }
 

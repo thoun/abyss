@@ -343,6 +343,9 @@ trait ArgsTrait {
 		$possibleOnLords = !$this->array_some($sentinels, fn($sentinel) => $sentinel->location == 'lord');
 		$possibleOnCouncil = !$this->array_some($sentinels, fn($sentinel) => $sentinel->location == 'council');
 		$possibleOnLocations = !$this->array_some($sentinels, fn($sentinel) => $sentinel->location == 'location');
+		if ($possibleOnLocations && count(Location::getAvailable()) == 0) {			
+			$possibleOnLocations = false; // if no location available on the table
+		}
 
 		return [
 			'possibleOnLords' => $possibleOnLords,

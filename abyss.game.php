@@ -120,7 +120,7 @@ class Abyss extends Table {
         $krakenExpansion = $this->isKrakenExpansion();
         // TODO TEMP        
         if ($this->getBgaEnvironment() == 'studio') { 
-            self::setGameStateValue(LEVIATHAN_EXPANSION, 2);
+            // self::setGameStateValue(LEVIATHAN_EXPANSION, 2);
         }
         $leviathanExpansion = $this->isLeviathanExpansion();
 
