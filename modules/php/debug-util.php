@@ -99,11 +99,15 @@ trait DebugUtilTrait {
 		}
 	}
 
+	// debugSetPlayerPearls(2343492, 10)
 	function debugSetPlayerPearls(int $playerId, int $number) {
 		$this->DbQuery("UPDATE player SET player_pearls = $number WHERE player_id = $playerId");
 	}
 	function debugSetPlayerNebulis(int $playerId, int $number) {
 		$this->DbQuery("UPDATE player SET player_nebulis = $number WHERE player_id = $playerId");
+	}
+	function debugSetPlayerKeys(int $playerId, int $number) {
+		$this->DbQuery("UPDATE player SET player_keys = $number WHERE player_id = $playerId");
 	}
 
     public function debugReplacePlayersIds() {

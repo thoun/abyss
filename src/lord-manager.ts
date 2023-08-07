@@ -1,6 +1,7 @@
 class LordManager extends CardManager<AbyssLord> {
   constructor(public game: AbyssGame) {
     super(game, {
+      animationManager: game.animationManager,
       getId: lord => `lord-${lord.lord_id}`,
       setupDiv: (lord, div) => {
         div.classList.add(`lord`);
@@ -27,6 +28,7 @@ class LordManager extends CardManager<AbyssLord> {
       setupBackDiv: (lord, div) => {
         div.classList.add(`lord-side`, `lord-back`);
       },
+      isCardVisible: () => true,
     });
   }
 

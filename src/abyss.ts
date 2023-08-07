@@ -14,6 +14,7 @@ const ZOOM_LEVELS = [0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1, 1.25, 1.5];
 const LOCAL_STORAGE_ZOOM_KEY = 'Abyss-zoom';
 
 class Abyss implements AbyssGame {
+    public animationManager: AnimationManager;
     public allyManager: AllyManager;
     public lordManager: LordManager;
     public lootManager: LootManager;
@@ -67,6 +68,7 @@ class Abyss implements AbyssGame {
 
         log('gamedatas', gamedatas);
 
+        this.animationManager = new AnimationManager(this);
         this.allyManager = new AllyManager(this);
         this.lordManager = new LordManager(this);
         this.lootManager = new LootManager(this);
@@ -328,6 +330,7 @@ class Abyss implements AbyssGame {
             zoomControls: {
                 color: 'white',
             },
+            smooth: false,
             onZoomChange: () => onResize(),
             //onDimensionsChange: () => this.onTableCenterSizeChange(),
         });
@@ -991,13 +994,12 @@ class Abyss implements AbyssGame {
             if (playerId == 0) {
                 (this as any).fadeOutAndDestroy(figurineToken);
             } else {
-                const parentElement = figurineToken.parentElement;
-
-                document.getElementById(`player_board_${playerId}_figurinesWrapper`).appendChild(figurineToken);
-                stockSlideAnimation({
-                    element: figurineToken,
-                    fromElement: parentElement
-                });
+                this.animationManager.attachWithAnimation(
+                    new BgaSlideAnimation({
+                        element: figurineToken,
+                    }),
+                    document.getElementById(`player_board_${playerId}_figurinesWrapper`)
+                );
             }
         } else {
             if (playerId != 0) {
@@ -1037,40 +1039,48 @@ class Abyss implements AbyssGame {
                 const sentinelsElement = document.getElementById(`player-panel-${playerId}-sentinels`);
                 sentinelsElement.appendChild(sentinel);
                 if (parentElement) {
-                    stockSlideAnimation({
-                        element: sentinel,
-                        fromElement: parentElement
-                    });
+                    this.animationManager.attachWithAnimation(
+                        new BgaSlideAnimation({
+                            element: sentinel,
+                        }),
+                        sentinelsElement
+                    );
                 }
                 break;
             case 'lord':
                 const lordElement = this.lordManager.getCardElement({ lord_id: locationArg } as AbyssLord);
                 lordElement.appendChild(sentinel);
                 if (parentElement) {
-                    stockSlideAnimation({
-                        element: sentinel,
-                        fromElement: parentElement
-                    });
+                    this.animationManager.attachWithAnimation(
+                        new BgaSlideAnimation({
+                            element: sentinel,
+                        }),
+                        lordElement
+                    );
                 }
                 break;
             case 'council':
                 const councilElement = document.getElementById(`council-track-${locationArg}`);
                 councilElement.appendChild(sentinel);
                 if (parentElement) {
-                    stockSlideAnimation({
-                        element: sentinel,
-                        fromElement: parentElement
-                    });
+                    this.animationManager.attachWithAnimation(
+                        new BgaSlideAnimation({
+                            element: sentinel,
+                        }),
+                        councilElement
+                    );
                 }
                 break;
             case 'location':
                 const locationElement = this.locationManager.getCardElement({ location_id: locationArg } as AbyssLocation);
                 locationElement.appendChild(sentinel);
                 if (parentElement) {
-                    stockSlideAnimation({
-                        element: sentinel,
-                        fromElement: parentElement
-                    });
+                    this.animationManager.attachWithAnimation(
+                        new BgaSlideAnimation({
+                            element: sentinel,
+                        }),
+                        locationElement
+                    );
                 }
                 break;
 

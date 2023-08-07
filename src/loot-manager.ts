@@ -1,6 +1,7 @@
 class LootManager extends CardManager<AbyssLoot> {
   constructor(public game: AbyssGame) {
-    super(game, {
+    super(game, {      
+      animationManager: game.animationManager,
       getId: loot => `loot-${loot.id}`,
       setupDiv: (loot, div) => {
         div.classList.add(`loot`);
@@ -10,6 +11,7 @@ class LootManager extends CardManager<AbyssLoot> {
       setupFrontDiv: (loot, div) => {
         div.dataset.value = `${loot.value}`;
       },
+      isCardVisible: loot => Boolean(loot.value),
     });
   }
 

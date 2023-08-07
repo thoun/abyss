@@ -1,6 +1,7 @@
 class MonsterManager extends CardManager<AbyssMonster> {
   constructor(public game: AbyssGame) {
     super(game, {
+      animationManager: game.animationManager,
       getId: monster => `monster-${monster.monster_id}`,
       setupDiv: (monster, div) => {
         div.classList.add(`monster`);
@@ -29,6 +30,7 @@ class MonsterManager extends CardManager<AbyssMonster> {
         
         this.game.setTooltip(div.id, monster.type == 1 ? /* TODO LEV _*/('Leviathan Monster token') : /* TODO LEV _*/('Base game Monster token'));
       },
+      isCardVisible: monster => Boolean(monster.value),
     });
   }
 

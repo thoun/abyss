@@ -2,6 +2,7 @@ class AllyManager extends CardManager<AbyssAlly> {
 
   constructor(public game: AbyssGame) {
     super(game, {
+      animationManager: game.animationManager,
       getId: ally => `ally-${ally.ally_id}`,
       setupDiv: (ally, div) => {
         div.classList.add(`ally`);
@@ -22,6 +23,7 @@ class AllyManager extends CardManager<AbyssAlly> {
       setupBackDiv: (ally, div) => {
         div.classList.add('ally-side', `ally-back`);
       },
+      isCardVisible: ally => true, //Boolean(ally.value), // monster doesn't have value or faction
     });
   }
 

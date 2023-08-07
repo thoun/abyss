@@ -110,6 +110,7 @@ interface AbyssGamedatas {
 }
 
 interface AbyssGame extends Game {
+    animationManager: AnimationManager;
     allyManager: AllyManager;
     lordManager: LordManager;
     lootManager: LootManager;

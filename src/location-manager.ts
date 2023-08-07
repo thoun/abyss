@@ -33,6 +33,7 @@ class LocationManager extends CardManager<AbyssLocation> {
 
   constructor(public game: AbyssGame, private lordManager: LordManager, private lootManager: LootManager) {
     super(game, {
+      animationManager: game.animationManager,
       getId: location => `location-${location.location_id}`,
       setupDiv: (location, div) => {
         const lordHolder = document.createElement('div');
@@ -67,7 +68,8 @@ class LocationManager extends CardManager<AbyssLocation> {
       },
       setupBackDiv: (location, div) => {
         div.classList.add('location-side', 'location-back');
-      }
+      },
+      isCardVisible: location => Boolean(location.name),
     });
   }
 
@@ -112,6 +114,7 @@ class LocationManager extends CardManager<AbyssLocation> {
   }
 
   public addLoot(locationId: number, loot: AbyssLoot) {
+    console.log('addLoot', loot);
     this.lootStocks[locationId].addCard(loot, {
       fromElement: document.getElementById('page-title'),
     });
