@@ -712,7 +712,7 @@ var CardStock = /** @class */ (function () {
      */
     CardStock.prototype.addCard = function (card, animation, settings) {
         var _this = this;
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         if (!this.canAddCard(card, settings)) {
             return Promise.resolve(false);
         }
@@ -727,25 +727,21 @@ var CardStock = /** @class */ (function () {
             var element = this.getCardElement(card);
             if (element) {
                 promise = this.moveFromOtherStock(card, element, __assign(__assign({}, animation), { fromStock: originStock }), settingsWithIndex);
+                needsCreation = false;
                 if (!updateInformations) {
                     element.dataset.side = ((_b = settingsWithIndex === null || settingsWithIndex === void 0 ? void 0 : settingsWithIndex.visible) !== null && _b !== void 0 ? _b : this.manager.isCardVisible(card)) ? 'front' : 'back';
                 }
             }
-            else {
-                needsCreation = true;
-            }
         }
-        else if ((animation === null || animation === void 0 ? void 0 : animation.fromStock) && animation.fromStock.contains(card)) {
+        else if ((_c = animation === null || animation === void 0 ? void 0 : animation.fromStock) === null || _c === void 0 ? void 0 : _c.contains(card)) {
             var element = this.getCardElement(card);
             if (element) {
                 promise = this.moveFromOtherStock(card, element, animation, settingsWithIndex);
-            }
-            else {
-                needsCreation = true;
+                needsCreation = false;
             }
         }
         if (needsCreation) {
-            var element = this.manager.createCardElement(card, ((_c = settingsWithIndex === null || settingsWithIndex === void 0 ? void 0 : settingsWithIndex.visible) !== null && _c !== void 0 ? _c : this.manager.isCardVisible(card)));
+            var element = this.manager.createCardElement(card, ((_d = settingsWithIndex === null || settingsWithIndex === void 0 ? void 0 : settingsWithIndex.visible) !== null && _d !== void 0 ? _d : this.manager.isCardVisible(card)));
             promise = this.moveFromElement(card, element, animation, settingsWithIndex);
         }
         if (settingsWithIndex.index !== null && settingsWithIndex.index !== undefined) {
