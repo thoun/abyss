@@ -243,7 +243,7 @@ trait StateTrait {
             }
 
             $playerPearls = self::getPlayerPearls( $player_id );
-            $player_obj = self::getObjectFromDB( "SELECT player_id id, player_autopass, player_has_purchased FROM player WHERE player_id = " . $player_id );
+            $player_obj = $this->getObjectFromDB( "SELECT player_id id, player_autopass, player_has_purchased FROM player WHERE player_id = " . $player_id );
             $has_purchased = intval($player_obj["player_has_purchased"]);
             $maxPurchase = Lord::playerHas(111, $player_id) ? 2 : 1;
 

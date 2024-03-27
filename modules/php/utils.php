@@ -157,7 +157,7 @@ trait UtilTrait {
     function checkNewKrakenOwner() {
         $currentKrakenOwner = intval($this->getGameStateValue(KRAKEN));
 
-        $playersNebulisDb = Abyss::getCollection("SELECT player_id, player_nebulis FROM player");
+        $playersNebulisDb = $this->getCollection("SELECT player_id, player_nebulis FROM player");
         $playersNebulisAfter = [];
         foreach($playersNebulisDb as $dbLine) {
             $playersNebulisAfter[intval($dbLine['player_id'])] = intval($dbLine['player_nebulis']);
@@ -502,7 +502,7 @@ trait UtilTrait {
             $ally = null;
             $monster = true;
             do {
-                $ally = Ally::typedAlly(Abyss::getObject("SELECT * FROM ally WHERE place = 0 ORDER BY RAND() LIMIT 1"));
+                $ally = Ally::typedAlly($this->getObject("SELECT * FROM ally WHERE place = 0 ORDER BY RAND() LIMIT 1"));
                 $monster = $ally['faction'] === NULL;
 
                 $log = null;

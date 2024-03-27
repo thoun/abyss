@@ -67,7 +67,7 @@ trait ArgsTrait {
 	}
 
 	function argExplorePurchase() {
-		$passed_players = self::getObjectListFromDB( "SELECT player_id id FROM player WHERE player_has_purchased", true);
+		$passed_players = $this->getObjectListFromDB( "SELECT player_id id FROM player WHERE player_has_purchased", true);
 
 		return [
 			'passed_players' => array_map(fn($pId) => intval($pId), $passed_players), 

@@ -50,19 +50,19 @@ class Location
     self::draw();
   }
 
-  public function typedLocation(array $dbResult) {
+  public static function typedLocation(array $dbResult) {
     $dbResult['location_id'] = intval($dbResult['location_id']);
     $dbResult['place'] = intval($dbResult['place']);
 
     return $dbResult;
   }
 
-  public function typedLocations(array $dbResults) {
+  public static function typedLocations(array $dbResults) {
     return array_values(array_map(fn($dbResult) => self::typedLocation($dbResult), $dbResults));
   }
 
   public static function draw() {
-    $location = self::typedLocation(Abyss::getObject( "SELECT * FROM location WHERE place = 0 ORDER BY RAND() LIMIT 1"));
+    $location = self::typedLocation(self::$game->getObject( "SELECT * FROM location WHERE place = 0 ORDER BY RAND() LIMIT 1"));
     if (! $location) return null;
     Abyss::DbQuery( "UPDATE location SET place = 1 WHERE location_id = $location[location_id]" );
     $location["place"] = 1;
@@ -70,15 +70,15 @@ class Location
   }
 
   public static function getAvailable() {
-    return self::injectText(Abyss::getCollection( "SELECT * FROM location WHERE place = 1" ));
+    return self::injectText(self::$game->getCollection( "SELECT * FROM location WHERE place = 1" ));
   }
 
   public static function getDeck() {
-    return self::injectText(Abyss::getCollection( "SELECT * FROM location WHERE place = 0" ));
+    return self::injectText(self::$game->getCollection( "SELECT * FROM location WHERE place = 0" ));
   }
 
   public static function get(int $location_id) {
-    return self::injectTextSingle(Abyss::getObject( "SELECT * FROM location WHERE location_id = $location_id" ));
+    return self::injectTextSingle(self::$game->getObject( "SELECT * FROM location WHERE location_id = $location_id" ));
   }
 
   public static function getDeckSize() {
@@ -86,11 +86,11 @@ class Location
   }
 
   public static function getPlayerHand(int $player_id) {
-    return self::injectText(Abyss::getCollection( "SELECT * FROM location WHERE place = -" . $player_id . "" ));
+    return self::injectText(self::$game->getCollection( "SELECT * FROM location WHERE place = -" . $player_id . "" ));
   }
 
   public static function getAllOpponents(int $player_id) {
-    return self::injectText(Abyss::getCollection( "SELECT * FROM location WHERE place != -" . $player_id . " AND place < 0" ));
+    return self::injectText(self::$game->getCollection( "SELECT * FROM location WHERE place != -" . $player_id . " AND place < 0" ));
   }
 
   public static function baseScore(int $location_id) {

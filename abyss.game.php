@@ -79,8 +79,12 @@ class Abyss extends Table {
             LEVIATHAN_EXPANSION => LEVIATHAN_EXPANSION,
         ]);
 
+        Ally::init( $this );
         Lord::init( $this );
         Location::init( $this );
+		Monster::init( $this );
+        LootManager::init( $this );
+        LeviathanManager::init( $this );
 	}
 
     protected function getGameName() {
@@ -207,7 +211,7 @@ class Abyss extends Table {
             $sql .= ", player_nebulis `nebulis`";
         }
         $sql .= " FROM player ";
-        $result['players'] = self::getCollectionFromDb( $sql );
+        $result['players'] = $this->getCollectionFromDb( $sql );
 		foreach ($result['players'] as $playerId => &$player) {
             $player['keys'] = intval($player['keys']);
             $player['pearls'] = intval($player['pearls']);
@@ -393,7 +397,7 @@ class Abyss extends Table {
     }
 
 	// Hacks
-	public static function getCollection( $sql ) { return self::getCollectionFromDb( $sql ); }
-	public static function getObject( $sql ) { return self::getObjectFromDB( $sql ); }
+	public function getCollection( $sql ) { return $this->getCollectionFromDb( $sql ); }
+	public function getObject( $sql ) { return $this->getObjectFromDB( $sql ); }
 	public static function getValue( $sql ) { return self::getUniqueValueFromDB( $sql ); }
 }

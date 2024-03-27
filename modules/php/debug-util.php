@@ -83,7 +83,7 @@ trait DebugUtilTrait {
 
 	function debugAddLord(int $playerId, $location = null, int $number = 3) {
 		for ($i=0; $i<$number; $i++) {
-			$lord = Abyss::getObject( "SELECT * FROM lord WHERE place = 0 ORDER BY RAND() LIMIT 1" );
+			$lord = $this->getObject( "SELECT * FROM lord WHERE place = 0 ORDER BY RAND() LIMIT 1" );
 			self::DbQuery($location == null ? 
 				"UPDATE lord SET place = ".($playerId * -1)." WHERE lord_id = " . $lord["lord_id"] : 
 				"UPDATE lord SET place = ".($playerId * -1).", location = $location WHERE lord_id = " . $lord["lord_id"] 

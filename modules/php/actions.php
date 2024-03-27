@@ -825,7 +825,7 @@ trait ActionTrait {
                 $afterMartialLaw = 'next';
             }
 
-            $allies = Ally::typedAllies(Abyss::getCollection( "SELECT * FROM ally WHERE place = -" . $player_id . " AND NOT affiliated AND ally_id IN (".implode(",", $ally_ids).")"));
+            $allies = Ally::typedAllies($this->getCollection( "SELECT * FROM ally WHERE place = -" . $player_id . " AND NOT affiliated AND ally_id IN (".implode(",", $ally_ids).")"));
             if ($this->array_some($allies, fn($ally) => $ally['faction'] == 10)) {
                 throw new BgaUserException(self::_("You cannot discard Kraken Allies in this way."));
             }
@@ -998,7 +998,7 @@ trait ActionTrait {
 
             // Discard the Lord, and give the player a new one!
             Lord::discard( $lord_id );
-            $lord2 = Lord::injectTextSingle(Abyss::getObject( "SELECT * FROM lord WHERE place = 0 ORDER BY RAND() LIMIT 1" ));
+            $lord2 = Lord::injectTextSingle($this->getObject( "SELECT * FROM lord WHERE place = 0 ORDER BY RAND() LIMIT 1" ));
             Lord::giveToPlayer( $lord2["lord_id"], $player_id );
 
             self::notifyAllPlayers( "recruit", clienttranslate('${player_name} swaps ${lord_name} for ${lord_name2} using ${lord_name3}'), array(
@@ -1244,7 +1244,7 @@ trait ActionTrait {
             // Move the old Location to the available ones
             self::DbQuery( "UPDATE location SET place = 1 WHERE location_id = $old_location_id" );
 
-            $trapped_lords = Lord::injectText(self::getCollectionFromDb( "SELECT * FROM lord WHERE location = $location_id" ));
+            $trapped_lords = Lord::injectText($this->getCollectionFromDb( "SELECT * FROM lord WHERE location = $location_id" ));
 
             self::notifyAllPlayers( "loseLocation", '', array(
                     'location_id' => $old_location_id,
@@ -1266,7 +1266,7 @@ trait ActionTrait {
             // Discard the old Location
             self::DbQuery( "UPDATE location SET place = 10 WHERE location_id = 10" );
 
-            $trapped_lords = Lord::injectText(self::getCollectionFromDb( "SELECT * FROM lord WHERE location = $location_id" ));
+            $trapped_lords = Lord::injectText($this->getCollectionFromDb( "SELECT * FROM lord WHERE location = $location_id" ));
 
             self::notifyAllPlayers( "loseLocation", '', array(
                     'location_id' => 10,

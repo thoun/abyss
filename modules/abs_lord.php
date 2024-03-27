@@ -124,7 +124,7 @@ class Lord
     self::refill();
   }
 
-  public function typedLord(array $dbResult) {
+  public static function typedLord(array $dbResult) {
     $dbResult['lord_id'] = intval($dbResult['lord_id']);
     $dbResult['points'] = intval($dbResult['points']);
     $dbResult['keys'] = intval($dbResult['keys']);
@@ -139,12 +139,12 @@ class Lord
     return $dbResult;
   }
 
-  public function typedLords(array $dbResults) {
+  public static function typedLords(array $dbResults) {
     return array_values(array_map(fn($dbResult) => self::typedLord($dbResult), $dbResults));
   }
 
   public static function getSlots() {
-    return array_values(self::injectText(Abyss::getCollection( "SELECT * FROM lord WHERE place >= 1 AND place <= 6 ORDER BY place ASC" )));
+    return array_values(self::injectText(self::$game->getCollection( "SELECT * FROM lord WHERE place >= 1 AND place <= 6 ORDER BY place ASC" )));
   }
 
   public static function getDeckSize() {
@@ -152,11 +152,11 @@ class Lord
   }
 
   public static function getInTrack(int $lord_id ) {
-    return self::injectTextSingle(Abyss::getObject( "SELECT * FROM lord WHERE lord_id = $lord_id AND place >= 1 AND place <= 6" ));
+    return self::injectTextSingle(self::$game->getObject( "SELECT * FROM lord WHERE lord_id = $lord_id AND place >= 1 AND place <= 6" ));
   }
 
   public static function get(int $lord_id ) {
-    return self::injectTextSingle(Abyss::getObject( "SELECT * FROM lord WHERE lord_id = $lord_id" ));
+    return self::injectTextSingle(self::$game->getObject( "SELECT * FROM lord WHERE lord_id = $lord_id" ));
   }
 
   public static function giveToPlayer(int $lord_id, int $player_id ) {
@@ -195,7 +195,7 @@ class Lord
     // Lords should be in slots 1, 2, 3, 4, 5, 6 -- any gaps, move right
     $num = 6 - count(self::getSlots());
     if ($num > 0) {
-      $lords = Abyss::getCollection( "SELECT * FROM lord WHERE place = 0 ORDER BY RAND() LIMIT $num" );
+      $lords = self::$game->getCollection( "SELECT * FROM lord WHERE place = 0 ORDER BY RAND() LIMIT $num" );
       $slot = 1;
       foreach ($lords as $k => $v) {
         Abyss::DbQuery( "UPDATE lord SET place = $slot WHERE lord_id = $k" );
@@ -221,14 +221,14 @@ class Lord
   }
 
   public static function putRandom(int $slot ) {
-    $lord = Abyss::getObject( "SELECT * FROM lord WHERE place = 0 ORDER BY RAND() LIMIT 1" );
+    $lord = self::$game->getObject( "SELECT * FROM lord WHERE place = 0 ORDER BY RAND() LIMIT 1" );
     Abyss::DbQuery( "UPDATE lord SET place = $slot WHERE lord_id = $lord[lord_id]" );
     $lord["place"] = $slot;
     return self::injectTextSingle($lord);
   }
 
   public static function getPlayerHand(int $player_id ) {
-    return array_values(self::injectText(Abyss::getCollection( "SELECT * FROM lord WHERE place = -" . $player_id . "" )));
+    return array_values(self::injectText(self::$game->getCollection( "SELECT * FROM lord WHERE place = -" . $player_id . "" )));
   }
 
   public static function getKeys(int $player_id ) {

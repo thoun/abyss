@@ -1,6 +1,12 @@
 <?php
 
 class Ally {
+  public static $game;
+
+  public static function init( $theGame ) {
+    self::$game = $theGame;
+  }
+
   public static function setup(bool $krakenExpansion, bool $leviathanExpansion, array $playersIds) {
     $sql = "INSERT INTO ally (`faction`, `value`) VALUES ";
 
@@ -44,10 +50,10 @@ class Ally {
   }
 
   public static function getExploreSlots() {
-    return Ally::typedAllies(Abyss::getCollection( "SELECT * FROM ally WHERE place >= 1 AND place <= 5 ORDER BY place ASC" ));
+    return Ally::typedAllies(self::$game->getCollection( "SELECT * FROM ally WHERE place >= 1 AND place <= 5 ORDER BY place ASC" ));
   }
 
-  public function typedAlly(array $dbResult) {
+  public static function typedAlly(array $dbResult) {
     $dbResult['ally_id'] = intval($dbResult['ally_id']);
     $dbResult['faction'] = $dbResult['faction'] == null ? null : intval($dbResult['faction']);
     $dbResult['value'] = intval($dbResult['value']);
@@ -59,20 +65,20 @@ class Ally {
     return $dbResult;
   }
 
-  public function typedAllies(array $dbResults) {
+  public static function typedAllies(array $dbResults) {
     return array_values(array_map(fn($dbResult) => self::typedAlly($dbResult), $dbResults));
   }
 
   public static function draw() {
     $nextSlot = count(Ally::getExploreSlots()) + 1;
-    $ally = self::typedAlly(Abyss::getObject("SELECT * FROM `ally` WHERE `place` = 0 ORDER BY RAND() LIMIT 1" ));
+    $ally = self::typedAlly(self::$game->getObject("SELECT * FROM `ally` WHERE `place` = 0 ORDER BY RAND() LIMIT 1" ));
     Abyss::DbQuery( "UPDATE ally SET place = $nextSlot WHERE ally_id = " . $ally['ally_id'] );
     $ally['place'] = $nextSlot;
     return $ally;
   }
 
   public static function setStartingSoldierAlly(int $playerId) {
-    $ally = self::typedAlly(Abyss::getObject("SELECT * FROM `ally` WHERE `place` = 0 AND `faction` = 1 AND `value` = 1 AND `effect` IS NULL LIMIT 1" ));
+    $ally = self::typedAlly(self::$game->getObject("SELECT * FROM `ally` WHERE `place` = 0 AND `faction` = 1 AND `value` = 1 AND `effect` IS NULL LIMIT 1" ));
     Abyss::DbQuery( "UPDATE ally SET place = -$playerId WHERE ally_id = " . $ally['ally_id'] );
     $ally['place'] = -$playerId;
     return $ally;
@@ -89,7 +95,7 @@ class Ally {
   }
 
   public static function drawCouncilSlot(int $faction, int $player_id) {
-    $allies = Abyss::getCollection( "SELECT * FROM ally WHERE (place = 6 AND faction = $faction) OR place = 100 + $faction " );
+    $allies = self::$game->getCollection( "SELECT * FROM ally WHERE (place = 6 AND faction = $faction) OR place = 100 + $faction " );
     Abyss::DbQuery( "UPDATE ally SET place = ".(-1 * $player_id)." WHERE (place = 6 AND faction = $faction) OR place = 100 + $faction" );
     return self::typedAllies($allies);
   }
@@ -118,23 +124,23 @@ class Ally {
   }
 
   public static function getPlayerHand( $player_id ) {
-    return self::typedAllies(Abyss::getCollection( "SELECT * FROM ally WHERE place = -" . $player_id . " AND NOT affiliated"));
+    return self::typedAllies(self::$game->getCollection( "SELECT * FROM ally WHERE place = -" . $player_id . " AND NOT affiliated"));
   }
 
   public static function get(int $ally_id ) {
-    return self::typedAlly(Abyss::getObject( "SELECT * FROM ally WHERE ally_id = $ally_id" ));
+    return self::typedAlly(self::$game->getObject( "SELECT * FROM ally WHERE ally_id = $ally_id" ));
   }
 
   public static function getPlayerAffiliated( $player_id ) {
-    return self::typedAllies(Abyss::getCollection( "SELECT * FROM ally WHERE place = -" . $player_id . " AND affiliated"));
+    return self::typedAllies(self::$game->getCollection( "SELECT * FROM ally WHERE place = -" . $player_id . " AND affiliated"));
   }
 
   public static function getJustSpent() {
-    return self::typedAllies(Abyss::getCollection( "SELECT * FROM ally WHERE just_spent"));
+    return self::typedAllies(self::$game->getCollection( "SELECT * FROM ally WHERE just_spent"));
   }
 
   public static function getDiscard() {
-    return self::typedAllies(Abyss::getCollection( "SELECT * FROM ally WHERE place = 10"));
+    return self::typedAllies(self::$game->getCollection( "SELECT * FROM ally WHERE place = 10"));
   }
 
   public static function getDiversityAndValue(array $hand, $required ) {
@@ -170,7 +176,7 @@ class Ally {
       return array();
     }
 
-    $allies = Abyss::getCollection( "SELECT * FROM ally WHERE place = -" . $player_id . " AND NOT affiliated AND ally_id IN (".implode(",", $ally_ids).")" );
+    $allies = self::$game->getCollection( "SELECT * FROM ally WHERE place = -" . $player_id . " AND NOT affiliated AND ally_id IN (".implode(",", $ally_ids).")" );
 
     if (count($allies) != count($ally_ids)) {
       throw new BgaVisibleSystemException( "You do not have those Allies in your hand." );

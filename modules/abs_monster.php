@@ -1,6 +1,12 @@
 <?php
 
 class Monster {
+  public static $game;
+
+  public static function init( $theGame ) {
+    self::$game = $theGame;
+  }
+
   public static function setup(bool $leviathanExpansion) {
     $sql = "INSERT INTO monster (`value`) VALUES ";
     $values = [];
@@ -29,7 +35,7 @@ class Monster {
     }
   }
 
-  public function typedMonster(array $dbResult) {
+  public static function typedMonster(array $dbResult) {
     $dbResult['monster_id'] = intval($dbResult['monster_id']);
     $dbResult['type'] = $dbResult['effect'] !== null ? 1 : 0;
     $dbResult['value'] = intval($dbResult['value']);
@@ -51,12 +57,12 @@ class Monster {
       return array_map(fn($card) => self::onlyId($card), $cards);
   }
 
-  public function typedMonsters(array $dbResults) {
+  public static function typedMonsters(array $dbResults) {
     return array_values(array_map(fn($dbResult) => self::typedMonster($dbResult), $dbResults));
   }
 
   public static function draw(int $player_id, int $deck = 0) {
-    $monster = self::typedMonster(Abyss::getObject( "SELECT * FROM monster WHERE place = $deck ORDER BY RAND() LIMIT 1"));
+    $monster = self::typedMonster(self::$game->getObject( "SELECT * FROM monster WHERE place = $deck ORDER BY RAND() LIMIT 1"));
     if (isset($monster)) {
       self::giveToPlayer( $player_id, $monster['monster_id'] );
       Abyss::DbQuery( "UPDATE monster SET place = ".(-1 * $player_id)." WHERE monster_id = " . $monster['monster_id'] );
@@ -78,6 +84,6 @@ class Monster {
   }
 
   public static function getPlayerHand(int $player_id) {
-    return self::typedMonsters(Abyss::getCollection( "SELECT * FROM monster WHERE place = -" . $player_id));
+    return self::typedMonsters(self::$game->getCollection( "SELECT * FROM monster WHERE place = -" . $player_id));
   }
 }
