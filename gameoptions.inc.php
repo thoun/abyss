@@ -43,7 +43,7 @@ $game_options = [
         'default' => 1,
     ],
 
-    /*LEVIATHAN_EXPANSION => [
+    LEVIATHAN_EXPANSION => [
         'name' => totranslate('Leviathan expansion'),
         'values' => [
             1 => [
@@ -56,18 +56,18 @@ $game_options = [
                 'alpha' => true,
             ],
         ],
-        'default' => 1,
+        'default' => 2, // TODO default to 1 for release
         'startcondition' => [
             1 => [
                 [
                     'type' => 'maxplayers',
                     'value' => 4,
-                    'message' => totranslate('You can only player with 5 players if Leviathan expansion is activated'),
+                    'message' => totranslate('You can only play with 5 players if Leviathan expansion is activated'),
                 ]
             ],
             2 => [],
         ],
-    ],*/
+    ],
 
 ];
 

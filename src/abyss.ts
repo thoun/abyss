@@ -20,11 +20,13 @@ class Abyss implements AbyssGame {
     public lootManager: LootManager;
     public locationManager: LocationManager;
     public monsterManager: MonsterManager;
+    public leviathanManager: LeviathanManager;
 
     private gamedatas: AbyssGamedatas;
     private zoomManager: ZoomManager;
     private playersTables: PlayerTable[] = [];
     private lastExploreTime: number;
+    private leviathanBoard: LeviathanBoard;
     private visibleAllies: SlotStock<AbyssAlly>;
     private councilStacks: VoidStock<AbyssAlly>[] = [];
     private visibleLords: SlotStock<AbyssLord>;
@@ -62,6 +64,7 @@ class Abyss implements AbyssGame {
             (this as any).dontPreloadImage(`icons-leviathan.png`);
             (this as any).dontPreloadImage(`icons-leviathan.png`);
             (this as any).dontPreloadImage(`allies-leviathan.jpg`);
+            (this as any).dontPreloadImage(`leviathans.jpg`);
         }
         
         this.gamedatas = gamedatas;
@@ -74,6 +77,13 @@ class Abyss implements AbyssGame {
         this.lootManager = new LootManager(this);
         this.locationManager = new LocationManager(this, this.lordManager, this.lootManager);
         this.monsterManager = new MonsterManager(this);
+        this.leviathanManager = new LeviathanManager(this);
+
+        if (gamedatas.leviathanExpansion) {
+            this.leviathanBoard = new LeviathanBoard(this, gamedatas);
+        } else {
+            document.getElementById('leviathan-board')?.remove();
+        }
         
         dojo.connect($('modified-layout-checkbox'), 'onchange', () => {
             dojo.toggleClass($('game-board-holder'), "playmat", $('modified-layout-checkbox').checked);

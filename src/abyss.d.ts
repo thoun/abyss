@@ -115,6 +115,7 @@ interface AbyssGame extends Game {
     lordManager: LordManager;
     lootManager: LootManager;
     locationManager: LocationManager;
+    leviathanManager: LeviathanManager;
     keyTokenCounts: number[];
     keyFreeLordsCounts: number[];
 

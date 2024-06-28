@@ -305,6 +305,72 @@ body > .card {
   display: none;
 }
 
+#leviathan-board {
+  position: relative;
+  width: 369px;
+  height: 440px;
+}
+#leviathan-board #leviathan-track {
+  position: absolute;
+  top: 0;
+  left: 136px;
+  width: 97px;
+  height: 440px;
+  background: url("img/leviathan-track.jpg");
+}
+#leviathan-board .slot {
+  position: absolute;
+  width: 136px;
+  height: 88px;
+}
+#leviathan-board .slot[data-slot-id="1"] {
+  left: 0px;
+  top: 0px;
+}
+#leviathan-board .slot[data-slot-id="2"] {
+  left: 233px;
+  top: 44px;
+}
+#leviathan-board .slot[data-slot-id="3"] {
+  left: 0px;
+  top: 88px;
+}
+#leviathan-board .slot[data-slot-id="4"] {
+  left: 233px;
+  top: 132px;
+}
+#leviathan-board .slot[data-slot-id="5"] {
+  left: 0px;
+  top: 176px;
+}
+#leviathan-board .slot[data-slot-id="6"] {
+  left: 233px;
+  top: 220px;
+}
+#leviathan-board .slot[data-slot-id="7"] {
+  left: 0px;
+  top: 264px;
+}
+#leviathan-board .slot[data-slot-id="8"] {
+  left: 233px;
+  top: 308px;
+}
+#leviathan-board .slot[data-slot-id="9"] {
+  left: 0px;
+  top: 352px;
+}
+
+.leviathan-card {
+  display: inline-block;
+  position: relative;
+  border-radius: 10px;
+  text-align: center;
+  width: 136px;
+  height: 88px;
+  background-image: url("img/leviathans.jpg");
+  background-size: auto 400%;
+}
+
 #table {
   display: flex;
   justify-content: center;

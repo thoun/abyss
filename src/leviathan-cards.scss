@@ -1,0 +1,46 @@
+#leviathan-board {
+  position: relative;
+  width: 369px; // 97 + 2 * 136
+  height: 440px;
+  
+  #leviathan-track {
+    position: absolute;
+    top: 0;
+    left: 136px;
+    width: 97px;
+    height: 440px;
+    background: url('img/leviathan-track.jpg');
+  }
+
+  .slot {
+    position: absolute;
+    width: 136px;
+    height: 88px;
+
+    @for $i from 1 through 9 {
+      &[data-slot-id="#{$i}"] {
+        @if $i % 2 == 1 {
+          left: 0px;
+          top: #{($i - 1) * 88px / 2};
+        }
+        @if $i % 2 == 0 {
+          left: 233px;
+          top: #{($i - 1) * 88px / 2};
+        }
+      }
+    }
+  }
+}
+
+.leviathan-card {
+  display: inline-block;
+  position: relative;
+  border-radius: 10px;
+  text-align: center;
+  //width: 550px;
+  //height: 358px;
+  width: 136px;
+  height: 88px;
+  background-image: url('img/leviathans.jpg');
+  background-size: auto 400%;
+}

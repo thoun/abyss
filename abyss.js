@@ -2287,6 +2287,33 @@ var MonsterManager = /** @class */ (function (_super) {
     };
     return MonsterManager;
 }(CardManager));
+var LeviathanManager = /** @class */ (function (_super) {
+    __extends(LeviathanManager, _super);
+    function LeviathanManager(game) {
+        var _this = _super.call(this, game, {
+            animationManager: game.animationManager,
+            getId: function (leviathan) { return "leviathan-".concat(leviathan.id); },
+            setupFrontDiv: function (leviathan, div) {
+                div.classList.add("leviathan-card");
+                console.log(leviathan);
+                var imagePosition = leviathan.id - 1;
+                var image_items_per_row = 5;
+                var row = Math.floor(imagePosition / image_items_per_row);
+                var xBackgroundPercent = (imagePosition - (row * image_items_per_row)) * 100;
+                var yBackgroundPercent = row * 100;
+                div.style.backgroundPosition = "-".concat(xBackgroundPercent, "% -").concat(yBackgroundPercent, "%");
+            },
+            isCardVisible: function () { return true; },
+            //cardHeight: 358,
+            //cardWidth: 550,
+            cardHeight: 88,
+            cardWidth: 136,
+        }) || this;
+        _this.game = game;
+        return _this;
+    }
+    return LeviathanManager;
+}(CardManager));
 var PlayerTable = /** @class */ (function () {
     function PlayerTable(game, player) {
         var _this = this;
@@ -2432,6 +2459,17 @@ var PlayerTable = /** @class */ (function () {
     PlayerTable.sortAllies = sortFunction('faction', 'value');
     return PlayerTable;
 }());
+var LeviathanBoard = /** @class */ (function () {
+    function LeviathanBoard(game, gamedatas) {
+        this.game = game;
+        this.stock = new SlotStock(this.game.leviathanManager, document.getElementById('leviathan-board'), {
+            slotsIds: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+            mapCardToSlot: function (card) { return card.place; },
+        });
+        this.stock.addCards(gamedatas.leviathans);
+    }
+    return LeviathanBoard;
+}());
 var isDebug = window.location.host == 'studio.boardgamearena.com' || window.location.hash.indexOf('debug') > -1;
 var log = isDebug ? console.log.bind(window.console) : function () { };
 var debounce;
@@ -2456,7 +2494,7 @@ var Abyss = /** @class */ (function () {
     }
     Abyss.prototype.setup = function (gamedatas) {
         var _this = this;
-        var _a;
+        var _a, _b;
         log("Starting game setup");
         if (!gamedatas.krakenExpansion) {
             this.dontPreloadImage("kraken.png");
@@ -2469,6 +2507,7 @@ var Abyss = /** @class */ (function () {
             this.dontPreloadImage("icons-leviathan.png");
             this.dontPreloadImage("icons-leviathan.png");
             this.dontPreloadImage("allies-leviathan.jpg");
+            this.dontPreloadImage("leviathans.jpg");
         }
         this.gamedatas = gamedatas;
         log('gamedatas', gamedatas);
@@ -2478,6 +2517,13 @@ var Abyss = /** @class */ (function () {
         this.lootManager = new LootManager(this);
         this.locationManager = new LocationManager(this, this.lordManager, this.lootManager);
         this.monsterManager = new MonsterManager(this);
+        this.leviathanManager = new LeviathanManager(this);
+        if (gamedatas.leviathanExpansion) {
+            this.leviathanBoard = new LeviathanBoard(this, gamedatas);
+        }
+        else {
+            (_a = document.getElementById('leviathan-board')) === null || _a === void 0 ? void 0 : _a.remove();
+        }
         dojo.connect($('modified-layout-checkbox'), 'onchange', function () {
             dojo.toggleClass($('game-board-holder'), "playmat", $('modified-layout-checkbox').checked);
         });
@@ -2619,7 +2665,7 @@ var Abyss = /** @class */ (function () {
             // $('gameplay-options').style.display = this.bRealtime ? 'none' : 'inline-block';
             dojo.style($('last-round'), { 'display': 'block' });
         }
-        (_a = this.gamedatas.sentinels) === null || _a === void 0 ? void 0 : _a.filter(function (sentinel) { return sentinel.playerId; }).forEach(function (sentinel) { return _this.placeSentinelToken(sentinel.playerId, sentinel.lordId, sentinel.location, sentinel.locationArg); });
+        (_b = this.gamedatas.sentinels) === null || _b === void 0 ? void 0 : _b.filter(function (sentinel) { return sentinel.playerId; }).forEach(function (sentinel) { return _this.placeSentinelToken(sentinel.playerId, sentinel.lordId, sentinel.location, sentinel.locationArg); });
         // Insert options into option box
         var me = gamedatas.players[this.player_id];
         if (me) {

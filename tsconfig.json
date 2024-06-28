@@ -34,8 +34,10 @@
         "src/location-manager.ts",
         "src/loot-manager.ts",
         "src/monster-manager.ts",
+        "src/leviathan-manager.ts",
         "src/helpers.ts",
         "src/player-table.ts",
+        "src/leviathan-board.ts",
         "src/abyss.ts",
         "src/define.ts"
     ]
