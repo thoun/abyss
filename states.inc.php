@@ -154,6 +154,7 @@ $machinestates = array(
 				"exploreTakeAlly" => ST_PRE_CONTROL,  
 				"exploreTakeAllyRemainingKrakens" => ST_PLAYER_PLACE_KRAKEN,
 				"exploreTakeMonster" => ST_PLAYER_CHOOSE_MONSTER_REWARD, 
+				"chooseLeviathanToFight" => ST_PLAYER_CHOOSE_LEVIATHAN_TO_FIGHT,
 				"lord_17" => ST_PLAYER_LORD17, 
 				"lord_21" => ST_PLAYER_LORD21, 
 				"lord_12" => ST_PLAYER_LORD12, 
@@ -185,6 +186,7 @@ $machinestates = array(
 			"exploreTakeAlly" => ST_PRE_CONTROL, 
 			"exploreTakeAllyRemainingKrakens" => ST_PLAYER_PLACE_KRAKEN,
 			"exploreTakeMonster" => ST_PLAYER_CHOOSE_MONSTER_REWARD, 
+			"chooseLeviathanToFight" => ST_PLAYER_CHOOSE_LEVIATHAN_TO_FIGHT,
 			"lord_17" => ST_PLAYER_LORD17, 
 			"lord_21" => ST_PLAYER_LORD21, 
 			"lord_12" => ST_PLAYER_LORD12, 
@@ -473,6 +475,82 @@ $machinestates = array(
 		],
 		"transitions" => [
 			"nextSentinel" => ST_PLAYER_PLACE_SENTINEL,
+		],
+	],
+
+	ST_PLAYER_CHOOSE_LEVIATHAN_TO_FIGHT => [
+		"name" => "chooseLeviathanToFight",
+		"description" => clienttranslate('${actplayer} must choose the Leviathan to fight'),
+		"descriptionmyturn" => clienttranslate('${you} must choose the Leviathan to fight'),
+		"type" => "activeplayer",
+		"args" => "argChooseLeviathanToFight",
+		"possibleactions" => [
+			"actChooseLeviathanToFight",
+		],
+		"transitions" => [
+			"next" => ST_PLAYER_CHOOSE_ALLY_TO_FIGHT,
+		],
+	],
+
+	ST_PLAYER_CHOOSE_ALLY_TO_FIGHT => [
+		"name" => "chooseAllyToFight",
+		"description" => clienttranslate('${actplayer} must discard an Ally to fight the Leviathan'),
+		"descriptionmyturn" => clienttranslate('${you} must discard an Ally to fight the Leviathan'),
+		"type" => "activeplayer",
+		"args" => "argChooseAllyToFight",
+		"possibleactions" => [
+			"actChooseAllyToFight",
+		],
+		"transitions" => [
+			"next" => ST_PLAYER_INCREASE_ATTACK_POWER,
+		],
+	],
+
+	ST_PLAYER_INCREASE_ATTACK_POWER => [
+		"name" => "increaseAttackPower",
+		"description" => clienttranslate('${actplayer} can increase attack power with Pearls (current attack power : ${attackPower})'),
+		"descriptionmyturn" => clienttranslate('${you} can increase attack power with Pearls (current attack power : ${attackPower})'),
+		"type" => "activeplayer",
+		"args" => "argIncreaseAttackPower",
+		"action" => "stIncreaseAttackPower",
+		"possibleactions" => [
+			"actIncreaseAttackPower",
+		],
+		"transitions" => [
+			"nextSuccess" => ST_PLAYER_CHOOSE_FIGHT_REWARD,
+			"nextFailed" => ST_PLAYER_CHOOSE_FIGHT_AGAIN,  
+		],
+	],
+
+	ST_PLAYER_CHOOSE_FIGHT_REWARD => [
+		"name" => "chooseFightReward",
+		"description" => clienttranslate('${actplayer} must choose the rewards'),
+		"descriptionmyturn" => clienttranslate('${you} must choose the rewards'),
+		"type" => "activeplayer",
+		"args" => "argChooseFightReward",
+		"possibleactions" => [
+			"actChooseFightReward",
+		],
+		"transitions" => [
+			"next" => ST_PLAYER_CHOOSE_FIGHT_AGAIN,  
+		],
+	],
+
+	ST_PLAYER_CHOOSE_FIGHT_AGAIN => [
+		"name" => "chooseFightAgain",
+		"description" => clienttranslate('${actplayer} must choose to fight again of end turn'),
+		"descriptionmyturn" => clienttranslate('${you} must choose to fight again of end turn'),
+		"type" => "activeplayer",
+		"args" => "argChooseFightAgain",
+		"action" => "stChooseFightAgain",
+		"possibleactions" => [
+			"actFightAgain",
+			"actEndFight",
+		],
+		"transitions" => [
+			"again" => ST_PLAYER_CHOOSE_ALLY_TO_FIGHT,
+			"next" => ST_PRE_CONTROL,  
+			"nextRemainingKrakens" => ST_PLAYER_PLACE_KRAKEN,
 		],
 	],
 

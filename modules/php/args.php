@@ -340,9 +340,9 @@ trait ArgsTrait {
 	function argPlaceSentinel() {
 		$sentinels = $this->getSentinels();
 
-		$possibleOnLords = !$this->array_some($sentinels, fn($sentinel) => $sentinel->location == 'lord');
-		$possibleOnCouncil = !$this->array_some($sentinels, fn($sentinel) => $sentinel->location == 'council');
-		$possibleOnLocations = !$this->array_some($sentinels, fn($sentinel) => $sentinel->location == 'location');
+		$possibleOnLords = !array_some($sentinels, fn($sentinel) => $sentinel->location == 'lord');
+		$possibleOnCouncil = !array_some($sentinels, fn($sentinel) => $sentinel->location == 'council');
+		$possibleOnLocations = !array_some($sentinels, fn($sentinel) => $sentinel->location == 'location');
 		if ($possibleOnLocations && count(Location::getAvailable()) == 0) {			
 			$possibleOnLocations = false; // if no location available on the table
 		}
@@ -360,6 +360,62 @@ trait ArgsTrait {
 
 		return [
 			'ally' => $ally,
+		];
+	}
+
+	function argChooseLeviathanToFight(): array {
+		$playerId = $this->getActivePlayerId();
+
+		$selectableLeviathans = LeviathanManager::canFightSome(Ally::getPlayerHand( $playerId ));
+
+		return [
+			'selectableLeviathans' => $selectableLeviathans,
+		];
+	}
+
+	function argChooseAllyToFight(): array {
+		$playerId = $this->getActivePlayerId();
+
+		$leviathan = LeviathanManager::getFightedLeviathan();
+		$selectableAllies = LeviathanManager::canFightWith($leviathan, Ally::getPlayerHand( $playerId ));
+		
+		return [
+			'selectableAllies' => $selectableAllies,
+		];
+	}
+
+	function argIncreaseAttackPower(): array {
+		$playerId = $this->getActivePlayerId();
+
+        $ally = Ally::get($this->getGlobalVariable(ALLY_FOR_FIGHT));
+		$payPearlEffect = $ally['effect'] === 1;
+		$playerPearls = $this->getPlayerPearls($playerId);
+		$attackPower = $this->getGlobalVariable(ATTACK_POWER);
+
+		return [
+			'payPearlEffect' => $payPearlEffect,
+			'playerPearls' => $playerPearls,
+			'attackPower' => $attackPower,
+		];
+	}
+
+	function argChooseFightReward(): array {
+		$rewards = $this->getGlobalVariable(REMAINING_REWARDS);
+		return [
+			'rewards' => $rewards,
+		];
+	}
+
+	function argChooseFightAgain(): array {
+		$playerId = $this->getActivePlayerId();
+
+		$leviathan = LeviathanManager::getFightedLeviathan();
+		$beaten = $leviathan->life >= count($leviathan->combatConditions);
+		$handCount = count(Ally::getPlayerHand($playerId));
+
+		return [
+			'beaten' => $beaten,
+			'handCount' => $handCount,
 		];
 	}
 } 

@@ -22,12 +22,12 @@ class CombatCondition {
 }
 
 class LeviathanType {
-    public /*int|null*/ $faction = null;
+    public ?int $faction = null;
     public array $combatConditions;
     public int $penalty;
     public int $penaltyCount = 3;
 
-    public function __construct(/*int|null*/ $faction, array $combatConditions, int $penalty, int $penaltyCount = 3) {
+    public function __construct(?int $faction, array $combatConditions, int $penalty, int $penaltyCount = 3) {
         $this->faction = $faction;
         $this->combatConditions = $combatConditions;
         $this->penalty = $penalty;

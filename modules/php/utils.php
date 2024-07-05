@@ -2,6 +2,15 @@
 
 require_once('objects/sentinel.php');
 
+function array_some(array $array, callable $fn) {
+    foreach ($array as $value) {
+        if($fn($value)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 trait UtilTrait {
 
     //////////////////////////////////////////////////////////////////////////////
@@ -24,15 +33,6 @@ trait UtilTrait {
             }
         }
         return null;
-    }
-
-    function array_some(array $array, callable $fn) {
-        foreach ($array as $value) {
-            if($fn($value)) {
-                return true;
-            }
-        }
-        return false;
     }
     
     function array_every(array $array, callable $fn) {
@@ -148,6 +148,8 @@ trait UtilTrait {
             $message = clienttranslate('${player_name} gains 1 Pearl for reaching the end of the exploration track');
         } else if ($source == "recruit") {
             $message = clienttranslate('${player_name} gains 2 Pearls for causing the Lord track to refill');
+        } else if ($source == "leviathanAttackFailed") {
+            $message = clienttranslate('${player_name} gains 1 Pearl for the failed attack of a Leviathan');
         }
         self::notifyAllPlayers( "diff", $message, $params );
 
@@ -231,6 +233,14 @@ trait UtilTrait {
                 'keys' => $diff,
                 'source' => $source,
                 'allyDiscardSize' => Ally::getDiscardSize(),
+        ) );
+    }
+
+    function incPlayerWounds(int $player_id, int $diff) {
+        self::DbQuery( "UPDATE player SET player_wounds = player_wounds + $diff WHERE player_id = $player_id" );
+        self::notifyAllPlayers( "diff", '', array(
+                'player_id' => $player_id,
+                'wounds' => $diff,
         ) );
     }
 
@@ -379,7 +389,7 @@ trait UtilTrait {
             $playerWounds = $this->getPlayerWounds($player_id);
             $woundPoints = -$playerWounds;
 
-            if (intval($this->getGameStateValue(SCOURGE)) == $player_id) {
+            if (intval($this->getGlobalVariable(SCOURGE)) == $player_id) {
                 $scourgePoints = 5;
             }
         }
@@ -518,7 +528,7 @@ trait UtilTrait {
                         ]);
                     }
 
-                    $log = clienttranslate('${player_name} draws a Monster, move the Threat token up one space on the Threat track then discard the Monster');;
+                    $log = clienttranslate('${player_name} draws a Monster, move the Threat token up one space on the Threat track then discard the Monster');
                 } else {
                     self::DbQuery( "UPDATE ally SET place = ".($playerId * -1)." WHERE ally_id = " . $ally["ally_id"] );
                     $log = clienttranslate('${player_name} draws ${card_name} and add it to his hand');
@@ -579,7 +589,7 @@ trait UtilTrait {
     function setSentinel(int $playerId, int $lordId, string $location /* player, lord, council, location */, /*int|null*/ $locationArg /* null, lord id, faction, location id*/) {
         $sentinels = $this->getSentinels();
 
-        if ($location != 'player' && $this->array_some($sentinels, fn($sentinel) => $sentinel->location == $location)) {
+        if ($location != 'player' && array_some($sentinels, fn($sentinel) => $sentinel->location == $location)) {
             throw new BgaVisibleSystemException("A sentinel is already placed on this zone");
         }
 
@@ -632,13 +642,13 @@ trait UtilTrait {
     }
 
     function setScourgePlayer(int $playerId) { // 0 means no-one
-        if (intval($this->getGameStateValue(SCOURGE)) == $playerId) {
+        if ($this->getGlobalVariable(SCOURGE) == $playerId) {
             return;
         }
 
-        $this->setGameStateValue(SCOURGE, $playerId);
+        $this->setGlobalVariable(SCOURGE, $playerId);
 
-        $log = $playerId == 0 ? '' : '';//  client TODO LEV translate('${player_name} gets the Scourge');
+        $log = $playerId == 0 ? '' : clienttranslate('${player_name} gets the Scourge');
         $this->notifyAllPlayers("scourge", $log, [
             'playerId' => $playerId,
             'player_name' => $playerId == 0 ? '' : $this->getPlayerName($playerId),
@@ -757,5 +767,18 @@ trait UtilTrait {
             bga_rand(1, 6),
             bga_rand(1, 6),
         ];
+    }
+
+    function checkNewScourgeOwner(int $playerId) {
+        $currentScourgeOwner = $this->getGlobalVariable(SCOURGE);
+
+        if ($currentScourgeOwner !== $playerId) {
+            $currentOwnerLeviathans = $currentScourgeOwner > 0 ? intval($this->getUniqueValueFromDB( "SELECT count(*) FROM `leviathan` WHERE place = -$currentScourgeOwner")) : 0;
+            $currentPlayerLeviathans = intval($this->getUniqueValueFromDB( "SELECT count(*) FROM `leviathan` WHERE place = -$playerId"));
+            
+            if ($currentPlayerLeviathans >= $currentOwnerLeviathans) {
+                $this->setScourgePlayer($playerId);
+            }
+        }
     }
 }

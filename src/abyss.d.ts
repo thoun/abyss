@@ -52,6 +52,7 @@ interface AbyssLeviathan {
     id: number;
     place: number;
     life: number;
+    combatConditions: any[];
 }
 
 interface AbyssPlayer extends Player {
@@ -66,6 +67,8 @@ interface AbyssPlayer extends Player {
     autopass: string;
     hand_size: number;
     num_monsters: number;
+    wounds?: number;
+    defeatedLeviathans?: number;
 }
 
 interface Sentinel {
@@ -131,6 +134,7 @@ interface AbyssGame extends Game {
     onClickPlayerFreeLord(lord: AbyssLord): void;
     onClickPlayerLockedLord(lord: AbyssLord): void;
     onClickPlayerLocation(location: AbyssLocation): void;
+    onLeviathanClick(card: AbyssLeviathan): void;
     updateKeyCounter(playerId: number): void;
 }
 
@@ -182,6 +186,10 @@ interface EnteringGiveKrakenArgs {
     playersIds: number[];
 }
 
+interface EnteringChooseFightRewardArgs {
+    rewards: number;
+}
+
 interface EnteringLord104Args {
     nebulis: number;
     playersIds: number[];
@@ -203,6 +211,14 @@ interface EnteringPlaceSentinelArgs {
     possibleOnLords: boolean;
     possibleOnCouncil: boolean;
     possibleOnLocations: boolean;
+}
+
+interface EnteringChooseLeviathanToFightArgs {
+    selectableLeviathans: AbyssLeviathan[];
+}
+
+interface EnteringChooseAllyToFightArgs {
+    selectableAllies: AbyssAlly[];
 }
 
 interface NotifFinalRoundArgs {
@@ -389,4 +405,20 @@ interface NotifPlaceKrakenArgs {
     ally: AbyssAlly;
     faction: number;
     deckSize: number;
+}
+
+interface NotifNewLeviathanArgs {
+    leviathan: AbyssLeviathan;
+    discardedLeviathan: AbyssLeviathan | null;
+}
+
+interface NotifLeviathanDefeatedArgs {
+    playerId: number;
+    leviathan: AbyssLeviathan;
+    defeatedLeviathans: number;
+}
+
+interface NotifDiscardExploreMonsterArgs {
+    ally: AbyssAlly;
+    allyDiscardSize: number;
 }

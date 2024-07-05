@@ -261,7 +261,7 @@ trait StateTrait {
             if ($has_purchased < $maxPurchase) {
                 $withNebulis = $this->getWithNebulis($player_id, $purchase_cost) ?? [];
 
-                if ($playerPearls >= $purchase_cost || $this->array_some($withNebulis, fn($nebulis) => $nebulis === true)) {
+                if ($playerPearls >= $purchase_cost || array_some($withNebulis, fn($nebulis) => $nebulis === true)) {
                     // They have enough money and haven't purchased yet!
                     $this->gamestate->changeActivePlayer( $player_id );
                     $this->gamestate->nextState( 'purchase' );
@@ -517,7 +517,7 @@ trait StateTrait {
 
                         $withNebulis = $this->getWithNebulis($player_id, 5) ?? [];
 
-                        if ($pearls >= 5 || $this->array_some($withNebulis, fn($nebulis) => $nebulis === true)) {
+                        if ($pearls >= 5 || array_some($withNebulis, fn($nebulis) => $nebulis === true)) {
                             $transition = "lord_22";
                         } 
                         
@@ -614,7 +614,7 @@ trait StateTrait {
                         break;
                     case 114:
                         $opponentsIds = $this->getOpponentsIds($player_id);
-                        $affiliated = $this->array_some($opponentsIds, fn($opponentId) => count(Ally::getPlayerAffiliated($opponentId)) > 0);
+                        $affiliated = array_some($opponentsIds, fn($opponentId) => count(Ally::getPlayerAffiliated($opponentId)) > 0);
                         if ($affiliated) {
                             $transition = "lord_114";
                         }
@@ -737,5 +737,56 @@ trait StateTrait {
 
   	function stGiveKraken() {
         $this->gamestate->setPlayersMultiactive([intval(self::getGameStateValue(KRAKEN))], 'next', true);
+    }
+
+    function stIncreaseAttackPower() {
+        $args = $this->argIncreaseAttackPower();
+
+        if (!$args['payPearlEffect']) {
+            $this->resolveLeviathanAttack();
+        }
+    }
+
+    function resolveLeviathanAttack() {
+		$playerId = (int)$this->getActivePlayerId();
+
+        $attackPower = $this->getGlobalVariable(ATTACK_POWER);
+        $leviathan = LeviathanManager::getFightedLeviathan();
+        $rewards = LeviathanManager::fightLeviathan($playerId, $leviathan, $attackPower);
+
+        if ($rewards > 0) {
+            $this->setGlobalVariable(REMAINING_REWARDS, $rewards);
+            $this->gamestate->nextState('nextSuccess');
+        } else {
+            $combatCondition = $leviathan->combatConditions[$leviathan->life];
+            $this->notifyAllPlayers("log", clienttranslate('${player_name} attack is not enough to beat the ${resistance} resistance of the Leviathan'), [
+                'playerId' => $playerId,
+                'player_name' => $this->getActivePlayerName(),
+                'resistance' => $combatCondition->resistance,
+            ]);
+
+            $this->incPlayerPearls($playerId, 1, "leviathanAttackFailed");
+            $this->gamestate->nextState('nextFailed');
+        }
+    }
+
+    function stChooseFightAgain() {
+        $args = $this->argChooseFightAgain();
+
+        if ($args['beaten'] || !$args['handCount']) {
+            $this->applyEndFight();
+        }
+    }
+
+    function applyEndFight() {
+        $nextState = "next";
+
+        $slots = Ally::getExploreSlots();
+        if (array_some($slots, fn($s) => $s["faction"] == 10)) {
+            $nextState = "nextRemainingKrakens";
+        }
+        // TODO clean all allies in explore track?
+        
+        $this->gamestate->nextState($nextState);
     }
 }

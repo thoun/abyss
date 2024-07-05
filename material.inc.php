@@ -379,11 +379,11 @@ $this->LEVIATHANS = [
    new CombatCondition(3, 1),
    new CombatCondition(7, 2),
    new CombatCondition(5, 1),
-  ], PENALTY_LORD),
+  ], PENALTY_LORD, 1),
   10 => new LeviathanType(FACTION_BLUE, [
    new CombatCondition(6, 2),
    new CombatCondition(4, 1),
-  ], PENALTY_LORD),
+  ], PENALTY_LORD, 1),
   11 => new LeviathanType(FACTION_BLUE, [
     new CombatCondition(7, 2),
   ], PENALTY_WOUNDS),

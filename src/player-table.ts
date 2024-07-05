@@ -185,4 +185,8 @@ class PlayerTable {
         this.locations.removeCard(location);
         this.game.locationManager.removeLordsOnLocation(location);
     }
+
+    public getHand() {
+        return this.hand;
+    }
 }

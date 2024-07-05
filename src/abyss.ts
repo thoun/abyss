@@ -65,6 +65,7 @@ class Abyss implements AbyssGame {
             (this as any).dontPreloadImage(`icons-leviathan.png`);
             (this as any).dontPreloadImage(`allies-leviathan.jpg`);
             (this as any).dontPreloadImage(`leviathans.jpg`);
+            (this as any).dontPreloadImage(`leviathan-die.png`);
         }
         
         this.gamedatas = gamedatas;
@@ -224,7 +225,7 @@ class Abyss implements AbyssGame {
         
         this.setTooltipToClass( 'ally-holder', _( 'Ally cards in hand' ));
         this.setTooltipToClass( 'lordcount-holder', _( 'Number of Lords' ));
-        // TODO LEV this.setTooltipToClass('leviathan-holder', _('Wounds / Defeated Leviathans'));
+        this.setTooltipToClass('leviathan-holder', _('Wounds / Defeated Leviathans'));
         
         this.setTooltip( 'scoring-location-icon', _( 'Locations' ));
         this.setTooltip( 'scoring-lords-icon', _( 'Lords' ));
@@ -235,8 +236,8 @@ class Abyss implements AbyssGame {
             this.setTooltip('scoring-kraken-icon', _( 'Kraken' ));
         }
         if (gamedatas.leviathanExpansion) {
-            // TODO LEV this.setTooltip('scoring-nebulis-icon', _( 'Wounds' ));
-            // TODO LEV this.setTooltip('scoring-kraken-icon', _( 'Scourge' ));
+            this.setTooltip('scoring-wound-icon', _( 'Wounds' ));
+            this.setTooltip('scoring-scourge-icon', _( 'Scourge' ));
         }
         
         // Localisation of options box
@@ -428,6 +429,12 @@ class Abyss implements AbyssGame {
             case 'placeSentinel':
                 this.onEnteringPlaceSentinel(args.args);
                 break;
+            case 'chooseLeviathanToFight':
+                this.onEnteringChooseLeviathanToFight(args.args);
+                break;
+            case 'chooseAllyToFight':
+                this.onEnteringChooseAllyToFight(args.args);
+                break;
         }
     }
 
@@ -539,6 +546,18 @@ class Abyss implements AbyssGame {
         dojo.query('a', $('player_name_' + first_player)).style('text-decoration', 'underline');
     }
 
+    private onEnteringChooseLeviathanToFight(args: EnteringChooseLeviathanToFightArgs) {
+        if ((this as any).isCurrentPlayerActive()) {
+            this.leviathanBoard.setSelectableLeviathans(args.selectableLeviathans);
+        }
+    }
+
+    private onEnteringChooseAllyToFight(args: EnteringChooseAllyToFightArgs) {
+        if ((this as any).isCurrentPlayerActive()) {
+            this.getCurrentPlayerTable().getHand().setSelectionMode('single', args.selectableAllies);
+        }
+    }
+
     // onLeavingState: this method is called each time we are leaving a game state.
     //                 You can use this method to perform some user interface changes at this moment.
     //
@@ -574,11 +593,29 @@ class Abyss implements AbyssGame {
             case 'lord116':
                 this.onLeavingLord116();
                 break;
+            case 'chooseLeviathanToFight':
+                this.onLeavingChooseLeviathanToFight();
+                break;
+            case 'chooseAllyToFight':
+                this.onLeavingChooseAllyToFight();
+                break;
         }
     }
 
     private onLeavingLord116() {
         dojo.query(`.lord.selectable`).removeClass('selectable');
+    }
+
+    private onLeavingChooseLeviathanToFight() {
+        if ((this as any).isCurrentPlayerActive()) {
+            this.leviathanBoard.setSelectableLeviathans(null);
+        }
+    }
+
+    private onLeavingChooseAllyToFight() {
+        if ((this as any).isCurrentPlayerActive()) {
+            this.getCurrentPlayerTable().getHand().setSelectionMode('none');
+        }
     }
 
     // onUpdateActionButtons: in this method you can manage "action buttons" that are displayed in the
@@ -762,6 +799,25 @@ class Abyss implements AbyssGame {
                         document.getElementById(`giveKraken${playerId}-button`).style.border = `3px solid #${player.color}`;
                     });
                     break;
+                case 'chooseFightReward':
+                    const chooseFightRewardArgs = args as EnteringChooseFightRewardArgs; 
+                    for (let i = 0; i <= chooseFightRewardArgs.rewards; i++) {
+                        const base = chooseFightRewardArgs.rewards - i;
+                        const expansion = i;
+                        let html = [];
+                        if (base > 0) {
+                            html.push(`${base} <div class="icon icon-monster"></div>`); 
+                        }
+                        if (expansion > 0) {
+                            html.push(`${expansion} <div class="icon icon-monster-leviathan"></div>`); 
+                        }
+                        (this as any).addActionButton(`actChooseFightReward${i}-button`, html.join(' '), () => (this as any).bgaPerformAction('actChooseFightReward', { base, expansion }));
+                    }
+                    break;
+                case 'chooseFightAgain':
+                    (this as any).addActionButton(`actFightAgain-button`, _('Fight again'), () => (this as any).bgaPerformAction('actFightAgain'));
+                    (this as any).addActionButton(`actEndFight-button`, _('End turn'), () => (this as any).bgaPerformAction('actEndFight'));
+                    break;
             }
         }
     }
@@ -916,10 +972,10 @@ class Abyss implements AbyssGame {
             if (gamedatas.leviathanExpansion) {
                 this.woundCounters[playerId] = new ebg.counter();
                 this.woundCounters[playerId].create(`woundcount_p${player.id}`);
-                // TODO LEV this.woundCounters[playerId].setValue(player.wounds);
+                this.woundCounters[playerId].setValue(player.wounds);
                 this.defeatedLeviathanCounters[playerId] = new ebg.counter();
                 this.defeatedLeviathanCounters[playerId].create(`defeatedleviathancount_p${player.id}`);
-                // TODO LEV this.defeatedLeviathanCounters[playerId].setValue(player.defeatedLeviathans);
+                this.defeatedLeviathanCounters[playerId].setValue(player.defeatedLeviathans);
             }
 
             this.monsterTokens[playerId] = new LineStock<AbyssMonster>(this.monsterManager, document.getElementById('monster-hand_p' + playerId), {
@@ -1019,7 +1075,7 @@ class Abyss implements AbyssGame {
                 if (type === 'kraken') {
                     tooltip = _("The Kraken figure allows players to identify, during the game, the most corrupt player. The figure is given to the first player to receive any Nebulis. As soon as an opponent ties or gains more Nebulis than the most corrupt player, they get the Kraken figure");
                 } else if (type === 'scourge') {
-                    // TODO LEV tooltip = _("If you are the first player to kill a Leviathan, take the Scourge of the Abyss. As soon as an opponent reaches or exceeds the number of Leviathans killed by the most valorous defender, they take the statue from the player who currently holds it. The player who owns the statue at the end of the game gains 5 Influence Points.");
+                    tooltip = _("If you are the first player to kill a Leviathan, take the Scourge of the Abyss. As soon as an opponent reaches or exceeds the number of Leviathans killed by the most valorous defender, they take the statue from the player who currently holds it. The player who owns the statue at the end of the game gains 5 Influence Points.");
                 }
                 if (tooltip) {
                     this.setTooltip(`${type}Token`, tooltip);
@@ -1271,6 +1327,12 @@ class Abyss implements AbyssGame {
         }
     }
 
+    onLeviathanClick(card: AbyssLeviathan): void {
+        if (this.gamedatas.gamestate.name === 'chooseLeviathanToFight') {
+            this.takeAction('actChooseLeviathanToFight', { id: card.id });
+        }
+    }
+
     private recruit(lordId: number) {
         if (!(this as any).checkAction('recruit')) {
             return;
@@ -1389,7 +1451,9 @@ class Abyss implements AbyssGame {
     }
 
     onClickPlayerHand(ally: AbyssAlly) {
-        if( (this as any).checkAction( 'pay', true ) ) {
+        if (this.gamedatas.gamestate.name === 'chooseAllyToFight') {
+            (this as any).bgaPerformAction('actChooseAllyToFight', { id: ally.ally_id });
+        } else if( (this as any).checkAction( 'pay', true ) ) {
             this.allyManager.getCardElement(ally).classList.toggle('selected');
             this.updateRecruitButtonsState(this.gamedatas.gamestate.args);
         } else if( (this as any).checkAction( 'discard', true ) ) {
@@ -1606,14 +1670,11 @@ class Abyss implements AbyssGame {
     }
 
     public takeAction(action: string, data?: any) {
-        data = data || {};
-        data.lock = true;
-        (this as any).ajaxcall(`/abyss/abyss/${action}.html`, data, this, () => {});
+        (this as any).bgaPerformAction(action, data);
     }
 
     public takeNoLockAction(action: string, data?: any) {
-        data = data || {};
-        (this as any).ajaxcall(`/abyss/abyss/${action}.html`, data, this, () => {});
+        (this as any).bgaPerformAction(action, data, { lock: false, checkAction: false });
     }
 
 
@@ -1668,6 +1729,10 @@ class Abyss implements AbyssGame {
             ['kraken', 500],
             ['placeSentinel', 500],
             ['placeKraken', 500],
+            ['newLeviathan', 500],
+            ['discardExploreMonster', 500],
+            ['moveLeviathanLife', 500],
+            ['leviathanDefeated', 500],
             ['endGame_scoring', (5000 + (this.gamedatas.krakenExpansion ? 2000 : 0) + (this.gamedatas.leviathanExpansion ? 2000 : 0)) * num_players + 3000],
         ];
     
@@ -2206,6 +2271,24 @@ class Abyss implements AbyssGame {
 
         var deck = dojo.query('#council-track .slot-' + notif.args.faction);
         this.setDeckSize(deck, notif.args.deckSize);
+    }
+
+    notif_newLeviathan(notif: Notif<NotifNewLeviathanArgs>) {
+        this.leviathanBoard.newLeviathan(notif.args.leviathan, notif.args.discardedLeviathan);
+    }
+
+    notif_discardExploreMonster(notif: Notif<NotifDiscardExploreMonsterArgs>) {
+        this.visibleAllies.removeCard(notif.args.ally);
+        this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
+    }
+
+    notif_moveLeviathanLife(notif: Notif<NotifNewLeviathanArgs>) {
+        this.leviathanBoard.moveLeviathanLife(notif.args.leviathan);
+    }
+
+    notif_leviathanDefeated(notif: Notif<NotifLeviathanDefeatedArgs>) {
+        this.leviathanBoard.leviathanDefeated(notif.args.leviathan);
+        this.defeatedLeviathanCounters[notif.args.playerId].toValue(notif.args.defeatedLeviathans);
     }
 
     /* This enable to inject translatable styled things to logs or action bar */

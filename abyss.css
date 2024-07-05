@@ -370,6 +370,29 @@ body > .card {
   background-image: url("img/leviathans.jpg");
   background-size: auto 400%;
 }
+.leviathan-card .leviathan-icon.icon-life {
+  position: absolute;
+  background-position-x: 70.71%;
+  width: 16px;
+  height: 16px;
+  left: 4px;
+}
+.leviathan-card.bga-cards_selectable-card:not(.disabled) {
+  cursor: pointer;
+}
+.leviathan-card.bga-cards_selectable-card:not(.disabled):not(.bga-cards_selected-card) {
+  box-shadow: 0 0 5px 5px orange;
+}
+.leviathan-card.bga-cards_selectable-card:not(.disabled) .card-side {
+  box-shadow: unset;
+}
+.leviathan-card.bga-cards_selected-card:not(.disabled) {
+  box-shadow: unset;
+  outline: 8px orange;
+}
+.leviathan-card.bga-cards_selected-card:not(.disabled) .card-side {
+  box-shadow: unset;
+}
 
 #table {
   display: flex;
@@ -1518,6 +1541,22 @@ i.icon-monster {
   height: 16px;
 }
 
+div.icon-monster {
+  display: inline-block;
+  background-position: 80% 0%;
+  width: 64px;
+  height: 64px;
+}
+
+div.icon-monster-leviathan {
+  display: inline-block;
+  background-image: url("img/icons-leviathan.png");
+  background-position: 0% 0%;
+  background-size: auto 100%;
+  width: 64px;
+  height: 64px;
+}
+
 i.icon-monster-leviathan {
   background-image: url("img/icons-leviathan.png");
   background-position: 0% 0%;
@@ -1561,7 +1600,7 @@ i.icon-ally {
   border-radius: 2px;
 }
 
-i.leviathan-icon {
+.leviathan-icon, i.leviathan-icon {
   background-image: url(img/icons-leviathan.png);
   background-size: auto 100%;
 }
@@ -2342,7 +2381,7 @@ html a.bgabutton.affiliate-button:hover {
   display: inline-block;
   vertical-align: middle;
   background-size: auto 100%;
-  background-image: url(img/icons.png);
+  background-image: url(img/leviathan-die.png);
 }
 .log-die[data-value="1"] {
   background-position-x: 0%;

@@ -43,4 +43,32 @@
   height: 88px;
   background-image: url('img/leviathans.jpg');
   background-size: auto 400%;
+
+  .leviathan-icon.icon-life {
+    position: absolute;
+    background-position-x: 70.71%;
+    width: 16px;
+    height: 16px;
+    left: 4px;
+  } 
+
+  &.bga-cards_selectable-card:not(.disabled) {
+      cursor: pointer;
+      &:not(.bga-cards_selected-card) {
+          box-shadow: 0 0 5px 5px orange;
+      }
+
+      .card-side {
+          box-shadow: unset;
+      }
+  }    
+
+  &.bga-cards_selected-card:not(.disabled) {
+      box-shadow: unset;
+      outline: 8px orange;
+
+      .card-side {
+          box-shadow: unset;
+      }
+  }
 }

@@ -169,9 +169,9 @@ class Abyss extends Table {
 
             $dice = $this->getDoubleDieRoll();
             $sum = $dice[0] + $dice[1];
-            LeviathanManager::draw($this, LEVIATHAN_SLOTS[$sum]);
+            LeviathanManager::draw(LEVIATHAN_SLOTS[$sum]);
 
-            self::notifyAllPlayers("log", /*client TODO LEV translate*/('Dice rolled to ${die1} and ${die2}, a new Leviathan takes place on the spot ${spot}'), [
+            self::notifyAllPlayers("log", clienttranslate('Dice rolled to ${die1} and ${die2}, a new Leviathan takes place on the spot ${spot}'), [
                 'die1' => $dice[0],
                 'die2' => $dice[1],
                 'spot' => $sum,
@@ -219,23 +219,27 @@ class Abyss extends Table {
                 $player['nebulis'] = intval($player['nebulis']);
             }
 
-			$player['hand_size'] = Ally::getPlayerHandSize( $player['id'] );
-			$player['num_monsters'] = Monster::getPlayerHandSize( $player['id'] );
-			$player['affiliated'] = Ally::getPlayerAffiliated( $player['id'] );
-			$player['lords'] = Lord::getPlayerHand( $player['id'] );
+			$player['hand_size'] = Ally::getPlayerHandSize( $playerId );
+			$player['num_monsters'] = Monster::getPlayerHandSize( $playerId );
+			$player['affiliated'] = Ally::getPlayerAffiliated( $playerId );
+			$player['lords'] = Lord::getPlayerHand( $playerId );
 			$player['locations'] = Location::getPlayerHand($playerId);
 
-			if ($player['id'] == $current_player_id) {
-				$player['hand'] = Ally::getPlayerHand( $player['id'] );
+			if ($playerId == $current_player_id) {
+				$player['hand'] = Ally::getPlayerHand( $playerId );
 			}
 			
 			$state = $this->gamestate->state();
-			if ($player['id'] == $current_player_id || $state["name"] == "gameEnd") {
-				$player['monsters'] = Monster::getPlayerHand($player['id']);
+			if ($playerId == $current_player_id || $state["name"] == "gameEnd") {
+				$player['monsters'] = Monster::getPlayerHand($playerId);
 			} else {
                 if ($leviathanExpansion) {
-                    $player['monsters'] = Monster::onlyIds(Monster::getPlayerHand($player['id']));
+                    $player['monsters'] = Monster::onlyIds(Monster::getPlayerHand($playerId));
                 }
+            }
+            if ($leviathanExpansion) {
+                $player['wounds'] = $this->getPlayerWounds($playerId);
+                $player['defeatedLeviathans'] = LeviathanManager::getDefeatedLeviathans($playerId);
             }
 		}
 
@@ -261,8 +265,8 @@ class Abyss extends Table {
             $result['kraken'] = intval(self::getGameStateValue(KRAKEN));
         }
         if ($leviathanExpansion) {
-            $result['scourge'] = intval(self::getGameStateValue(SCOURGE));
-            $result['leviathans'] = LeviathanManager::getVisibleLeviathans($this);
+            $result['scourge'] = $this->getGlobalVariable(SCOURGE);
+            $result['leviathans'] = LeviathanManager::getVisibleLeviathans();
         }
 
         return $result;
