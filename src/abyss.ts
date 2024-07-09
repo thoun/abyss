@@ -426,6 +426,9 @@ class Abyss implements AbyssGame {
             case 'lord116':
                 this.onEnteringLord116(args.args);
                 break;
+            case 'lord208':
+                this.onEnteringLord208(args.args);
+                break;
             case 'placeSentinel':
                 this.onEnteringPlaceSentinel(args.args);
                 break;
@@ -482,6 +485,13 @@ class Abyss implements AbyssGame {
             args.lords.forEach(lord => 
                 this.lordManager.getCardElement(lord).classList.add('selectable')
             );
+        }
+    }
+
+    private onEnteringLord208(args: any) {
+        // Put a green border around selectable lords
+        if ((this as any).isCurrentPlayerActive()) {
+            this.leviathanBoard.setAllSelectableLeviathans();
         }
     }
 
@@ -594,6 +604,7 @@ class Abyss implements AbyssGame {
                 this.onLeavingLord116();
                 break;
             case 'chooseLeviathanToFight':
+            case 'lord208':
                 this.onLeavingChooseLeviathanToFight();
                 break;
             case 'chooseAllyToFight':
@@ -1346,6 +1357,8 @@ class Abyss implements AbyssGame {
     onLeviathanClick(card: AbyssLeviathan): void {
         if (this.gamedatas.gamestate.name === 'chooseLeviathanToFight') {
             this.takeAction('actChooseLeviathanToFight', { id: card.id });
+        } else if (this.gamedatas.gamestate.name === 'lord208') {
+            this.takeAction('actRemoveHealthPointToLeviathan', { id: card.id });
         }
     }
 

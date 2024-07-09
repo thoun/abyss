@@ -97,36 +97,36 @@ class LeviathanManager {
     return $attackPower;
   }
 
-  public static function fightLeviathan(int $playerId, Leviathan &$leviathan, int $attackPower): int { // return number of rewards
+  public static function moveLeviathanLife(int $playerId, Leviathan &$leviathan): int { // return number of rewards
     $rewards = 0;
-    while ($attackPower > 0 && $leviathan->life < count($leviathan->combatConditions)) {
-      $combatCondition = $leviathan->combatConditions[$leviathan->life];
-      $attackPower -= $combatCondition->resistance;
-      if ($attackPower >= 0) {
-        $rewards += $combatCondition->reward;
-        $leviathan->life++;
-        Abyss::DbQuery("UPDATE leviathan SET life = $leviathan->life WHERE id = $leviathan->id");
+    
+    $combatCondition = $leviathan->combatConditions[$leviathan->life];
+    $rewards += $combatCondition->reward;
+    $leviathan->life++;
+    Abyss::DbQuery("UPDATE leviathan SET life = $leviathan->life WHERE id = $leviathan->id");
 
-        self::$game->notifyAllPlayers("moveLeviathanLife", clienttranslate('${player_name} beats the resistance ${resistance} of the Leviathan'), [
-          'playerId' => $playerId,
-          'player_name' => self::$game->getActivePlayerName(),
-          'leviathan' => $leviathan,
-          'resistance' => $combatCondition->resistance,
-        ]);
+    self::$game->notifyAllPlayers("moveLeviathanLife", clienttranslate('${player_name} beats the resistance ${resistance} of the Leviathan'), [
+      'playerId' => $playerId,
+      'player_name' => self::$game->getActivePlayerName(),
+      'leviathan' => $leviathan,
+      'resistance' => $combatCondition->resistance,
+    ]);
 
-        // If you have the Taxidermist, you gain extra Pearls
-        if (Lord::playerHas(203, $playerId)) {
-            $factions = array();
-            self::$game->incPlayerPearls( $playerId, 2, "lord_203");
-        }
-
-        // If you have the Altruist, you gain extra reward
-        if (Lord::playerHas(207, $playerId)) {
-          $rewards++;
-        }
-      }
+    // If you have the Taxidermist, you gain extra Pearls
+    if (Lord::playerHas(203, $playerId)) {
+        $factions = array();
+        self::$game->incPlayerPearls( $playerId, 2, "lord_203");
     }
 
+    // If you have the Altruist, you gain extra reward
+    if (Lord::playerHas(207, $playerId)) {
+      $rewards++;
+    }
+
+    return $rewards;
+  }
+
+  public static function checkLeviathanDefeated(int $playerId, Leviathan &$leviathan): void {
     if ($leviathan->life >= count($leviathan->combatConditions)) { // leviathan is beaten
       self::discard($leviathan->id, $playerId);
       self::$game->setGlobalVariable(SLAYED_LEVIATHANS, self::$game->getGlobalVariable(SLAYED_LEVIATHANS) + 1);
@@ -155,6 +155,19 @@ class LeviathanManager {
         ]);
       }
     }
+  }
+
+  public static function fightLeviathan(int $playerId, Leviathan &$leviathan, int $attackPower): int { // return number of rewards
+    $rewards = 0;
+    while ($attackPower > 0 && $leviathan->life < count($leviathan->combatConditions)) {
+      $combatCondition = $leviathan->combatConditions[$leviathan->life];
+      $attackPower -= $combatCondition->resistance;
+      if ($attackPower >= 0) {
+        $rewards += self::moveLeviathanLife($playerId, $leviathan);
+      }
+    }
+
+    self::checkLeviathanDefeated($playerId, $leviathan);  
 
     return $rewards;
   }

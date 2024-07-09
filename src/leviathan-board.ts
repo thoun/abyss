@@ -30,4 +30,8 @@ class LeviathanBoard {
     public setSelectableLeviathans(selectableLeviathans: AbyssLeviathan[] | null) {
         this.stock.setSelectionMode(selectableLeviathans ? 'single' : 'none', selectableLeviathans);
     }
+    
+    public setAllSelectableLeviathans() {
+        this.stock.setSelectionMode('single');
+    }
 }

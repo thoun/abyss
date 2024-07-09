@@ -1861,4 +1861,21 @@ trait ActionTrait {
 
         $this->gamestate->nextState('ignore');
     }
+
+    public function actRemoveHealthPointToLeviathan(int $id) {
+        $this->checkAction('actRemoveHealthPointToLeviathan');
+
+        $playerId = intval($this->getActivePlayerId());
+
+        $this->setGlobalVariable(FIGHTED_LEVIATHAN, $id);
+        $this->setGlobalVariable(SLAYED_LEVIATHANS, 99); // to make sure the game doesn't ask to fight again
+
+        $leviathan = LeviathanManager::getFightedLeviathan();
+        $rewards = LeviathanManager::moveLeviathanLife($playerId, $leviathan);
+        LeviathanManager::checkLeviathanDefeated($playerId, $leviathan);  
+        $this->setGlobalVariable(REMAINING_REWARDS, $rewards);
+
+        $this->gamestate->nextState('next');
+    }
+
 }

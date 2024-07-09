@@ -375,6 +375,7 @@ $machinestates = array(
 			"lord_114" => ST_PLAYER_LORD114, 
 			"lord_116" => ST_PLAYER_LORD116, 
 			"lord_206" => ST_PLAYER_LORD206, 
+			"lord_208" => ST_PLAYER_LORD208, 
 			"lord_ambassador" => ST_PLAYER_CONTROL_POST_DRAW, 
 			"lord_sentinel" => ST_PLAYER_PLACE_SENTINEL,
 			"zombiePass" => ST_PRE_CONTROL, 
@@ -770,7 +771,6 @@ $machinestates = array(
 		"description" => clienttranslate('${actplayer} can fight a Leviathan'),
 	    "descriptionmyturn" => clienttranslate('${you} can fight a Leviathan'),
 	    "type" => "activeplayer",
-	    //"args" => "argLord206",
 	    "possibleactions" => [
 		    "actFightImmediately",
 		    "actIgnoreImmediatelyFightLeviathan",
@@ -780,6 +780,22 @@ $machinestates = array(
 		    "ignore" => ST_PRE_CONTROL,
 		    "zombiePass" => ST_PRE_CONTROL, 
 		    "loopback" => ST_PLAYER_LORD206,
+	    ],
+    ],
+
+	ST_PLAYER_LORD208 => [
+		"name" => "lord208",
+		"description" => clienttranslate('${actplayer} must chose a Leviathan to remove a Health point to'),
+	    "descriptionmyturn" => clienttranslate('${you} must chose a Leviathan to remove a Health point to'),
+	    "type" => "activeplayer",
+	    "possibleactions" => [
+		    "actRemoveHealthPointToLeviathan",
+		],
+		"transitions" => [
+		    "next" => ST_PLAYER_CHOOSE_FIGHT_REWARD,
+		    "ignore" => ST_PRE_CONTROL,
+		    "zombiePass" => ST_PRE_CONTROL, 
+		    "loopback" => ST_PLAYER_LORD208,
 	    ],
     ],
 

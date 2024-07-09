@@ -640,8 +640,11 @@ trait StateTrait {
                         $count = count(LeviathanManager::getVisibleLeviathans());
                         $this->incPlayerPearls( $player_id, $count, "lord_204");
                         break;
-                    case 206;
+                    case 206:
                         $transition = "lord_206";
+                        break;
+                    case 208:
+                        $transition = "lord_208";
                         break;
                     default;
                         throw new BgaVisibleSystemException( "Not implemented." );

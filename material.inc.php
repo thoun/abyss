@@ -293,11 +293,11 @@ $this->lords = array(
     "desc" => clienttranslate("You can immediately fight a Leviathan."),
   ),
   "207" => array(
-    "name" => clienttranslate("The Altruist"), // TO TEST
+    "name" => clienttranslate("The Altruist"),
     "desc" => clienttranslate("Win 1 extra Monster token for each Health point you remove from a Leviathan."),
   ),
   "208" => array(
-    "name" => clienttranslate("The Rebel"), // TODO
+    "name" => clienttranslate("The Rebel"),
     "desc" => clienttranslate("Remove 1 Health point from a Leviathan at the Border, as if you had succeeded with an attack."),
   ),
   "209" => array(

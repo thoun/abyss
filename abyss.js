@@ -2527,6 +2527,9 @@ var LeviathanBoard = /** @class */ (function () {
     LeviathanBoard.prototype.setSelectableLeviathans = function (selectableLeviathans) {
         this.stock.setSelectionMode(selectableLeviathans ? 'single' : 'none', selectableLeviathans);
     };
+    LeviathanBoard.prototype.setAllSelectableLeviathans = function () {
+        this.stock.setSelectionMode('single');
+    };
     return LeviathanBoard;
 }());
 var isDebug = window.location.host == 'studio.boardgamearena.com' || window.location.hash.indexOf('debug') > -1;
@@ -2890,6 +2893,9 @@ var Abyss = /** @class */ (function () {
             case 'lord116':
                 this.onEnteringLord116(args.args);
                 break;
+            case 'lord208':
+                this.onEnteringLord208(args.args);
+                break;
             case 'placeSentinel':
                 this.onEnteringPlaceSentinel(args.args);
                 break;
@@ -2945,6 +2951,12 @@ var Abyss = /** @class */ (function () {
             args.lords.forEach(function (lord) {
                 return _this.lordManager.getCardElement(lord).classList.add('selectable');
             });
+        }
+    };
+    Abyss.prototype.onEnteringLord208 = function (args) {
+        // Put a green border around selectable lords
+        if (this.isCurrentPlayerActive()) {
+            this.leviathanBoard.setAllSelectableLeviathans();
         }
     };
     Abyss.prototype.onEnteringPlaceSentinel = function (args) {
@@ -3052,6 +3064,7 @@ var Abyss = /** @class */ (function () {
                 this.onLeavingLord116();
                 break;
             case 'chooseLeviathanToFight':
+            case 'lord208':
                 this.onLeavingChooseLeviathanToFight();
                 break;
             case 'chooseAllyToFight':
@@ -3712,6 +3725,9 @@ var Abyss = /** @class */ (function () {
     Abyss.prototype.onLeviathanClick = function (card) {
         if (this.gamedatas.gamestate.name === 'chooseLeviathanToFight') {
             this.takeAction('actChooseLeviathanToFight', { id: card.id });
+        }
+        else if (this.gamedatas.gamestate.name === 'lord208') {
+            this.takeAction('actRemoveHealthPointToLeviathan', { id: card.id });
         }
     };
     Abyss.prototype.recruit = function (lordId) {
