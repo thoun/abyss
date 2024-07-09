@@ -53,7 +53,7 @@ class LeviathanManager {
       $possibleFactions[] = $leviathan->faction;
     }
     if (Lord::playerHas(205, $playerId)) {
-      $possibleFactions = [1, 2, 3, 4, 5, 10];
+      $possibleFactions = [FACTION_PURPLE, FACTION_RED, FACTION_YELLOW, FACTION_GREEN , FACTION_BLUE, 10];
     }
 
     return array_values(array_filter($hand, fn($ally) => in_array($ally['faction'], $possibleFactions)));
@@ -117,7 +117,7 @@ class LeviathanManager {
         // If you have the Taxidermist, you gain extra Pearls
         if (Lord::playerHas(203, $playerId)) {
             $factions = array();
-            self::$game->incPlayerPearls( $player_id, 2, "lord_203");
+            self::$game->incPlayerPearls( $playerId, 2, "lord_203");
         }
 
         // If you have the Altruist, you gain extra reward

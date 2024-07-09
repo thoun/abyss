@@ -277,15 +277,15 @@ $this->lords = array(
     "desc" => clienttranslate("The opponent of your choice adds a new Leviathan to the Border."),
   ),
   "203" => array(
-    "name" => clienttranslate("The Taxidermist"), // TO TEST
+    "name" => clienttranslate("The Taxidermist"),
     "desc" => clienttranslate("Earn 2 Pearls for each Health point you remove from a Leviathan."),
   ),
   "204" => array(
-    "name" => clienttranslate("The Arms Dealer"), // TO TEST
+    "name" => clienttranslate("The Arms Dealer"),
     "desc" => clienttranslate("Earn 1 Pearl for each Leviathan present at the Border."),
   ),
   "205" => array(
-    "name" => clienttranslate("The Metamorph"), // TO TEST
+    "name" => clienttranslate("The Metamorph"),
     "desc" => clienttranslate("When you fight a Leviathan, use an Ally of the Race of your choice."),
   ),
   "206" => array(

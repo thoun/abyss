@@ -216,6 +216,8 @@ trait UtilTrait {
             }
         } else if ($source == "recruit-kraken") {
             $message = clienttranslate('${player_name} gains ${num_nebulis} Nebulis for recruiting with a Kraken of value ${kraken_value}');
+        } else if ($source == "fight-kraken") {
+            $message = clienttranslate('${player_name} gains ${num_nebulis} Nebulis for fighting with a Kraken of value ${kraken_value}');
         } else if ($source == "end-game-kraken") {
             $message = clienttranslate('${player_name} gains ${num_nebulis} Nebulis for remaining Kraken of value ${kraken_value}');
         }

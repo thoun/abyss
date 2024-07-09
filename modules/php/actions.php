@@ -1752,6 +1752,10 @@ trait ActionTrait {
                 )
             ),
         ]);
+        
+        if ($ally['faction'] == 10) {
+            $this->incPlayerNebulis($playerId, $ally['value'] - 1, "fight-kraken");
+        }
 
         $attackPower = LeviathanManager::initiateLeviathanFight($playerId, $ally);
         $this->setGlobalVariable(ATTACK_POWER, $attackPower);
