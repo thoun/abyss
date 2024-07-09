@@ -429,6 +429,9 @@ class Abyss implements AbyssGame {
             case 'lord208':
                 this.onEnteringLord208(args.args);
                 break;
+            case 'lord210':
+                this.onEnteringLord210(args.args);
+                break;
             case 'placeSentinel':
                 this.onEnteringPlaceSentinel(args.args);
                 break;
@@ -493,6 +496,14 @@ class Abyss implements AbyssGame {
         if ((this as any).isCurrentPlayerActive()) {
             this.leviathanBoard.setAllSelectableLeviathans();
         }
+    }
+
+    private onEnteringLord210(args: any) {
+        this.leviathanBoard.newLeviathan(args.leviathan, null);
+
+        args.freeSlots.forEach((slot: number) => 
+            document.querySelector(`#leviathan-board [data-slot-id="${slot}"]`).classList.add('selectable')
+        );
     }
 
     private onEnteringPlaceSentinel(args: EnteringPlaceSentinelArgs) {
@@ -607,6 +618,9 @@ class Abyss implements AbyssGame {
             case 'lord208':
                 this.onLeavingChooseLeviathanToFight();
                 break;
+            case 'lord210':
+                this.onLeavingLord210();
+                break;
             case 'chooseAllyToFight':
                 this.onLeavingChooseAllyToFight();
                 break;
@@ -615,6 +629,10 @@ class Abyss implements AbyssGame {
 
     private onLeavingLord116() {
         dojo.query(`.lord.selectable`).removeClass('selectable');
+    }
+
+    private onLeavingLord210() {
+        document.querySelectorAll(`#leviathan-board .slot.selectable`).forEach(elem => elem.classList.remove('selectable'));
     }
 
     private onLeavingChooseLeviathanToFight() {
@@ -1359,6 +1377,12 @@ class Abyss implements AbyssGame {
             this.takeAction('actChooseLeviathanToFight', { id: card.id });
         } else if (this.gamedatas.gamestate.name === 'lord208') {
             this.takeAction('actRemoveHealthPointToLeviathan', { id: card.id });
+        }
+    }
+
+    onLeviathanTrackSlotClick(slot: number): void {
+        if (this.gamedatas.gamestate.name === 'lord210') {
+            this.takeAction('actChooseFreeSpaceForLeviathan', { slot });
         }
     }
 

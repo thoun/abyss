@@ -376,6 +376,7 @@ $machinestates = array(
 			"lord_116" => ST_PLAYER_LORD116, 
 			"lord_206" => ST_PLAYER_LORD206, 
 			"lord_208" => ST_PLAYER_LORD208, 
+			"lord_210" => ST_PLAYER_LORD210, 
 			"lord_ambassador" => ST_PLAYER_CONTROL_POST_DRAW, 
 			"lord_sentinel" => ST_PLAYER_PLACE_SENTINEL,
 			"zombiePass" => ST_PRE_CONTROL, 
@@ -806,9 +807,10 @@ $machinestates = array(
 	    "type" => "activeplayer",
 	    "args" => "argLord210",
 		"possibleactions" => [
-		    "actChooseFreeSpace",
+		    "actChooseFreeSpaceForLeviathan",
 	    ],
 	    "transitions" => [
+		    "next" => ST_PRE_CONTROL,
 		    "zombiePass" => ST_PRE_CONTROL, 
 		    "loopback" => ST_PLAYER_LORD210,
 	    ],

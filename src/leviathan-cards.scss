@@ -29,6 +29,24 @@
         }
       }
     }
+
+    &[data-slot-id="99"] {
+      top: 440px;
+  
+      .leviathan-card {
+        box-shadow: unset;
+        outline: 4px solid orange;
+  
+        .card-side {
+            box-shadow: unset;
+        }
+      }
+    }
+
+    &.selectable {
+      cursor: pointer;
+      outline: 4px dashed orange;
+    }
   }
 }
 
@@ -76,7 +94,7 @@
 
   &.bga-cards_selected-card:not(.disabled) {
       box-shadow: unset;
-      outline: 8px orange;
+      outline: 4px solid orange;
 
       .card-side {
           box-shadow: unset;

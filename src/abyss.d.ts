@@ -135,6 +135,7 @@ interface AbyssGame extends Game {
     onClickPlayerLockedLord(lord: AbyssLord): void;
     onClickPlayerLocation(location: AbyssLocation): void;
     onLeviathanClick(card: AbyssLeviathan): void;
+    onLeviathanTrackSlotClick(slot: number): void;
     updateKeyCounter(playerId: number): void;
 }
 

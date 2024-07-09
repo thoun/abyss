@@ -33,7 +33,7 @@ class LeviathanManager {
   }
 
   public static function getVisibleLeviathans() {
-    return self::typedLeviathans(self::$game->getCollection( "SELECT * FROM leviathan WHERE place > 0"));
+    return self::typedLeviathans(self::$game->getCollection( "SELECT * FROM leviathan WHERE place > 0 and place < 99"));
   }
 
   public static function getLeviathanAtSlot(int $slot) {

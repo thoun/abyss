@@ -2475,16 +2475,25 @@ var PlayerTable = /** @class */ (function () {
     PlayerTable.sortAllies = sortFunction('faction', 'value');
     return PlayerTable;
 }());
+var SLOTS_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 99];
 var LeviathanBoard = /** @class */ (function () {
     function LeviathanBoard(game, gamedatas) {
         var _this = this;
         this.game = game;
         this.stock = new SlotStock(this.game.leviathanManager, document.getElementById('leviathan-board'), {
-            slotsIds: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+            slotsIds: SLOTS_IDS,
             mapCardToSlot: function (card) { return card.place; },
         });
         this.stock.addCards(gamedatas.leviathans);
         this.stock.onCardClick = function (card) { return _this.game.onLeviathanClick(card); };
+        SLOTS_IDS.forEach(function (slot) {
+            var slotDiv = document.querySelector("#leviathan-board [data-slot-id=\"".concat(slot, "\"]"));
+            slotDiv.addEventListener('click', function () {
+                if (slotDiv.classList.contains('selectable')) {
+                    _this.game.onLeviathanTrackSlotClick(slot);
+                }
+            });
+        });
     }
     LeviathanBoard.prototype.newLeviathan = function (leviathan, discardedLeviathan) {
         return __awaiter(this, void 0, void 0, function () {
@@ -2896,6 +2905,9 @@ var Abyss = /** @class */ (function () {
             case 'lord208':
                 this.onEnteringLord208(args.args);
                 break;
+            case 'lord210':
+                this.onEnteringLord210(args.args);
+                break;
             case 'placeSentinel':
                 this.onEnteringPlaceSentinel(args.args);
                 break;
@@ -2958,6 +2970,12 @@ var Abyss = /** @class */ (function () {
         if (this.isCurrentPlayerActive()) {
             this.leviathanBoard.setAllSelectableLeviathans();
         }
+    };
+    Abyss.prototype.onEnteringLord210 = function (args) {
+        this.leviathanBoard.newLeviathan(args.leviathan, null);
+        args.freeSlots.forEach(function (slot) {
+            return document.querySelector("#leviathan-board [data-slot-id=\"".concat(slot, "\"]")).classList.add('selectable');
+        });
     };
     Abyss.prototype.onEnteringPlaceSentinel = function (args) {
         var _this = this;
@@ -3067,6 +3085,9 @@ var Abyss = /** @class */ (function () {
             case 'lord208':
                 this.onLeavingChooseLeviathanToFight();
                 break;
+            case 'lord210':
+                this.onLeavingLord210();
+                break;
             case 'chooseAllyToFight':
                 this.onLeavingChooseAllyToFight();
                 break;
@@ -3074,6 +3095,9 @@ var Abyss = /** @class */ (function () {
     };
     Abyss.prototype.onLeavingLord116 = function () {
         dojo.query(".lord.selectable").removeClass('selectable');
+    };
+    Abyss.prototype.onLeavingLord210 = function () {
+        document.querySelectorAll("#leviathan-board .slot.selectable").forEach(function (elem) { return elem.classList.remove('selectable'); });
     };
     Abyss.prototype.onLeavingChooseLeviathanToFight = function () {
         if (this.isCurrentPlayerActive()) {
@@ -3728,6 +3752,11 @@ var Abyss = /** @class */ (function () {
         }
         else if (this.gamedatas.gamestate.name === 'lord208') {
             this.takeAction('actRemoveHealthPointToLeviathan', { id: card.id });
+        }
+    };
+    Abyss.prototype.onLeviathanTrackSlotClick = function (slot) {
+        if (this.gamedatas.gamestate.name === 'lord210') {
+            this.takeAction('actChooseFreeSpaceForLeviathan', { slot: slot });
         }
     };
     Abyss.prototype.recruit = function (lordId) {

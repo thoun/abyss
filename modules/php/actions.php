@@ -1878,4 +1878,22 @@ trait ActionTrait {
         $this->gamestate->nextState('next');
     }
 
+    public function actChooseFreeSpaceForLeviathan(int $slot) {
+        $this->checkAction('actChooseFreeSpaceForLeviathan');
+
+        $playerId = intval($this->getActivePlayerId());
+        Abyss::DbQuery("UPDATE leviathan SET place = $slot WHERE place = 99");
+
+        $leviathan = LeviathanManager::getLeviathanAtSlot($slot);
+
+        $this->notifyAllPlayers("newLeviathan", clienttranslate('${player_name} places the new Leviathan on the spot ${spot}'), [
+            'playerId' => $playerId,
+            'player_name' => $this->getActivePlayerName(),
+            'spot' => LEVIATHAN_SLOTS_LABELS[$slot],
+            'leviathan' => $leviathan,
+        ]);
+
+        $this->gamestate->nextState('next');
+    }
+
 }

@@ -646,6 +646,16 @@ trait StateTrait {
                     case 208:
                         $transition = "lord_208";
                         break;
+                    case 210:
+                        if (count($this->argLord210()['freeSlots']) > 0) {
+                            LeviathanManager::draw(99); // temp space
+                            $transition = "lord_210";
+                        }
+                        
+                        if ($transition == "done") {
+                            self::notifyAllPlayers( "log", clienttranslate('Impossible to activate the Lord effect'), []);
+                        }
+                        break;
                     default;
                         throw new BgaVisibleSystemException( "Not implemented." );
                 }

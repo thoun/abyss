@@ -421,4 +421,18 @@ trait ArgsTrait {
 			'handCount' => $handCount,
 		];
 	}
+
+	function argLord210() {
+		$leviathan = LeviathanManager::getLeviathanAtSlot(99);
+
+		$leviathans = LeviathanManager::getVisibleLeviathans();
+		$allSlots = array_unique(LEVIATHAN_SLOTS);
+		$occupiedSlots = array_map(fn($l) => $l->place, $leviathans);
+		$freeSlots = array_values(array_diff($allSlots, $occupiedSlots));
+
+		return [
+			'leviathan' => $leviathan,
+			'freeSlots' => $freeSlots,
+		];
+	}
 } 

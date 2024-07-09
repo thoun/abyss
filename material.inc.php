@@ -305,7 +305,7 @@ $this->lords = array(
     "desc" => clienttranslate("You can choose to ignore Monsters revealed during your Exploration, the cards are discarded."),
   ),
   "210" => array(
-    "name" => clienttranslate("The Breeder"), // TODO
+    "name" => clienttranslate("The Breeder"),
     "desc" => clienttranslate("Draw a Leviathan and place it on any free space of the Border."),
   ),
 );

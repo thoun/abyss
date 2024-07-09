@@ -359,6 +359,20 @@ body > .card {
   left: 0px;
   top: 352px;
 }
+#leviathan-board .slot[data-slot-id="99"] {
+  top: 440px;
+}
+#leviathan-board .slot[data-slot-id="99"] .leviathan-card {
+  box-shadow: unset;
+  outline: 4px solid orange;
+}
+#leviathan-board .slot[data-slot-id="99"] .leviathan-card .card-side {
+  box-shadow: unset;
+}
+#leviathan-board .slot.selectable {
+  cursor: pointer;
+  outline: 4px dashed orange;
+}
 
 .leviathan-card {
   display: inline-block;
@@ -397,7 +411,7 @@ body > .card {
 }
 .leviathan-card.bga-cards_selected-card:not(.disabled) {
   box-shadow: unset;
-  outline: 8px orange;
+  outline: 4px solid orange;
 }
 .leviathan-card.bga-cards_selected-card:not(.disabled) .card-side {
   box-shadow: unset;
