@@ -3308,6 +3308,10 @@ var Abyss = /** @class */ (function () {
                     this.addActionButton("actFightAgain-button", _('Fight again'), function () { return _this.bgaPerformAction('actFightAgain'); });
                     this.addActionButton("actEndFight-button", _('End turn'), function () { return _this.bgaPerformAction('actEndFight'); });
                     break;
+                case 'lord206':
+                    this.addActionButton("actFightImmediately-button", _('Fight immediatly'), function () { return _this.bgaPerformAction('actFightImmediately'); });
+                    this.addActionButton("actIgnoreImmediatelyFightLeviathan-button", _("Don't fight"), function () { return _this.bgaPerformAction('actIgnoreImmediatelyFightLeviathan'); });
+                    break;
             }
         }
     };

@@ -1849,4 +1849,16 @@ trait ActionTrait {
 
         $this->applyEndFight();
     }
+
+    public function actFightImmediately() {
+        $this->checkAction('actFightImmediately');
+
+        $this->gamestate->nextState('fight');
+    }
+
+    public function actIgnoreImmediatelyFightLeviathan() {
+        $this->checkAction('actIgnoreImmediatelyFightLeviathan');
+
+        $this->gamestate->nextState('ignore');
+    }
 }

@@ -289,7 +289,7 @@ $this->lords = array(
     "desc" => clienttranslate("When you fight a Leviathan, use an Ally of the Race of your choice."),
   ),
   "206" => array(
-    "name" => clienttranslate("The Sorcerer"), // TODO
+    "name" => clienttranslate("The Sorcerer"),
     "desc" => clienttranslate("You can immediately fight a Leviathan."),
   ),
   "207" => array(
