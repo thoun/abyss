@@ -301,7 +301,7 @@ $this->lords = array(
     "desc" => clienttranslate("Remove 1 Health point from a Leviathan at the Border, as if you had succeeded with an attack."),
   ),
   "209" => array(
-    "name" => clienttranslate("The Coward"), // TODO
+    "name" => clienttranslate("The Coward"),
     "desc" => clienttranslate("You can choose to ignore Monsters revealed during your Exploration, the cards are discarded."),
   ),
   "210" => array(

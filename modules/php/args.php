@@ -100,12 +100,15 @@ trait ArgsTrait {
 		$monster = $ally !== false && $ally['faction'] === NULL;
 		$canIgnore = false;
 		if ($monster) {
+			$playerId = $this->getActivePlayerId();
+
 			$canIgnore = Lord::playerHas(209, $playerId);
 		}
 
 		return $argExplorePurchase + [
 			'ally' => $ally,
 			'monster' => $monster,
+			'canIgnore' => $canIgnore,
 		];
 	}
 

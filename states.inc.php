@@ -148,7 +148,7 @@ $machinestates = array(
  			"descriptionmyturn" => clienttranslate('${you} must take the last card or explore'),
  			"type" => "activeplayer",
  			"args" => "argExplore",
- 			"possibleactions" => array( "explore", "exploreTake", "lordEffect" ),
+ 			"possibleactions" => array( "actIgnoreMonster", "explore", "exploreTake", "lordEffect" ),
  			"transitions" => [
 				"explore" => ST_PRE_PURCHASE, 
 				"exploreTakeAlly" => ST_PRE_CONTROL,  
@@ -170,8 +170,15 @@ $machinestates = array(
  			"type" => "activeplayer",
  			"args" => "argExplore",
  			"action" => "stMustExplore",
- 			"possibleactions" => array( "explore", "lordEffect" ),
- 			"transitions" => array( "explore" => ST_PRE_PURCHASE, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_EXPLORE2 )
+ 			"possibleactions" => array( "actIgnoreMonster", "explore", "lordEffect" ),
+ 			"transitions" => [
+				"explore" => ST_PRE_PURCHASE, 
+				"lord_17" => ST_PLAYER_LORD17, 
+				"lord_21" => ST_PLAYER_LORD21, 
+				"lord_12" => ST_PLAYER_LORD12, 
+				"zombiePass" => ST_PRE_CONTROL, 
+				"loopback" => ST_PLAYER_EXPLORE2,
+			]
  	),
 
  	ST_PLAYER_EXPLORE3 => array(
@@ -181,7 +188,7 @@ $machinestates = array(
 		"type" => "activeplayer",
 		"args" => "argExplore",
 		"action" => "stMustExploreTake",
-		"possibleactions" => array( "exploreTake", "lordEffect" ),
+		"possibleactions" => array( "actIgnoreMonster", "exploreTake", "lordEffect" ),
 		"transitions" => [
 			"exploreTakeAlly" => ST_PRE_CONTROL, 
 			"exploreTakeAllyRemainingKrakens" => ST_PLAYER_PLACE_KRAKEN,

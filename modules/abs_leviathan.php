@@ -77,7 +77,7 @@ class LeviathanManager {
   public static function initiateLeviathanFight(int $playerId, $ally): int { // returns attack power
     $allyPower = $ally['value'];
 
-    $dice = [6, 6]; //TODOself::$game->getDoubleDieRoll();
+    $dice = self::$game->getDoubleDieRoll();
     $bothDieEffect = $ally['effect'] === 2;
     $dicePower = $bothDieEffect ? max($dice) : $dice[0];
     

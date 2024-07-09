@@ -179,8 +179,12 @@ trait StateTrait {
 
     function stMustExploreTake() {
         $player_id = $this->getActivePlayerId();
-        
-        $this->exploreTake(5, false);
+
+        $args = $this->argExplore();
+
+        if (!$args['canIgnore']) {
+            $this->exploreTake(5, false);
+        }
     }
 
     function stAction() {

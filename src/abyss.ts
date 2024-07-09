@@ -697,6 +697,13 @@ class Abyss implements AbyssGame {
                         (this as any).addActionButton('button_keepExploring', _('Keep exploring'), () => this.exploreDeck(), null, null, 'red');
                     }
                     break;
+                case 'explore3':
+                    const explore3Args = args as EnteringExploreArgs;
+                    if (explore3Args.monster && this.gamedatas.leviathanExpansion && explore3Args.canIgnore) {
+                        (this as any).addActionButton('button_fightMonster', _('Fight the Monster'), () => this.exploreTake(5));
+                        (this as any).addActionButton('button_ignoreMonster', _('Ignore the Monster'), () => (this as any).bgaPerformAction('actIgnoreMonster'));
+                    }
+                    break;
                 case 'chooseMonsterReward':
                     for (var i in args.rewards) {
                         var r: string = args.rewards[i];

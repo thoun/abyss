@@ -111,8 +111,6 @@ trait ActionTrait {
         // Add your game logic to explore here
         // Reveal the top card of the explore deck, and tell everyone about it
         $ally = Ally::draw();
-        $ally['faction'] = NULL; // TODO
-        $this->DbQuery( "UPDATE ally SET faction = NULL WHERE ally_id = " . $ally["ally_id"] ); // TODO
         
         if ($ally['faction'] !== NULL) {
             $log = clienttranslate('${player_name} reveals ${card_name}');
@@ -168,7 +166,7 @@ trait ActionTrait {
             // If it's a monster, go through the monster rigmarole
             $leviathanExpansion = $this->isLeviathanExpansion();
             if ($leviathanExpansion) {
-                if (count(LeviathanManager::canFightSome(Ally::getPlayerHand( $player_id ), $playerId)) > 0) {
+                if (count(LeviathanManager::canFightSome(Ally::getPlayerHand( $player_id ), $player_id)) > 0) {
                     $this->setGlobalVariable(SLAYED_LEVIATHANS, 0);
                     $nextState = "chooseLeviathanToFight";
                 } else {
@@ -1894,6 +1892,34 @@ trait ActionTrait {
         ]);
 
         $this->gamestate->nextState('next');
+    }
+
+    public function actIgnoreMonster() {
+        $this->checkAction('actIgnoreMonster');
+
+        $slots = Ally::getExploreSlots();
+        if (count($slots) === 0) {
+            throw new BgaUserException( $this->_("No monster to ignore") );
+        }
+
+        $slot = count($slots);
+        $ally = end($slots);
+
+        if ($ally['faction'] !== NULL) {
+            throw new BgaUserException( $this->_("The last ally is not a Monster") );
+        }
+        $playerId = intval($this->getActivePlayerId());
+        
+        Ally::discard($ally["ally_id"]);
+        $this->notifyAllPlayers( "discardExploreMonster", clienttranslate('${player_name} ignores a Monster'), [
+            'ally' => $ally,
+            'slot' => $slot,
+            'player_id' => $playerId,
+            'player_name' => $this->getPlayerNameById($playerId),
+            'allyDiscardSize' => Ally::getDiscardSize(),
+        ]);
+
+        $this->gamestate->jumpToState(ST_PLAYER_EXPLORE2);
     }
 
 }
