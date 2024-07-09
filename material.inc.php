@@ -269,44 +269,44 @@ $this->lords = array(
   
   // leviathan lords
   "201" => array(
-    "name" => /*clienttranslate*/("The Intrepid"),
-    "desc" => /*clienttranslate*/("If you slay a Leviathan, you can fight a second one."),
+    "name" => clienttranslate("The Intrepid"),
+    "desc" => clienttranslate("If you slay a Leviathan, you can fight a second one."),
   ),
   "202" => array(
-    "name" => /*clienttranslate*/("The Border Guard"),
-    "desc" => /*clienttranslate*/("The opponent of your choice adds a new Leviathan to the Border."),
+    "name" => clienttranslate("The Border Guard"), // TODO. Beware of the added Leviathan triggering a choice of allies/free lord!
+    "desc" => clienttranslate("The opponent of your choice adds a new Leviathan to the Border."),
   ),
   "203" => array(
-    "name" => /*clienttranslate*/("The Taxidermist"),
-    "desc" => /*clienttranslate*/("Earn 2 Pearls for each Health point you remove from a Leviathan."),
+    "name" => clienttranslate("The Taxidermist"), // TO TEST
+    "desc" => clienttranslate("Earn 2 Pearls for each Health point you remove from a Leviathan."),
   ),
   "204" => array(
-    "name" => /*clienttranslate*/("The Arms Dealer"),
-    "desc" => /*clienttranslate*/("Earn 1 Pearl for each Leviathan present at the Border."),
+    "name" => clienttranslate("The Arms Dealer"), // TO TEST
+    "desc" => clienttranslate("Earn 1 Pearl for each Leviathan present at the Border."),
   ),
   "205" => array(
-    "name" => /*clienttranslate*/("The Metamorph"),
-    "desc" => /*clienttranslate*/("When you fight a Leviathan, use an Ally of the Race of your choice."),
+    "name" => clienttranslate("The Metamorph"), // TO TEST
+    "desc" => clienttranslate("When you fight a Leviathan, use an Ally of the Race of your choice."),
   ),
   "206" => array(
-    "name" => /*clienttranslate*/("The Sorcerer"),
-    "desc" => /*clienttranslate*/("You can immediately fight a Leviathan."),
+    "name" => clienttranslate("The Sorcerer"), // TODO
+    "desc" => clienttranslate("You can immediately fight a Leviathan."),
   ),
   "207" => array(
-    "name" => /*clienttranslate*/("The Altruist"),
-    "desc" => /*clienttranslate*/("Win 1 extra Monster token for each Health point you remove from a Leviathan."),
+    "name" => clienttranslate("The Altruist"), // TO TEST
+    "desc" => clienttranslate("Win 1 extra Monster token for each Health point you remove from a Leviathan."),
   ),
   "208" => array(
-    "name" => /*clienttranslate*/("The Rebel"),
-    "desc" => /*clienttranslate*/("Remove 1 Health point from a Leviathan at the Border, as if you had succeeded with an attack."),
+    "name" => clienttranslate("The Rebel"), // TODO
+    "desc" => clienttranslate("Remove 1 Health point from a Leviathan at the Border, as if you had succeeded with an attack."),
   ),
   "209" => array(
-    "name" => /*clienttranslate*/("The Coward"),
-    "desc" => /*clienttranslate*/("You can choose to ignore Monsters revealed during your Exploration, the cards are discarded."),
+    "name" => clienttranslate("The Coward"), // TODO
+    "desc" => clienttranslate("You can choose to ignore Monsters revealed during your Exploration, the cards are discarded."),
   ),
   "210" => array(
-    "name" => /*clienttranslate*/("The Breeder"),
-    "desc" => /*clienttranslate*/("Draw a Leviathan and place it on any free space of the Border."),
+    "name" => clienttranslate("The Breeder"), // TODO
+    "desc" => clienttranslate("Draw a Leviathan and place it on any free space of the Border."),
   ),
 );
 

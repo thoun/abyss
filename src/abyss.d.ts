@@ -175,6 +175,7 @@ interface EnteringPurchaseArgs extends EnteringExplorePurchaseArgs {
 interface EnteringExploreArgs extends EnteringExplorePurchaseArgs {
     ally: AbyssAlly;
     monster: boolean;
+    canIgnore: boolean;
 }
 
 interface EnteringMartialLawArgs {
@@ -184,6 +185,12 @@ interface EnteringMartialLawArgs {
 
 interface EnteringGiveKrakenArgs {
     playersIds: number[];
+}
+
+interface EnteringIncreaseAttackPowerArgs {
+    attackPower: number;
+    payPearlEffect: boolean;
+    playerPearls: number;
 }
 
 interface EnteringChooseFightRewardArgs {
@@ -419,6 +426,12 @@ interface NotifLeviathanDefeatedArgs {
 }
 
 interface NotifDiscardExploreMonsterArgs {
+    ally: AbyssAlly;
+    allyDiscardSize: number;
+}
+
+interface NotifDiscardAllyTofightArgs {
+    playerId: number;
     ally: AbyssAlly;
     allyDiscardSize: number;
 }

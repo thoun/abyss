@@ -3,11 +3,13 @@ class LeviathanManager extends CardManager<AbyssLeviathan> {
     super(game, {
       animationManager: game.animationManager,
       getId: leviathan => `leviathan-${leviathan.id}`,
-      setupFrontDiv: (leviathan, div: HTMLDivElement) => {
-        if (div.classList.contains(`leviathan-card`)) {
+      setupDiv: (leviathan: AbyssLeviathan, div: HTMLDivElement) => {
+        div.classList.add(`leviathan-card`);
+      },
+      setupFrontDiv: (leviathan: AbyssLeviathan, div: HTMLDivElement) => {
+        if (div.querySelector('.icon-life')) {
           return;
         }
-        div.classList.add(`leviathan-card`);
 
         const imagePosition = leviathan.id - 1;
         const image_items_per_row = 5;

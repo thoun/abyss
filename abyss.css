@@ -363,12 +363,21 @@ body > .card {
 .leviathan-card {
   display: inline-block;
   position: relative;
-  border-radius: 10px;
+  border-radius: 3px;
   text-align: center;
   width: 136px;
   height: 88px;
+}
+.leviathan-card .card-side {
+  border-radius: 3px;
   background-image: url("img/leviathans.jpg");
   background-size: auto 400%;
+}
+.leviathan-card:hover {
+  z-index: 100;
+}
+.leviathan-card:hover .front {
+  transform: scale(2) !important;
 }
 .leviathan-card .leviathan-icon.icon-life {
   position: absolute;

@@ -2293,11 +2293,13 @@ var LeviathanManager = /** @class */ (function (_super) {
         var _this = _super.call(this, game, {
             animationManager: game.animationManager,
             getId: function (leviathan) { return "leviathan-".concat(leviathan.id); },
+            setupDiv: function (leviathan, div) {
+                div.classList.add("leviathan-card");
+            },
             setupFrontDiv: function (leviathan, div) {
-                if (div.classList.contains("leviathan-card")) {
+                if (div.querySelector('.icon-life')) {
                     return;
                 }
-                div.classList.add("leviathan-card");
                 var imagePosition = leviathan.id - 1;
                 var image_items_per_row = 5;
                 var row = Math.floor(imagePosition / image_items_per_row);
@@ -3113,6 +3115,9 @@ var Abyss = /** @class */ (function () {
                     var exploreArgs_1 = args;
                     if (exploreArgs_1.monster && this.gamedatas.leviathanExpansion) {
                         this.addActionButton('button_fightMonster', _('Fight the Monster'), function () { return _this.exploreTake(exploreArgs_1.ally.place); });
+                        if (exploreArgs_1.canIgnore) {
+                            this.addActionButton('button_ignoreMonster', _('Ignore the Monster'), function () { return _this.bgaPerformAction('actIgnoreMonster'); });
+                        }
                         this.addActionButton('button_keepExploring', _('Keep exploring'), function () { return _this.exploreDeck(); }, null, null, 'red');
                     }
                     break;
@@ -3267,11 +3272,24 @@ var Abyss = /** @class */ (function () {
                         document.getElementById("giveKraken".concat(playerId, "-button")).style.border = "3px solid #".concat(player.color);
                     });
                     break;
+                case 'increaseAttackPower':
+                    var increaseAttackPowerArgs = args;
+                    if (increaseAttackPowerArgs.payPearlEffect) {
+                        var _loop_8 = function (i_6) {
+                            this_3.addActionButton("increaseAttackPower".concat(i_6, "-button"), _("Increase to ${newPower}").replace('${newPower}', (increaseAttackPowerArgs.attackPower + i_6) + " (".concat(i_6, " <i class=\"icon icon-pearl\"></i>)")), function () { return _this.bgaPerformAction('actIncreaseAttackPower', { amount: i_6 }); });
+                        };
+                        var this_3 = this;
+                        for (var i_6 = 1; i_6 <= increaseAttackPowerArgs.playerPearls; i_6++) {
+                            _loop_8(i_6);
+                        }
+                        this.addActionButton("increaseAttackPower0-button", _("Don't increase attack power"), function () { return _this.bgaPerformAction('actIncreaseAttackPower', { amount: 0 }); });
+                    }
+                    break;
                 case 'chooseFightReward':
                     var chooseFightRewardArgs = args;
-                    var _loop_8 = function (i_6) {
-                        var base = chooseFightRewardArgs.rewards - i_6;
-                        var expansion = i_6;
+                    var _loop_9 = function (i_7) {
+                        var base = chooseFightRewardArgs.rewards - i_7;
+                        var expansion = i_7;
                         var html = [];
                         if (base > 0) {
                             html.push("".concat(base, " <div class=\"icon icon-monster\"></div>"));
@@ -3279,11 +3297,11 @@ var Abyss = /** @class */ (function () {
                         if (expansion > 0) {
                             html.push("".concat(expansion, " <div class=\"icon icon-monster-leviathan\"></div>"));
                         }
-                        this_3.addActionButton("actChooseFightReward".concat(i_6, "-button"), html.join(' '), function () { return _this.bgaPerformAction('actChooseFightReward', { base: base, expansion: expansion }); });
+                        this_4.addActionButton("actChooseFightReward".concat(i_7, "-button"), html.join(' '), function () { return _this.bgaPerformAction('actChooseFightReward', { base: base, expansion: expansion }); });
                     };
-                    var this_3 = this;
-                    for (var i_6 = 0; i_6 <= chooseFightRewardArgs.rewards; i_6++) {
-                        _loop_8(i_6);
+                    var this_4 = this;
+                    for (var i_7 = 0; i_7 <= chooseFightRewardArgs.rewards; i_7++) {
+                        _loop_9(i_7);
                     }
                     break;
                 case 'chooseFightAgain':
@@ -4029,6 +4047,7 @@ var Abyss = /** @class */ (function () {
             ['placeKraken', 500],
             ['newLeviathan', 500],
             ['discardExploreMonster', 500],
+            ['discardAllyTofight', 500],
             ['moveLeviathanLife', 500],
             ['leviathanDefeated', 500],
             ['endGame_scoring', (5000 + (this.gamedatas.krakenExpansion ? 2000 : 0) + (this.gamedatas.leviathanExpansion ? 2000 : 0)) * num_players + 3000],
@@ -4049,7 +4068,7 @@ var Abyss = /** @class */ (function () {
         }
     };
     Abyss.prototype.setScoringRowWinner = function (winner_ids, lines) {
-        var _loop_9 = function (i) {
+        var _loop_10 = function (i) {
             var player_id = winner_ids[i];
             dojo.addClass($('scoring-row-name-p' + player_id), 'wavetext');
             lines.forEach(function (stage) {
@@ -4057,7 +4076,7 @@ var Abyss = /** @class */ (function () {
             });
         };
         for (var i in winner_ids) {
-            _loop_9(i);
+            _loop_10(i);
         }
     };
     Abyss.prototype.notif_finalRound = function (notif) {
@@ -4229,28 +4248,28 @@ var Abyss = /** @class */ (function () {
         // For each slot, animate to the council pile, fade out and destroy, then increase the council pile by 1
         var delay = 0;
         var cards = this.visibleAllies.getCards();
-        var _loop_10 = function () {
+        var _loop_11 = function () {
             var ally = cards.find(function (ally) { return ally.place == i; });
             if (ally) {
                 var faction = ally.faction;
                 if (faction === null) {
                     // Monster just fades out
-                    this_4.visibleAllies.removeCard(ally);
+                    this_5.visibleAllies.removeCard(ally);
                     delay += 200;
                 }
                 else if (i != slot) {
                     if (faction != 10) {
                         // Animate to the council!
                         var deck_1 = dojo.query('#council-track .slot-' + faction);
-                        this_4.councilStacks[faction].addCard(ally, null, { visible: false })
+                        this_5.councilStacks[faction].addCard(ally, null, { visible: false })
                             .then(function () { return _this.setDeckSize(deck_1, +dojo.attr(deck_1[0], 'data-size') + 1); });
                         delay += 200;
                     }
                 }
                 else {
                     // This is the card that was taken - animate it to hand or player board
-                    var theAlly_1 = this_4.allyManager.getCardElement(ally);
-                    if (player_id == this_4.getPlayerId()) {
+                    var theAlly_1 = this_5.allyManager.getCardElement(ally);
+                    if (player_id == this_5.getPlayerId()) {
                         setTimeout(function () {
                             _this.getPlayerTable(Number(player_id)).addHandAlly(notif.args.ally, theAlly_1);
                             _this.incAllyCount(player_id, 1);
@@ -4260,7 +4279,7 @@ var Abyss = /** @class */ (function () {
                     else {
                         dojo.setStyle(theAlly_1, "zIndex", "1");
                         dojo.setStyle(theAlly_1, "transition", "none");
-                        animation = this_4.slideToObject(theAlly_1, $('player_board_' + player_id), 600, delay);
+                        animation = this_5.slideToObject(theAlly_1, $('player_board_' + player_id), 600, delay);
                         animation.onEnd = function () {
                             _this.visibleAllies.removeCard(ally);
                             _this.incAllyCount(player_id, 1);
@@ -4271,9 +4290,9 @@ var Abyss = /** @class */ (function () {
                 }
             }
         };
-        var this_4 = this, animation;
+        var this_5 = this, animation;
         for (var i = 1; i <= 5; i++) {
-            _loop_10();
+            _loop_11();
         }
         this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
         this.organisePanelMessages();
@@ -4499,6 +4518,13 @@ var Abyss = /** @class */ (function () {
     };
     Abyss.prototype.notif_discardExploreMonster = function (notif) {
         this.visibleAllies.removeCard(notif.args.ally);
+        this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
+    };
+    Abyss.prototype.notif_discardAllyTofight = function (notif) {
+        if (this.getPlayerId() == notif.args.playerId) {
+            this.getCurrentPlayerTable().getHand().removeCard(notif.args.ally);
+        }
+        this.allyCounters[notif.args.playerId].incValue(-1);
         this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
     };
     Abyss.prototype.notif_moveLeviathanLife = function (notif) {

@@ -47,17 +47,21 @@ class LeviathanManager {
     Abyss::DbQuery("UPDATE leviathan SET place = -$playerId WHERE id = $id");
   }
 
-  public static function canFightWith(Leviathan $leviathan, array $hand): array {
-    $possibleFactions = [FACTION_RED];
+  public static function canFightWith(Leviathan $leviathan, array $hand, int $playerId): array {
+    $possibleFactions = [FACTION_RED, 10];
     if ($leviathan->faction !== null) {
       $possibleFactions[] = $leviathan->faction;
     }
+    if (Lord::playerHas(205, $playerId)) {
+      $possibleFactions = [1, 2, 3, 4, 5, 10];
+    }
+
     return array_values(array_filter($hand, fn($ally) => in_array($ally['faction'], $possibleFactions)));
   }
 
-  public static function canFightSome(array $hand): array {
+  public static function canFightSome(array $hand, int $playerId): array {
     $leviathans = self::getVisibleLeviathans();
-    return array_values(array_filter($leviathans, fn($leviathan) => count(self::canFightWith($leviathan, $hand)) > 0));
+    return array_values(array_filter($leviathans, fn($leviathan) => count(self::canFightWith($leviathan, $hand, $playerId)) > 0));
   }
 
   public static function getDefeatedLeviathans(int $playerId): int {
@@ -73,7 +77,7 @@ class LeviathanManager {
   public static function initiateLeviathanFight(int $playerId, $ally): int { // returns attack power
     $allyPower = $ally['value'];
 
-    $dice = self::$game->getDoubleDieRoll();
+    $dice = [6, 6]; //TODOself::$game->getDoubleDieRoll();
     $bothDieEffect = $ally['effect'] === 2;
     $dicePower = $bothDieEffect ? max($dice) : $dice[0];
     
@@ -109,11 +113,24 @@ class LeviathanManager {
           'leviathan' => $leviathan,
           'resistance' => $combatCondition->resistance,
         ]);
+
+        // If you have the Taxidermist, you gain extra Pearls
+        if (Lord::playerHas(203, $playerId)) {
+            $factions = array();
+            self::$game->incPlayerPearls( $player_id, 2, "lord_203");
+        }
+
+        // If you have the Altruist, you gain extra reward
+        if (Lord::playerHas(207, $playerId)) {
+          $rewards++;
+        }
       }
     }
 
     if ($leviathan->life >= count($leviathan->combatConditions)) { // leviathan is beaten
       self::discard($leviathan->id, $playerId);
+      self::$game->setGlobalVariable(SLAYED_LEVIATHANS, self::$game->getGlobalVariable(SLAYED_LEVIATHANS) + 1);
+      self::$game->setGlobalVariable(FIGHTED_LEVIATHAN, null);
 
       self::$game->notifyAllPlayers("leviathanDefeated", clienttranslate('${player_name} has defeated the Leviathan'), [
         'playerId' => $playerId,

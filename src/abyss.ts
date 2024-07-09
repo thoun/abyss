@@ -662,6 +662,9 @@ class Abyss implements AbyssGame {
                     const exploreArgs = args as EnteringExploreArgs;
                     if (exploreArgs.monster && this.gamedatas.leviathanExpansion) {
                         (this as any).addActionButton('button_fightMonster', _('Fight the Monster'), () => this.exploreTake(exploreArgs.ally.place));
+                        if (exploreArgs.canIgnore) {
+                            (this as any).addActionButton('button_ignoreMonster', _('Ignore the Monster'), () => (this as any).bgaPerformAction('actIgnoreMonster'));
+                        }
                         (this as any).addActionButton('button_keepExploring', _('Keep exploring'), () => this.exploreDeck(), null, null, 'red');
                     }
                     break;
@@ -798,6 +801,15 @@ class Abyss implements AbyssGame {
                         (this as any).addActionButton(`giveKraken${playerId}-button`, player.name, () => this.giveKraken(playerId));
                         document.getElementById(`giveKraken${playerId}-button`).style.border = `3px solid #${player.color}`;
                     });
+                    break;
+                case 'increaseAttackPower':
+                    const increaseAttackPowerArgs = args as EnteringIncreaseAttackPowerArgs; 
+                    if (increaseAttackPowerArgs.payPearlEffect) {
+                        for (let i = 1; i <= increaseAttackPowerArgs.playerPearls; i++) {
+                            (this as any).addActionButton(`increaseAttackPower${i}-button`, _("Increase to ${newPower}").replace('${newPower}', (increaseAttackPowerArgs.attackPower + i) + ` (${i} <i class="icon icon-pearl"></i>)`), () => (this as any).bgaPerformAction('actIncreaseAttackPower', { amount: i }));
+                        }
+                        (this as any).addActionButton(`increaseAttackPower0-button`, _("Don't increase attack power"), () => (this as any).bgaPerformAction('actIncreaseAttackPower', { amount: 0 }));
+                    }
                     break;
                 case 'chooseFightReward':
                     const chooseFightRewardArgs = args as EnteringChooseFightRewardArgs; 
@@ -1731,6 +1743,7 @@ class Abyss implements AbyssGame {
             ['placeKraken', 500],
             ['newLeviathan', 500],
             ['discardExploreMonster', 500],
+            ['discardAllyTofight', 500],
             ['moveLeviathanLife', 500],
             ['leviathanDefeated', 500],
             ['endGame_scoring', (5000 + (this.gamedatas.krakenExpansion ? 2000 : 0) + (this.gamedatas.leviathanExpansion ? 2000 : 0)) * num_players + 3000],
@@ -2279,6 +2292,14 @@ class Abyss implements AbyssGame {
 
     notif_discardExploreMonster(notif: Notif<NotifDiscardExploreMonsterArgs>) {
         this.visibleAllies.removeCard(notif.args.ally);
+        this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
+    }
+
+    notif_discardAllyTofight(notif: Notif<NotifDiscardAllyTofightArgs>) {
+        if (this.getPlayerId() == notif.args.playerId) {
+            this.getCurrentPlayerTable().getHand().removeCard(notif.args.ally);
+        }
+        this.allyCounters[notif.args.playerId].incValue(-1);
         this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
     }
 

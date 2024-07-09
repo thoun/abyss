@@ -667,17 +667,19 @@ i.icon-monster {
 }
 
 div.icon-monster {
+  display: inline-block;
   background-position: 80% 0%;
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
 }
 
 div.icon-monster-leviathan {
-  background-image: url('img/icons-leviathan.png');
+  display: inline-block;
+  background-image: url("img/icons-leviathan.png");
   background-position: 0% 0%;
   background-size: auto 100%;
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
 }
 
 i.icon-monster-leviathan {

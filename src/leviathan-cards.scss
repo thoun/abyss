@@ -35,14 +35,25 @@
 .leviathan-card {
   display: inline-block;
   position: relative;
-  border-radius: 10px;
+  border-radius: 3px;
   text-align: center;
   //width: 550px;
   //height: 358px;
   width: 136px;
   height: 88px;
-  background-image: url('img/leviathans.jpg');
-  background-size: auto 400%;
+
+  .card-side {
+    border-radius: 3px;
+    background-image: url('img/leviathans.jpg');
+    background-size: auto 400%;
+  }
+
+  &:hover {
+    z-index: 100;
+    .front {
+      transform: scale(2) !important;
+    }
+  }
 
   .leviathan-icon.icon-life {
     position: absolute;

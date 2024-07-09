@@ -17,6 +17,7 @@ trait DebugUtilTrait {
 		//$this->debugPickMonsters(2343493, 2);
 		$this->debugPickAllies(2343492);
 		$this->debugPickAllies(2343493);
+		$this->debug_fillLeviathans();
 		//$this->debugPickAllies(2343494);
 		
 		//$this->debugPickKrakens(2343492);
@@ -24,8 +25,8 @@ trait DebugUtilTrait {
 		//$this->debugPickKrakens(2343494);
 
 		//$this->debugAddLocations(2343492);
-		//$this->debugAddLord(2343492);
-		//$this->debugAddLord(2343493);
+		//$this->debug_addRandomLord(2343492);
+		//$this->debug_addRandomLord(2343493);
 		//$this->debugAddAffiliated(2343492);
 
 		//$this->DbQuery("UPDATE player SET player_nebulis = 2");
@@ -48,14 +49,14 @@ trait DebugUtilTrait {
 	function debugPickAllies(int $playerId, int $number = 12) {
 		for ($i=0; $i<$number; $i++) {
 			$ally = Ally::draw();
-			self::DbQuery( "UPDATE ally SET place = ".($ally['faction'] === null ? 0 : ($playerId * -1))." WHERE ally_id = " . $ally["ally_id"] );
+			$this->DbQuery( "UPDATE ally SET place = ".($ally['faction'] === null ? 0 : ($playerId * -1))." WHERE ally_id = " . $ally["ally_id"] );
 		}
 	}
 
 	function debugPickKrakens(int $playerId, int $number = 12) {
 		for ($i=0; $i<$number; $i++) {
 			$ally = Ally::draw();
-			self::DbQuery( "UPDATE ally SET place = ".($ally['faction'] != 10 ? 0 : ($playerId * -1))." WHERE ally_id = " . $ally["ally_id"] );
+			$this->DbQuery( "UPDATE ally SET place = ".($ally['faction'] != 10 ? 0 : ($playerId * -1))." WHERE ally_id = " . $ally["ally_id"] );
 		}
 	}
 
@@ -70,32 +71,36 @@ trait DebugUtilTrait {
 	function debugAddAffiliated(int $playerId, int $number = 5) {
 		for ($i=0; $i<$number; $i++) {
 			$ally = Ally::draw();
-			self::DbQuery( "UPDATE ally SET place = ".($ally['faction'] == null ? 0 : ($playerId * -1)).", affiliated = true WHERE ally_id = " . $ally["ally_id"] );
+			$this->DbQuery( "UPDATE ally SET place = ".($ally['faction'] == null ? 0 : ($playerId * -1)).", affiliated = true WHERE ally_id = " . $ally["ally_id"] );
 		}
 	}
 
 	function debugCouncilAllies(int $number = 12) {
 		for ($i=0; $i<$number; $i++) {
 			$ally = Ally::draw();
-			self::DbQuery( "UPDATE ally SET place = 6, faction = ".$ally["faction"]." WHERE ally_id = " . $ally["ally_id"] );
+			$this->DbQuery( "UPDATE ally SET place = 6, faction = ".$ally["faction"]." WHERE ally_id = " . $ally["ally_id"] );
 		}
 	}
 
-	function debugAddLord(int $playerId, $location = null, int $number = 3) {
+	function debug_addRandomLord(int $playerId, $location = null, int $number = 3) {
 		for ($i=0; $i<$number; $i++) {
 			$lord = $this->getObject( "SELECT * FROM lord WHERE place = 0 ORDER BY RAND() LIMIT 1" );
-			self::DbQuery($location == null ? 
+			$this->DbQuery($location == null ? 
 				"UPDATE lord SET place = ".($playerId * -1)." WHERE lord_id = " . $lord["lord_id"] : 
 				"UPDATE lord SET place = ".($playerId * -1).", location = $location WHERE lord_id = " . $lord["lord_id"] 
 			);
 		}
 	}
 
+	function debug_addLord(int $playerId, int $type) {
+		$this->DbQuery("UPDATE lord SET place = ".($playerId * -1)." WHERE lord_id = $type");
+	}
+
 	function debugAddLocations(int $playerId, int $number = 3) {
 		for ($i=0; $i<$number; $i++) {
 			$location = Location::draw();
-			self::DbQuery( "UPDATE location SET place = ".($playerId * -1)." WHERE location_id = " . $location["location_id"] );
-			$this->debugAddLord($playerId, $location["location_id"], min($i, 3));
+			$this->DbQuery( "UPDATE location SET place = ".($playerId * -1)." WHERE location_id = " . $location["location_id"] );
+			$this->debug_addRandomLord($playerId, $location["location_id"], min($i, 3));
 		}
 	}
 
@@ -110,7 +115,14 @@ trait DebugUtilTrait {
 		$this->DbQuery("UPDATE player SET player_keys = $number WHERE player_id = $playerId");
 	}
 
+	function debug_fillLeviathans() {
+		foreach (array_unique(LEVIATHAN_SLOTS) as $slot) {
+			LeviathanManager::draw($slot);
+		}
+	}
+
 	function debug_fight() {
+		$this->setGlobalVariable(SLAYED_LEVIATHANS, 0);
 		$this->gamestate->jumpToState(ST_PLAYER_CHOOSE_LEVIATHAN_TO_FIGHT);
 	}
 
@@ -144,7 +156,7 @@ trait DebugUtilTrait {
 			++$sid;
 		}
 
-        self::reloadPlayersBasicInfos();
+        $this->reloadPlayersBasicInfos();
 	}
 
     function debug($debugData) {

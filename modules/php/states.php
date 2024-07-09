@@ -636,6 +636,13 @@ trait StateTrait {
                             self::notifyAllPlayers( "log", clienttranslate('Impossible to activate the Lord effect'), []);
                         }
                         break;
+                    case 204:
+                        $count = count(LeviathanManager::getVisibleLeviathans());
+                        $this->incPlayerPearls( $player_id, $count, "lord_204");
+                        break;
+                    case 206;
+                        $transition = "lord_206";
+                        break;
                     default;
                         throw new BgaVisibleSystemException( "Not implemented." );
                 }
@@ -771,9 +778,12 @@ trait StateTrait {
     }
 
     function stChooseFightAgain() {
+		$playerId = (int)$this->getActivePlayerId();
+
         $args = $this->argChooseFightAgain();
 
-        if ($args['beaten'] || !$args['handCount']) {
+        $maxSlay = (Lord::playerHas(201, $playerId)) ? 2 : 1;
+        if ($args['slayedLeviathans'] >= $maxSlay || !$args['handCount']) {
             $this->applyEndFight();
         }
     }

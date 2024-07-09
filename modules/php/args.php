@@ -98,6 +98,10 @@ trait ArgsTrait {
         $slots = Ally::getExploreSlots();
         $ally = end($slots);
 		$monster = $ally !== false && $ally['faction'] === NULL;
+		$canIgnore = false;
+		if ($monster) {
+			$canIgnore = Lord::playerHas(209, $playerId);
+		}
 
 		return $argExplorePurchase + [
 			'ally' => $ally,
@@ -366,7 +370,7 @@ trait ArgsTrait {
 	function argChooseLeviathanToFight(): array {
 		$playerId = $this->getActivePlayerId();
 
-		$selectableLeviathans = LeviathanManager::canFightSome(Ally::getPlayerHand( $playerId ));
+		$selectableLeviathans = LeviathanManager::canFightSome(Ally::getPlayerHand( $playerId ), $playerId);
 
 		return [
 			'selectableLeviathans' => $selectableLeviathans,
@@ -377,7 +381,7 @@ trait ArgsTrait {
 		$playerId = $this->getActivePlayerId();
 
 		$leviathan = LeviathanManager::getFightedLeviathan();
-		$selectableAllies = LeviathanManager::canFightWith($leviathan, Ally::getPlayerHand( $playerId ));
+		$selectableAllies = LeviathanManager::canFightWith($leviathan, Ally::getPlayerHand( $playerId ), $playerId);
 		
 		return [
 			'selectableAllies' => $selectableAllies,
@@ -409,12 +413,11 @@ trait ArgsTrait {
 	function argChooseFightAgain(): array {
 		$playerId = $this->getActivePlayerId();
 
-		$leviathan = LeviathanManager::getFightedLeviathan();
-		$beaten = $leviathan->life >= count($leviathan->combatConditions);
+		$slayedLeviathans = $this->getGlobalVariable(SLAYED_LEVIATHANS);
 		$handCount = count(Ally::getPlayerHand($playerId));
 
 		return [
-			'beaten' => $beaten,
+			'slayedLeviathans' => $slayedLeviathans,
 			'handCount' => $handCount,
 		];
 	}

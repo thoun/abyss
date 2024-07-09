@@ -548,6 +548,7 @@ $machinestates = array(
 			"actEndFight",
 		],
 		"transitions" => [
+			"fightNewLeviathan" => ST_PLAYER_CHOOSE_LEVIATHAN_TO_FIGHT,
 			"again" => ST_PLAYER_CHOOSE_ALLY_TO_FIGHT,
 			"next" => ST_PRE_CONTROL,  
 			"nextRemainingKrakens" => ST_PLAYER_PLACE_KRAKEN,
@@ -762,6 +763,38 @@ $machinestates = array(
 			"loopback" => ST_PLAYER_LORD116,
 		],
 	],
+
+	ST_PLAYER_LORD206 => [
+		"name" => "lord206",
+		"description" => clienttranslate('${actplayer} can fight a Leviathan'),
+	    "descriptionmyturn" => clienttranslate('${you} can fight a Leviathan'),
+	    "type" => "activeplayer",
+	    "args" => "argLord206",
+	    "possibleactions" => [
+		    "actChooseLeviathanToFight",
+		    "actIgnoreImmediatelyFightLeviathan",
+		],
+		"transitions" => [
+		    "next" => ST_PLAYER_CHOOSE_ALLY_TO_FIGHT,
+		    "zombiePass" => ST_PRE_CONTROL, 
+		    "loopback" => ST_PLAYER_LORD206,
+	    ],
+    ],
+
+    ST_PLAYER_LORD210 => [
+	    "name" => "lord210",
+		"description" => clienttranslate('${actplayer} must choose a free space to place the new Leviathan'),
+	    "descriptionmyturn" => clienttranslate('${you} must choose a free space to place the new Leviathan'),
+	    "type" => "activeplayer",
+	    "args" => "argLord210",
+		"possibleactions" => [
+		    "actChooseFreeSpace",
+	    ],
+	    "transitions" => [
+		    "zombiePass" => ST_PRE_CONTROL, 
+		    "loopback" => ST_PLAYER_LORD210,
+	    ],
+    ],
 
 	ST_PRE_SCORING => [
 		"name" => "preScoring",

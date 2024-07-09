@@ -168,7 +168,8 @@ trait ActionTrait {
             // If it's a monster, go through the monster rigmarole
             $leviathanExpansion = $this->isLeviathanExpansion();
             if ($leviathanExpansion) {
-                if (count(LeviathanManager::canFightSome(Ally::getPlayerHand( $player_id ))) > 0) {
+                if (count(LeviathanManager::canFightSome(Ally::getPlayerHand( $player_id ), $playerId)) > 0) {
+                    $this->setGlobalVariable(SLAYED_LEVIATHANS, 0);
                     $nextState = "chooseLeviathanToFight";
                 } else {
                     throw new BgaUserException( $this->_("You cannot fight any Leviathan present at the Border, you must continue your Exploration.") );
@@ -1737,7 +1738,7 @@ trait ActionTrait {
         $this->setGlobalVariable(ALLY_FOR_FIGHT, $id);
         Ally::discard($id);
         $ally = Ally::get($id);
-        $this->notifyAllPlayers("discardExploreMonster", clienttranslate('${player_name} discards ${card_name} to fight the Leviathan'), [
+        $this->notifyAllPlayers("discardAllyTofight", clienttranslate('${player_name} discards ${card_name} to fight the Leviathan'), [
             'playerId' => $playerId,
             'player_name' => $this->getActivePlayerName(),
             'ally' => $ally,
@@ -1778,7 +1779,7 @@ trait ActionTrait {
             'playerPearls' => $this->getPlayerPearls($playerId),
             'spentPearls' => $amount,
             'playerId' => $playerId,
-            'diff' => $diff, // for log
+            'diff' => $amount, // for log
             'player_name' => $this->getActivePlayerName(),
         ]);
 
@@ -1833,7 +1834,10 @@ trait ActionTrait {
     public function actFightAgain() {
         $this->checkAction('actFightAgain');
 
-        $this->gamestate->nextState('again');
+        $fightedLeviathan = $this->getGlobalVariable(FIGHTED_LEVIATHAN);
+
+        // if we fight again with The Intrepid, we need to select a new Leviathan to fight
+        $this->gamestate->nextState($fightedLeviathan === null ? 'fightNewLeviathan' : 'again');
     }
 
     public function actEndFight() {
