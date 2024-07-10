@@ -220,6 +220,8 @@ trait UtilTrait {
             $message = clienttranslate('${player_name} gains ${num_nebulis} Nebulis for fighting with a Kraken of value ${kraken_value}');
         } else if ($source == "end-game-kraken") {
             $message = clienttranslate('${player_name} gains ${num_nebulis} Nebulis for remaining Kraken of value ${kraken_value}');
+        } else if ($source == "fight-leviathan-discard-ally") {
+            $message = clienttranslate('${player_name} gains ${num_nebulis} Nebulis for discarding a Kraken of value ${kraken_value} while fighting a Leviathan');
         }
         self::notifyAllPlayers( "diff", $message, $params );
 

@@ -27,7 +27,7 @@ class LeviathanBoard {
         if (discardedLeviathan) {
             await this.stock.removeCard(discardedLeviathan);
         }
-        await this.stock.addCard(leviathan);
+        await this.stock.addCard(leviathan, { fromElement: document.getElementById('leviathan-track') });
     }
     
     public async moveLeviathanLife(leviathan: AbyssLeviathan) {

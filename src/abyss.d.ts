@@ -370,6 +370,7 @@ interface NotifDiffArgs {
     source?: string;
     playerPearls?: number;
     playerNebulis?: number;
+    wounds?: number;
     keys?: number;
     allies_lost?: AbyssAlly[];
     monster?: AbyssMonster[];

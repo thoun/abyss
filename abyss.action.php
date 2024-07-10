@@ -402,12 +402,14 @@
     }
 
     public function __call($method, $args) {  
-        $functionNames = get_class_methods($this->game);
-        if (in_array($method, $functionNames)) {
+        // only methods starting with `act` can be automatically binded to .game.php
+        if (strpos($method, 'act') !== 0) {
+            throw new \feException("$method method is not defined in .action.php (use prefix 'act' to define only in .game.php)");
+        }
+        if (method_exists($this->game, $method)) {
             $this->setAjaxMode();
 
-            $r = new ReflectionMethod($this->game, $method);
-            $params = $r->getParameters();
+            $params = (new ReflectionMethod($this->game, $method))->getParameters();
             $args = array_map(fn($param) => $this->bgaGetParameterValue($param, $method), $params);
 
             $this->game->$method(...$args);

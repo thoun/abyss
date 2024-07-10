@@ -2505,7 +2505,7 @@ var LeviathanBoard = /** @class */ (function () {
                     case 1:
                         _a.sent();
                         _a.label = 2;
-                    case 2: return [4 /*yield*/, this.stock.addCard(leviathan)];
+                    case 2: return [4 /*yield*/, this.stock.addCard(leviathan, { fromElement: document.getElementById('leviathan-track') })];
                     case 3:
                         _a.sent();
                         return [2 /*return*/];
@@ -3109,6 +3109,11 @@ var Abyss = /** @class */ (function () {
             this.getCurrentPlayerTable().getHand().setSelectionMode('none');
         }
     };
+    Abyss.prototype.setGamestateDescription = function (property) {
+        if (property === void 0) { property = ''; }
+        var args = __assign({ you: '<span style="font-weight:bold;color:#' + this.getPlayerColor(this.getPlayerId()) + ';">' + __('lang_mainsite', 'You') + '</span>' }, this.gamedatas.gamestate.args);
+        $('pagemaintitletext').innerHTML = this.format_string_recursive(_(this.gamedatas.gamestate['descriptionmyturn' + property]), args);
+    };
     // onUpdateActionButtons: in this method you can manage "action buttons" that are displayed in the
     //                        action status bar (ie: the HTML links in the status bar).
     //
@@ -3352,9 +3357,35 @@ var Abyss = /** @class */ (function () {
                     this.addActionButton("actFightAgain-button", _('Fight again'), function () { return _this.bgaPerformAction('actFightAgain'); });
                     this.addActionButton("actEndFight-button", _('End turn'), function () { return _this.bgaPerformAction('actEndFight'); });
                     break;
+                case 'lord202':
+                    var lord202Args = args;
+                    lord202Args.playersIds.forEach(function (playerId) {
+                        var player = _this.getPlayer(playerId);
+                        _this.addActionButton("actChooseOpponentToRevealLeviathan".concat(playerId, "-button"), player.name, function () { return _this.bgaPerformAction('actChooseOpponentToRevealLeviathan', { opponentId: playerId }); });
+                        document.getElementById("actChooseOpponentToRevealLeviathan".concat(playerId, "-button")).style.border = "3px solid #".concat(player.color);
+                    });
+                    break;
                 case 'lord206':
                     this.addActionButton("actFightImmediately-button", _('Fight immediatly'), function () { return _this.bgaPerformAction('actFightImmediately'); });
                     this.addActionButton("actIgnoreImmediatelyFightLeviathan-button", _("Don't fight"), function () { return _this.bgaPerformAction('actIgnoreImmediatelyFightLeviathan'); });
+                    break;
+                case 'applyLeviathanDamage':
+                    switch (args.penalty) {
+                        case 3:
+                            this.setGamestateDescription('Allies');
+                            this.addActionButton('button_discard', _('Discard selected allies'), function () {
+                                var ally_ids = [];
+                                dojo.query("#player-hand .ally.selected").forEach(function (node) {
+                                    return ally_ids.push(+dojo.attr(node, 'data-ally-id'));
+                                });
+                                _this.bgaPerformAction('actDiscardAlliesLeviathanDamage', { ids: ally_ids.join(',') });
+                            });
+                            document.getElementById('button_discard').classList.add('disabled');
+                            break;
+                        case 4:
+                            this.setGamestateDescription('Lord');
+                            break;
+                    }
                     break;
             }
         }
@@ -3375,6 +3406,9 @@ var Abyss = /** @class */ (function () {
     };
     Abyss.prototype.getPlayer = function (playerId) {
         return Object.values(this.gamedatas.players).find(function (player) { return Number(player.id) == playerId; });
+    };
+    Abyss.prototype.getPlayerColor = function (playerId) {
+        return this.gamedatas.players[playerId].color;
     };
     Abyss.prototype.getPlayerTable = function (playerId) {
         return this.playersTables.find(function (playerTable) { return playerTable.playerId === playerId; });
@@ -3858,7 +3892,18 @@ var Abyss = /** @class */ (function () {
         });
     };
     Abyss.prototype.onClickPlayerHand = function (ally) {
-        if (this.gamedatas.gamestate.name === 'chooseAllyToFight') {
+        if (this.gamedatas.gamestate.name === 'applyLeviathanDamage') {
+            if (this.gamedatas.gamestate.args.penalty === 3) {
+                // Multi-discard: select, otherwise just discard this one
+                this.allyManager.getCardElement(ally).classList.toggle('selected');
+                var ally_ids = [];
+                dojo.query("#player-hand .ally.selected").forEach(function (node) {
+                    return ally_ids.push(+dojo.attr(node, 'data-ally-id'));
+                });
+                document.getElementById('button_discard').classList.toggle('disabled', ally_ids.length != this.gamedatas.gamestate.args.number);
+            }
+        }
+        else if (this.gamedatas.gamestate.name === 'chooseAllyToFight') {
             this.bgaPerformAction('actChooseAllyToFight', { id: ally.ally_id });
         }
         else if (this.checkAction('pay', true)) {
@@ -3899,7 +3944,12 @@ var Abyss = /** @class */ (function () {
         }
     };
     Abyss.prototype.onClickPlayerFreeLord = function (lord) {
-        if (this.checkAction('selectLord', true)) {
+        if (this.gamedatas.gamestate.name === 'applyLeviathanDamage') {
+            if (this.gamedatas.gamestate.args.penalty === 4) {
+                this.takeAction('actDiscardLordLeviathanDamage', { id: lord.lord_id });
+            }
+        }
+        else if (this.checkAction('selectLord', true)) {
             this.takeAction('selectLord', {
                 lord_id: lord.lord_id
             });
@@ -4102,10 +4152,12 @@ var Abyss = /** @class */ (function () {
             ['placeSentinel', 500],
             ['placeKraken', 500],
             ['newLeviathan', 500],
+            ['rollDice', 1000],
             ['discardExploreMonster', 500],
             ['discardAllyTofight', 500],
             ['moveLeviathanLife', 500],
             ['leviathanDefeated', 500],
+            ['discardLords', 500],
             ['endGame_scoring', (5000 + (this.gamedatas.krakenExpansion ? 2000 : 0) + (this.gamedatas.leviathanExpansion ? 2000 : 0)) * num_players + 3000],
         ];
         notifs.forEach(function (notif) {
@@ -4476,6 +4528,16 @@ var Abyss = /** @class */ (function () {
         this.lordManager.updateLordKeys(player_id);
         this.organisePanelMessages();
     };
+    Abyss.prototype.notif_discardLords = function (notif) {
+        var playerId = notif.args.playerId;
+        var lords = notif.args.lords;
+        if (lords === null || lords === void 0 ? void 0 : lords.length) {
+            this.getPlayerTable(playerId).removeLords(lords);
+            this.incLordCount(playerId, -lords.length);
+        }
+        this.lordManager.updateLordKeys(playerId);
+        this.organisePanelMessages();
+    };
     Abyss.prototype.notif_refillLords = function (notif) {
         var lords = notif.args.lords;
         var deck_size = notif.args.deck_size;
@@ -4500,6 +4562,9 @@ var Abyss = /** @class */ (function () {
         }
         if (notif.args.playerNebulis !== undefined && notif.args.playerNebulis !== null) {
             this.setNebulisCount(player_id, notif.args.playerNebulis);
+        }
+        if (notif.args.wounds !== undefined && notif.args.wounds !== null) {
+            this.woundCounters[player_id].incValue(notif.args.wounds);
         }
         if (notif.args.keys) {
             this.keyTokenCounts[player_id] += notif.args.keys;
@@ -4571,6 +4636,9 @@ var Abyss = /** @class */ (function () {
     };
     Abyss.prototype.notif_newLeviathan = function (notif) {
         this.leviathanBoard.newLeviathan(notif.args.leviathan, notif.args.discardedLeviathan);
+    };
+    Abyss.prototype.notif_rollDice = function (notif) {
+        // TODO?
     };
     Abyss.prototype.notif_discardExploreMonster = function (notif) {
         this.visibleAllies.removeCard(notif.args.ally);

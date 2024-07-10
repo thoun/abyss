@@ -15,10 +15,10 @@ trait DebugUtilTrait {
 
 		//$this->debugPickMonsters(2343492, 10);
 		//$this->debugPickMonsters(2343493, 2);
-		$this->debugPickAllies(2343492);
-		$this->debugPickAllies(2343493);
+		$this->debug_pickAllies(2343492);
+		$this->debug_pickAllies(2343493);
 		$this->debug_fillLeviathans();
-		//$this->debugPickAllies(2343494);
+		//$this->debug_pickAllies(2343494);
 		
 		//$this->debugPickKrakens(2343492);
 		//$this->debugPickKrakens(2343493);
@@ -47,7 +47,7 @@ trait DebugUtilTrait {
 		//$this->gamestate->changeActivePlayer(2343492);
     }
 
-	function debugPickAllies(int $playerId, int $number = 12) {
+	function debug_pickAllies(int $playerId, int $number = 12) {
 		for ($i=0; $i<$number; $i++) {
 			$ally = Ally::draw();
 			$this->DbQuery( "UPDATE ally SET place = ".($ally['faction'] === null ? 0 : ($playerId * -1))." WHERE ally_id = " . $ally["ally_id"] );

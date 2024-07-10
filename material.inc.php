@@ -273,7 +273,7 @@ $this->lords = array(
     "desc" => clienttranslate("If you slay a Leviathan, you can fight a second one."),
   ),
   "202" => array(
-    "name" => clienttranslate("The Border Guard"), // TODO. Beware of the added Leviathan triggering a choice of allies/free lord!
+    "name" => clienttranslate("The Border Guard"),
     "desc" => clienttranslate("The opponent of your choice adds a new Leviathan to the Border."),
   ),
   "203" => array(
@@ -349,14 +349,14 @@ $this->LEVIATHANS = [
     new CombatCondition(3, 1),
     new CombatCondition(7, 2),
     new CombatCondition(5, 1),
-  ], PENALTY_ALLIES),
+  ], PENALTY_ALLIES, 3),
   2 => new LeviathanType(FACTION_PURPLE, [
     new CombatCondition(6, 2),
     new CombatCondition(4, 1),
-  ], PENALTY_ALLIES),
+  ], PENALTY_ALLIES, 3),
   3 => new LeviathanType(FACTION_PURPLE, [
     new CombatCondition(9, 3),
-  ], PENALTY_WOUNDS),
+  ], PENALTY_WOUNDS, 3),
   4 => new LeviathanType(FACTION_PURPLE, [
     new CombatCondition(6, 1),
   ], PENALTY_WOUNDS, 2),
@@ -364,14 +364,14 @@ $this->LEVIATHANS = [
    new CombatCondition(4, 1),
    new CombatCondition(6, 2),
    new CombatCondition(5, 1),
-  ], PENALTY_PEARLS),
+  ], PENALTY_PEARLS, 3),
   6 => new LeviathanType(FACTION_GREEN, [
    new CombatCondition(6, 2),
    new CombatCondition(4, 1),
-  ], PENALTY_PEARLS),
+  ], PENALTY_PEARLS, 3),
   7 => new LeviathanType(FACTION_GREEN, [
     new CombatCondition(8, 3),
-  ], PENALTY_WOUNDS),
+  ], PENALTY_WOUNDS, 3),
   8 => new LeviathanType(FACTION_GREEN, [
     new CombatCondition(6, 1),
   ], PENALTY_WOUNDS, 2),
@@ -386,7 +386,7 @@ $this->LEVIATHANS = [
   ], PENALTY_LORD, 1),
   11 => new LeviathanType(FACTION_BLUE, [
     new CombatCondition(7, 2),
-  ], PENALTY_WOUNDS),
+  ], PENALTY_WOUNDS, 3),
   12 => new LeviathanType(FACTION_BLUE, [
     new CombatCondition(5, 1),
   ], PENALTY_WOUNDS, 2),
@@ -394,14 +394,14 @@ $this->LEVIATHANS = [
     new CombatCondition(3, 1),
     new CombatCondition(7, 1),
     new CombatCondition(5, 2),
-  ], PENALTY_WOUNDS),
+  ], PENALTY_WOUNDS, 3),
   14 => new LeviathanType(FACTION_YELLOW, [
     new CombatCondition(6, 2),
     new CombatCondition(4, 2),
   ], PENALTY_WOUNDS, 2),
   15 => new LeviathanType(FACTION_YELLOW, [
     new CombatCondition(7, 4),
-  ], PENALTY_WOUNDS),
+  ], PENALTY_WOUNDS, 3),
   16 => new LeviathanType(FACTION_YELLOW, [
     new CombatCondition(5, 2),
   ], PENALTY_WOUNDS, 2),
@@ -413,10 +413,10 @@ $this->LEVIATHANS = [
   18 => new LeviathanType(null, [
    new CombatCondition(7, 1),
    new CombatCondition(5, 1),
-  ], PENALTY_WOUNDS),
+  ], PENALTY_WOUNDS, 3),
   19 => new LeviathanType(null, [
    new CombatCondition(9, 2),
-  ], PENALTY_WOUNDS),
+  ], PENALTY_WOUNDS, 3),
   20 => new LeviathanType(null, [
    new CombatCondition(7, 1),
   ], PENALTY_WOUNDS, 2),

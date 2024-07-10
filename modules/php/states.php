@@ -640,6 +640,9 @@ trait StateTrait {
                             self::notifyAllPlayers( "log", clienttranslate('Impossible to activate the Lord effect'), []);
                         }
                         break;
+                    case 202:
+                        $transition = "lord_202";
+                        break;
                     case 204:
                         $count = count(LeviathanManager::getVisibleLeviathans());
                         $this->incPlayerPearls( $player_id, $count, "lord_204");
@@ -653,6 +656,10 @@ trait StateTrait {
                     case 210:
                         if (count($this->argLord210()['freeSlots']) > 0) {
                             LeviathanManager::draw(99); // temp space
+                            $leviathan = LeviathanManager::getLeviathanAtSlot(99);
+                            $this->notifyAllPlayers("newLeviathan", '', [
+                                'leviathan' => $leviathan,
+                            ]);
                             $transition = "lord_210";
                         }
                         
@@ -815,5 +822,45 @@ trait StateTrait {
         // TODO clean all allies in explore track?
         
         $this->gamestate->nextState($nextState);
+    }
+
+    function stApplyLeviathanDamage() {
+        $args = $this->argApplyLeviathanDamage();
+
+        $playerId = $args['playerId'];
+
+        $this->gamestate->setPlayersMultiactive([$playerId], 'next', true);
+    }
+
+    function stAfterApplyLeviathanDamage() {
+        $leviathanDamage = $this->getGlobalVariable(PLAYER_LEVIATHAN_DAMAGE, true);
+		$spot = $leviathanDamage[1];
+        $nextState = $leviathanDamage[2];
+		$existingLeviathan = LeviathanManager::getLeviathanAtSlot($spot);
+		$newLeviathan = LeviathanManager::getLeviathanAtSlot(99);
+
+        // resume the new Leviathan reveal
+        $this->moveNewLeviathanAfterLeviathanDamage($spot, $newLeviathan, $existingLeviathan);
+
+        if ($nextState !== ST_PLAYER_EXPLORE) {
+            $this->gamestate->jumpToState($nextState);
+            return;
+        }
+
+        // in case it was during explore, we continue the explore code
+        
+        // discard the monster
+        $playerId = (int)$this->getActivePlayerId();
+        $slots = Ally::getExploreSlots();
+        $ally = end($slots);
+        Ally::discard($ally["ally_id"]);
+        $this->notifyAllPlayers("discardExploreMonster", clienttranslate('${player_name} discards the Monster'), [
+            'playerId' => $playerId,
+            'player_name' => $this->getActivePlayerName(),
+            'ally' => $ally,
+            'allyDiscardSize' => Ally::getDiscardSize(),
+        ]);
+
+        $this->endExplore($playerId);
     }
 }

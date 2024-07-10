@@ -25,9 +25,9 @@ class LeviathanType {
     public ?int $faction = null;
     public array $combatConditions;
     public int $penalty;
-    public int $penaltyCount = 3;
+    public int $penaltyCount;
 
-    public function __construct(?int $faction, array $combatConditions, int $penalty, int $penaltyCount = 3) {
+    public function __construct(?int $faction, array $combatConditions, int $penalty, int $penaltyCount) {
         $this->faction = $faction;
         $this->combatConditions = $combatConditions;
         $this->penalty = $penalty;
@@ -48,6 +48,7 @@ class Leviathan extends LeviathanType {
         $this->faction = $type->faction;
         $this->combatConditions = $type->combatConditions;
         $this->penalty = $type->penalty;
+        $this->penaltyCount = $type->penaltyCount;
     }
 }
 

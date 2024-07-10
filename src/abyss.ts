@@ -6,6 +6,7 @@ declare const ebg;
 declare const $;
 declare const dojo: Dojo;
 declare const _;
+declare const __;
 declare const g_gamethemeurl;
 
 let debounce;
@@ -646,6 +647,14 @@ class Abyss implements AbyssGame {
             this.getCurrentPlayerTable().getHand().setSelectionMode('none');
         }
     }
+    
+    private setGamestateDescription(property: string = '') {
+        const args = {
+            you: '<span style="font-weight:bold;color:#'+this.getPlayerColor(this.getPlayerId())+';">'+__('lang_mainsite','You')+'</span>',
+            ...this.gamedatas.gamestate.args,
+        };
+        $('pagemaintitletext').innerHTML = this.format_string_recursive(_(this.gamedatas.gamestate['descriptionmyturn'+property]), args);
+    }
 
     // onUpdateActionButtons: in this method you can manage "action buttons" that are displayed in the
     //                        action status bar (ie: the HTML links in the status bar).
@@ -866,9 +875,35 @@ class Abyss implements AbyssGame {
                     (this as any).addActionButton(`actFightAgain-button`, _('Fight again'), () => (this as any).bgaPerformAction('actFightAgain'));
                     (this as any).addActionButton(`actEndFight-button`, _('End turn'), () => (this as any).bgaPerformAction('actEndFight'));
                     break;
+                case 'lord202':
+                    const lord202Args = args as EnteringLord104Args;   
+                    lord202Args.playersIds.forEach(playerId => {
+                        const player = this.getPlayer(playerId);
+                        (this as any).addActionButton(`actChooseOpponentToRevealLeviathan${playerId}-button`, player.name, () => (this as any).bgaPerformAction('actChooseOpponentToRevealLeviathan', { opponentId: playerId }));
+                        document.getElementById(`actChooseOpponentToRevealLeviathan${playerId}-button`).style.border = `3px solid #${player.color}`;
+                    });
+                    break;
                 case 'lord206':
                     (this as any).addActionButton(`actFightImmediately-button`, _('Fight immediatly'), () => (this as any).bgaPerformAction('actFightImmediately'));
                     (this as any).addActionButton(`actIgnoreImmediatelyFightLeviathan-button`, _("Don't fight"), () => (this as any).bgaPerformAction('actIgnoreImmediatelyFightLeviathan'));
+                    break;
+                case 'applyLeviathanDamage':
+                    switch (args.penalty) {
+                        case 3: 
+                            this.setGamestateDescription('Allies');
+                            (this as any).addActionButton('button_discard', _('Discard selected allies'), () => {
+                                var ally_ids = [];
+                                dojo.query("#player-hand .ally.selected").forEach(node => 
+                                    ally_ids.push(+dojo.attr(node, 'data-ally-id'))
+                                );
+                                (this as any).bgaPerformAction('actDiscardAlliesLeviathanDamage', { ids: ally_ids.join(',') });
+                            });
+                            document.getElementById('button_discard').classList.add('disabled');
+                            break;
+                        case 4: 
+                            this.setGamestateDescription('Lord');
+                            break;
+                    }
                     break;
             }
         }
@@ -894,6 +929,10 @@ class Abyss implements AbyssGame {
 
     private getPlayer(playerId: number): AbyssPlayer {
         return Object.values(this.gamedatas.players).find(player => Number(player.id) == playerId);
+    }
+
+    public getPlayerColor(playerId: number): string {
+        return this.gamedatas.players[playerId].color;
     }
 
     public getPlayerTable(playerId: number): PlayerTable {
@@ -1511,7 +1550,18 @@ class Abyss implements AbyssGame {
     }
 
     onClickPlayerHand(ally: AbyssAlly) {
-        if (this.gamedatas.gamestate.name === 'chooseAllyToFight') {
+        if (this.gamedatas.gamestate.name === 'applyLeviathanDamage') {
+            if (this.gamedatas.gamestate.args.penalty === 3) {
+                // Multi-discard: select, otherwise just discard this one
+                this.allyManager.getCardElement(ally).classList.toggle('selected');
+
+                var ally_ids = [];
+                dojo.query("#player-hand .ally.selected").forEach(node => 
+                    ally_ids.push(+dojo.attr(node, 'data-ally-id'))
+                );
+                document.getElementById('button_discard').classList.toggle('disabled', ally_ids.length != this.gamedatas.gamestate.args.number);
+            }
+        } else if (this.gamedatas.gamestate.name === 'chooseAllyToFight') {
             (this as any).bgaPerformAction('actChooseAllyToFight', { id: ally.ally_id });
         } else if( (this as any).checkAction( 'pay', true ) ) {
             this.allyManager.getCardElement(ally).classList.toggle('selected');
@@ -1553,7 +1603,11 @@ class Abyss implements AbyssGame {
     }
 
     onClickPlayerFreeLord(lord: AbyssLord) {
-        if( (this as any).checkAction( 'selectLord', true ) ) {
+        if (this.gamedatas.gamestate.name === 'applyLeviathanDamage') {
+            if (this.gamedatas.gamestate.args.penalty === 4) {
+                this.takeAction('actDiscardLordLeviathanDamage', { id: lord.lord_id });
+            }
+        } else if( (this as any).checkAction( 'selectLord', true ) ) {
             this.takeAction('selectLord', {
                 lord_id: lord.lord_id
             });
@@ -1790,10 +1844,12 @@ class Abyss implements AbyssGame {
             ['placeSentinel', 500],
             ['placeKraken', 500],
             ['newLeviathan', 500],
+            ['rollDice', 1000],
             ['discardExploreMonster', 500],
             ['discardAllyTofight', 500],
             ['moveLeviathanLife', 500],
             ['leviathanDefeated', 500],
+            ['discardLords', 500],
             ['endGame_scoring', (5000 + (this.gamedatas.krakenExpansion ? 2000 : 0) + (this.gamedatas.leviathanExpansion ? 2000 : 0)) * num_players + 3000],
         ];
     
@@ -2222,6 +2278,19 @@ class Abyss implements AbyssGame {
         this.organisePanelMessages();
     }
 
+    notif_discardLords( notif: Notif<any> ) {
+        var playerId = notif.args.playerId;
+        var lords = notif.args.lords;
+
+        if (lords?.length) {
+            this.getPlayerTable(playerId).removeLords(lords);
+            this.incLordCount(playerId, -lords.length);
+        }
+        
+        this.lordManager.updateLordKeys(playerId);
+        this.organisePanelMessages();
+    }
+
     notif_refillLords(notif: Notif<NotifRefillLordsArgs>) {
         var lords = notif.args.lords;
         var deck_size = notif.args.deck_size;
@@ -2246,6 +2315,9 @@ class Abyss implements AbyssGame {
         }
         if (notif.args.playerNebulis !== undefined && notif.args.playerNebulis !== null) {
             this.setNebulisCount(player_id, notif.args.playerNebulis);
+        }
+        if (notif.args.wounds !== undefined && notif.args.wounds !== null) {
+            this.woundCounters[player_id].incValue(notif.args.wounds);
         }
 
         if (notif.args.keys) {
@@ -2336,6 +2408,10 @@ class Abyss implements AbyssGame {
 
     notif_newLeviathan(notif: Notif<NotifNewLeviathanArgs>) {
         this.leviathanBoard.newLeviathan(notif.args.leviathan, notif.args.discardedLeviathan);
+    }
+
+    notif_rollDice(notif: Notif<NotifNewLeviathanArgs>) {
+        // TODO?
     }
 
     notif_discardExploreMonster(notif: Notif<NotifDiscardExploreMonsterArgs>) {

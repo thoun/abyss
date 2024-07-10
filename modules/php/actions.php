@@ -39,53 +39,11 @@ trait ActionTrait {
                 $leviathanExpansion = $this->isLeviathanExpansion();
 
                 if ($leviathanExpansion) {
+                    $redirected = $this->drawNewLeviathanAndRollDice($playerId, ST_PLAYER_EXPLORE);
 
-                    $dice = $this->getDoubleDieRoll();
-                    $sum = $dice[0] + $dice[1];
-
-                    $existingLeviathan = LeviathanManager::getLeviathanAtSlot(LEVIATHAN_SLOTS[$sum]);
-
-                    if ($existingLeviathan !== null) {
-                        // take damage!
-                        switch ($existingLeviathan->penalty) {
-                            case PENALTY_WOUNDS:
-                                $this->incPlayerWounds($playerId, $existingLeviathan->penaltyCount);
-                                break;
-                            case PENALTY_PEARLS:
-                                $canLoose = min($existingLeviathan->penaltyCount, $this->getPlayerPearls($player_id));
-                                $this->incPlayerPearls($playerId, -$canLoose, '');
-                                break;
-                            case PENALTY_ALLIES:
-                                $allies = Ally::getPlayerHand($playerId);
-                                if (count($allies) > $existingLeviathan->penaltyCount) {
-                                    // TODO let select the $existingLeviathan->penaltyCount allies to discard
-                                } else if (count($allies) > 0) {
-                                    // TODO discard all hand
-                                }
-                                break;
-                            case PENALTY_LORD:
-                                $lords = Lord::getPlayerHand($playerId);
-                                $freeLords = array_values(array_filter($lords, fn($lord) => $lord['location'] === null));
-                                if (count($freeLords) > $existingLeviathan->penaltyCount) {
-                                    // TODO let select the free lord (always 1) to discard
-                                } else if (count($freeLords) > 0) {
-                                    // TODO discard all freeLords
-                                }
-                                break;
-                        }
-
-                        // discard the Leviathan
-                        LeviathanManager::discard($existingLeviathan->id, 1);
+                    if ($redirected) {
+                        return; // stop here because the player first needs to discard monsters
                     }
-                    $newLeviathan = LeviathanManager::draw(LEVIATHAN_SLOTS[$sum]);
-
-                    $this->notifyAllPlayers("newLeviathan", clienttranslate('Dice rolled to ${die1} and ${die2}, a new Leviathan takes place on the spot ${spot}'), [
-                        'die1' => $dice[0],
-                        'die2' => $dice[1],
-                        'spot' => $sum,
-                        'leviathan' => $newLeviathan,
-                        'discardedLeviathan' => $existingLeviathan,
-                    ]);
 
                     // discard the monster
                     Ally::discard($ally["ally_id"]);
@@ -104,6 +62,11 @@ trait ActionTrait {
                 }
             }
         }
+
+        $this->endExplore($playerId);
+    }
+
+    function endExplore(int $playerId) {
 
         // Remember whose turn to return to if a player purchases the ally
         $this->setGameStateValue( 'first_player_id', $playerId );
@@ -127,17 +90,180 @@ trait ActionTrait {
             $card_name = '';
         }
         // Notify all players about the card revealed
-        $players = $this->loadPlayersBasicInfos();
         $this->notifyAllPlayers( "explore", $log, array(
             'player_id' => $playerId,
-            'player_name' => $players[$playerId]["player_name"],
+            'player_name' => $this->getPlayerNameById($playerId),
             'ally' => $ally,
             'deck_size' => Ally::getDeckSize(),
             'card_name' => $card_name
         ) );
 
         // Go to other players to see if they want to buy the card...
-        $this->gamestate->nextState( "explore" );
+        $this->gamestate->jumpToState(ST_PRE_PURCHASE);
+    }
+
+    function drawNewLeviathanAndRollDice(int $playerId, int $nextState): bool { // redirected
+        LeviathanManager::draw(99); // temp space
+        $newLeviathan = LeviathanManager::getLeviathanAtSlot(99);
+        $this->notifyAllPlayers("newLeviathan", clienttranslate('${player_name} draws a new Leviathan'), [
+            'playerId' => $playerId,
+            'player_name' => $this->getPlayerNameById($playerId),
+            'leviathan' => $newLeviathan,
+        ]);
+
+        $dice = [2, 1];//$this->getDoubleDieRoll();
+        $sum = $dice[0] + $dice[1];
+
+        $this->notifyAllPlayers("rollDice", clienttranslate('${player_name} rolls the dice and obtains ${die1} and ${die2}, the new Leviathan will be placed on the spot ${spot}'), [
+            'playerId' => $playerId,
+            'player_name' => $this->getPlayerNameById($playerId),
+            'dice' => $dice,
+            'die1' => $dice[0],
+            'die2' => $dice[1],
+            'spot' => $sum,
+        ]);
+
+        $spot = LEVIATHAN_SLOTS[$sum];
+        $existingLeviathan = LeviathanManager::getLeviathanAtSlot($spot);
+
+        if ($existingLeviathan !== null) {
+            $needChooseDamage = $this->applyExistingLeviathanDamage($playerId, $existingLeviathan);
+
+            if ($needChooseDamage) {
+                $this->setGlobalVariable(PLAYER_LEVIATHAN_DAMAGE, [$playerId, $spot, $nextState]);
+                $this->gamestate->jumpToState(ST_MULTIPLAYER_APPLY_LEVIATHAN_DAMAGE);
+                return true;
+            }
+
+            // discard the Leviathan
+            LeviathanManager::discard($existingLeviathan->id, 1);
+        }
+        $this->moveNewLeviathanAfterLeviathanDamage($spot, $newLeviathan, $existingLeviathan);
+
+        return false;
+    }
+
+    function moveNewLeviathanAfterLeviathanDamage(int $spot, Leviathan $newLeviathan, ?Leviathan $existingLeviathan) {
+        if ($existingLeviathan !== null) {
+            // discard the Leviathan
+            LeviathanManager::discard($existingLeviathan->id, 1);
+        }
+
+        $newLeviathan->place = $spot;
+        Abyss::DbQuery("UPDATE leviathan SET place = $spot WHERE place = 99");
+
+        $this->notifyAllPlayers("newLeviathan", clienttranslate('The new Leviathan takes place on the spot ${spot}'), [
+            'spot' => $spot,
+            'leviathan' => $newLeviathan,
+            'discardedLeviathan' => $existingLeviathan,
+        ]);
+    }
+
+    function applyExistingLeviathanDamage(int $playerId, Leviathan $existingLeviathan): bool { // indicates if the player needs to select allies / lords to discard
+        // take damage!
+        switch ($existingLeviathan->penalty) {
+            case PENALTY_WOUNDS:
+                $this->notifyAllPlayers( "log", clienttranslate('${player_name} takes ${number} wound(s) with the attack of the already present Leviathan'), [
+                    'player_id' => $playerId,
+                    'player_name' => $this->getPlayerNameById($playerId),
+                    'number' => $existingLeviathan->penaltyCount,
+                ]);
+
+                $this->incPlayerWounds($playerId, $existingLeviathan->penaltyCount);
+                break;
+            case PENALTY_PEARLS:
+                $canLoose = min($existingLeviathan->penaltyCount, $this->getPlayerPearls($playerId));
+                if ($canLoose) {
+                    $this->notifyAllPlayers( "log", clienttranslate('${player_name} loses ${number} pearl(s) with the attack of the already present Leviathan'), [
+                        'player_id' => $playerId,
+                        'player_name' => $this->getPlayerNameById($playerId),
+                        'number' => $canLoose,
+                    ]);
+    
+                    $this->incPlayerPearls($playerId, -$canLoose, '');
+                } else {
+                    $this->notifyAllPlayers( "log", clienttranslate('attack of the already present Leviathan has no effect on ${player_name}'), [
+                        'player_id' => $playerId,
+                        'player_name' => $this->getPlayerNameById($playerId),
+                    ]);
+                }
+                break;
+            case PENALTY_ALLIES:
+                $allies = Ally::getPlayerHand($playerId);
+                if (count($allies) > $existingLeviathan->penaltyCount) {
+                    // let select the $existingLeviathan->penaltyCount allies to discard
+                    $this->notifyAllPlayers( "log", clienttranslate('${player_name} loses ${number} Allies with the attack of the already present Leviathan'), [
+                        'player_id' => $playerId,
+                        'player_name' => $this->getPlayerNameById($playerId),
+                        'number' => $existingLeviathan->penaltyCount,
+                    ]);
+                    return true;
+                } else if (count($allies) > 0) {
+                    // discard all hand
+                    $this->notifyAllPlayers( "log", clienttranslate('${player_name} loses ${number} Allies with the attack of the already present Leviathan'), [
+                        'player_id' => $playerId,
+                        'player_name' => $this->getPlayerNameById($playerId),
+                        'number' => count($allies),
+                    ]);
+
+                    foreach ($allies as $ally) {
+                        Ally::discard( $ally['ally_id'] );
+
+                        if ($ally['faction'] === 10) {
+                            $this->incPlayerNebulis($playerId, $ally['value'] - 1, "fight-leviathan-discard-ally");
+                        }
+                    }
+
+                    $this->notifyAllPlayers( "diff", '', array(
+                        'player_id' => $player_id,
+                        'allies_lost' => $allies,
+                        'source' => "player_$player_id",
+                        'allyDiscardSize' => Ally::getDiscardSize(),
+                    ) );
+                } else {
+                    $this->notifyAllPlayers( "log", clienttranslate('attack of the already present Leviathan has no effect on ${player_name}'), [
+                        'player_id' => $playerId,
+                        'player_name' => $this->getPlayerNameById($playerId),
+                    ]);
+                }
+                break;
+            case PENALTY_LORD:
+                $lords = Lord::getPlayerHand($playerId);
+                $freeLords = array_values(array_filter($lords, fn($lord) => $lord['location'] === null));
+                if (count($freeLords) > $existingLeviathan->penaltyCount) {
+                    // let select the free lord (always 1) to discard
+                    $this->notifyAllPlayers( "log", clienttranslate('${player_name} loses ${number} free Lord with the attack of the already present Leviathan'), [
+                        'player_id' => $playerId,
+                        'player_name' => $this->getPlayerNameById($playerId),
+                        'number' => $existingLeviathan->penaltyCount,
+                    ]);
+
+                    return true;
+                } else if (count($freeLords) > 0) {
+                    // discard all freeLords
+                    foreach ($freeLords as $lord) {
+                        Lord::discard( $lord['lord_id'] );
+                    }
+
+                    $this->notifyAllPlayers( "log", clienttranslate('${player_name} loses ${number} free Lord with the attack of the already present Leviathan'), [
+                        'player_id' => $playerId,
+                        'player_name' => $this->getPlayerNameById($playerId),
+                        'number' => count($freeLords),
+                    ]);
+
+                    $this->notifyAllPlayers( "discardLords", '', [
+                        'lords' => $freeLords,
+                        'playerId' => $playerId,
+                    ]);
+                } else {
+                    $this->notifyAllPlayers( "log", clienttranslate('attack of the already present Leviathan has no effect on ${player_name}'), [
+                        'player_id' => $playerId,
+                        'player_name' => $this->getPlayerNameById($playerId),
+                    ]);
+                }
+                break;
+        }
+        return false;
     }
     
     function exploreTake(int $slot, bool $fromRequest = true ) {
@@ -1920,6 +2046,57 @@ trait ActionTrait {
         ]);
 
         $this->gamestate->jumpToState(ST_PLAYER_EXPLORE2);
+    }
+
+    function actDiscardLordLeviathanDamage(int $id) {
+        $this->checkAction('actDiscardLordLeviathanDamage');
+        $playerId = (int)$this->getCurrentPlayerId();
+
+        $lord = Lord::get($id);
+        Lord::discard($id);
+
+        $this->notifyAllPlayers( "discardLords", '', [
+            'lords' => [$lord],
+            'playerId' => $playerId,
+        ]);
+
+        $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
+    }
+
+    function actDiscardAlliesLeviathanDamage(array $ids) {
+        $this->checkAction('actDiscardAlliesLeviathanDamage');
+        $playerId = (int)$this->getCurrentPlayerId();
+
+        $allies = array_map(fn($id) => Ally::get($id), $ids);
+        foreach ($allies as $ally) {
+            Ally::discard( $ally['ally_id'] );
+
+            if ($ally['faction'] === 10) {
+                $this->incPlayerNebulis($playerId, $ally['value'] - 1, "fight-leviathan-discard-ally");
+            }
+        }
+
+        $this->notifyAllPlayers( "diff", '', array(
+            'player_id' => $playerId,
+            'allies_lost' => $allies,
+            'source' => "player_$playerId",
+            'allyDiscardSize' => Ally::getDiscardSize(),
+        ) );
+
+        $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
+
+    }
+
+    function actChooseOpponentToRevealLeviathan(int $opponentId) {
+        $this->checkAction('actChooseOpponentToRevealLeviathan');
+
+        $redirected = $this->drawNewLeviathanAndRollDice($opponentId, ST_PRE_CONTROL);
+
+        if ($redirected) {
+            return; // stop here because the player first needs to discard monsters
+        }
+
+        $this->gamestate->nextState('next');
     }
 
 }

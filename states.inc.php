@@ -381,6 +381,7 @@ $machinestates = array(
 			"lord_112" => ST_PLAYER_LORD112,
 			"lord_114" => ST_PLAYER_LORD114, 
 			"lord_116" => ST_PLAYER_LORD116, 
+			"lord_202" => ST_PLAYER_LORD202, 
 			"lord_206" => ST_PLAYER_LORD206, 
 			"lord_208" => ST_PLAYER_LORD208, 
 			"lord_210" => ST_PLAYER_LORD210, 
@@ -562,6 +563,34 @@ $machinestates = array(
 			"again" => ST_PLAYER_CHOOSE_ALLY_TO_FIGHT,
 			"next" => ST_PRE_CONTROL,  
 			"nextRemainingKrakens" => ST_PLAYER_PLACE_KRAKEN,
+		],
+	],
+
+	ST_MULTIPLAYER_APPLY_LEVIATHAN_DAMAGE => [
+		"name" => "applyLeviathanDamage",
+		"description" => clienttranslate('Waiting for attacked player to discard cards'),
+		"descriptionmyturn" => '',
+		"descriptionmyturnAllies" => clienttranslate('${you} must discard ${number} Allies'),
+		"descriptionmyturnLord" => clienttranslate('${you} must discard ${number} free Lord'),
+		"type" => "multipleactiveplayer",
+		"args" => "argApplyLeviathanDamage",
+		"action" => "stApplyLeviathanDamage",
+		"possibleactions" => [
+			"actDiscardAlliesLeviathanDamage",
+			"actDiscardLordLeviathanDamage",
+		],
+		"transitions" => [
+			"next" => ST_AFTER_APPLY_LEVIATHAN_DAMAGE,  
+		],
+	],
+
+	ST_AFTER_APPLY_LEVIATHAN_DAMAGE => [
+		"name" => "afterApplyLeviathanDamage",
+		"description" => '',
+		"type" => "game",
+		"action" => "stAfterApplyLeviathanDamage",
+		"transitions" => [
+			"next" => ST_PRE_CONTROL,  
 		],
 	],
 
@@ -773,6 +802,22 @@ $machinestates = array(
 			"loopback" => ST_PLAYER_LORD116,
 		],
 	],
+
+	ST_PLAYER_LORD202 => [
+		"name" => "lord202",
+		"description" => clienttranslate('${actplayer} must choose an opponent who will add a Leviathan'),
+	    "descriptionmyturn" => clienttranslate('${you} must choose an opponent who will add a Leviathan'),
+	    "type" => "activeplayer",
+		"args" => "argLord202",
+	    "possibleactions" => [
+		    "actChooseOpponentToRevealLeviathan",
+		],
+		"transitions" => [
+		    "next" => ST_PRE_CONTROL,
+		    "zombiePass" => ST_PRE_CONTROL, 
+		    "loopback" => ST_PLAYER_LORD206,
+	    ],
+    ],
 
 	ST_PLAYER_LORD206 => [
 		"name" => "lord206",

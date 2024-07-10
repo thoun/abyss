@@ -317,6 +317,14 @@ trait ArgsTrait {
 		];
 	}
 
+	function argLord202() {
+		$playerId = self::getActivePlayerId();
+
+		return [
+			'playersIds' => $this->getOpponentsIds($playerId),
+		];
+	}
+
 	function argLord112() {
 		return [
 			'allies' => Ally::getDiscard(),
@@ -436,6 +444,19 @@ trait ArgsTrait {
 		return [
 			'leviathan' => $leviathan,
 			'freeSlots' => $freeSlots,
+		];
+	}
+
+	function argApplyLeviathanDamage() {
+		$leviathanDamage = $this->getGlobalVariable(PLAYER_LEVIATHAN_DAMAGE, true);
+		$playerId = $leviathanDamage[0];
+		$slot = $leviathanDamage[1];
+		$existingLeviathan = LeviathanManager::getLeviathanAtSlot($slot);
+
+		return [
+			'playerId' => $playerId,
+			'penalty' => $existingLeviathan->penalty,
+			'number' => $existingLeviathan->penaltyCount,
 		];
 	}
 } 
