@@ -122,11 +122,10 @@ trait UtilTrait {
 
     function incPlayerPearls(int $player_id, int $diff, string $source) {
         self::DbQuery( "UPDATE player SET player_pearls = player_pearls + $diff WHERE player_id = $player_id" );
-        $players = self::loadPlayersBasicInfos();
         $message = '';
         $params = array(
                 'player_id' => $player_id,
-                'player_name' => $players[$player_id]["player_name"],
+                'player_name' => $this->getPlayerNameById($player_id),
                 'playerPearls' => $this->getPlayerPearls($player_id),
                 'pearls' => $diff,
                 'num_pearls' => abs($diff), // for log
@@ -190,11 +189,10 @@ trait UtilTrait {
 
     function incPlayerNebulis(int $player_id, int $diff, string $source = '', bool $checkNewKrakenOwner = true) {
         self::DbQuery( "UPDATE player SET player_nebulis = player_nebulis + $diff WHERE player_id = $player_id" );
-        $players = self::loadPlayersBasicInfos();
         $message = '';
         $params = array(
                 'player_id' => $player_id,
-                'player_name' => $players[$player_id]["player_name"],
+                'player_name' => $this->getPlayerNameById($player_id),
                 'playerNebulis' => $this->getPlayerNebulis($player_id),
                 'nebulis' => $diff,
                 'num_nebulis' => abs($diff), // for log
@@ -275,7 +273,6 @@ trait UtilTrait {
         $affiliated = Ally::getPlayerAffiliated( $player_id );
         $lords = Lord::getPlayerHand( $player_id );
         $locations = Location::getPlayerHand($player_id);
-        $players = self::loadPlayersBasicInfos();
 
         // Strongest affiliated Ally from each Race
         $affiliated_points = 0;
@@ -292,7 +289,7 @@ trait UtilTrait {
         // 	self::notifyAllPlayers( "message", '${player_name} scores ${num} points from affiliated Allies', array(
         // 			'num' => $affiliated_points,
         // 			'player_id' => $player_id,
-        // 			'player_name' => $players[$player_id]["player_name"],
+        // 			'player_name' => $this->getPlayerNameById($player_id),
         // 	) );
         // }
 
@@ -307,7 +304,7 @@ trait UtilTrait {
         // 	self::notifyAllPlayers( "message", '${player_name} scores ${num} points from Lords', array(
         // 			'num' => $lord_points,
         // 			'player_id' => $player_id,
-        // 			'player_name' => $players[$player_id]["player_name"],
+        // 			'player_name' => $this->getPlayerNameById($player_id),
         // 	) );
         // }
 
@@ -324,7 +321,7 @@ trait UtilTrait {
         // 	self::notifyAllPlayers( "message", '${player_name} scores ${num} points from Monster tokens', array(
         // 			'num' => $monster_points,
         // 			'player_id' => $player_id,
-        // 			'player_name' => $players[$player_id]["player_name"],
+        // 			'player_name' => $this->getPlayerNameById($player_id),
         // 	) );
         // }
 
@@ -355,7 +352,7 @@ trait UtilTrait {
                         self::notifyAllPlayers( "message", '${player_name} scores ${num} points from ${location_name} (copying ${copied_location_name})', array(
                                 'num' => $max,
                                 'player_id' => $player_id,
-                                'player_name' => $players[$player_id]["player_name"],
+                                'player_name' => $this->getPlayerNameById($player_id),
                                 'location_name' => $this->locations[$l["location_id"]]["name"],
                                 'copied_location_name' => $this->locations[$imitate_location["location_id"]]["name"],
                                 'i18n' => array('location_name', 'copied_location_name')
@@ -370,7 +367,7 @@ trait UtilTrait {
                     self::notifyAllPlayers( "message", '${player_name} scores ${num} points from ${location_name}', array(
                             'num' => $lscore,
                             'player_id' => $player_id,
-                            'player_name' => $players[$player_id]["player_name"],
+                            'player_name' => $this->getPlayerNameById($player_id),
                             'location_name' => $this->locations[$l["location_id"]]["name"],
                             'i18n' => array('location_name')
                     ) );

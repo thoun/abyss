@@ -328,13 +328,12 @@ trait ActionTrait {
         $this->DbQuery( "UPDATE ally SET place = 10 WHERE faction IS NULL AND place >= 1");
 
         // Notification
-        $players = $this->loadPlayersBasicInfos();
         if ($ally['faction'] !== NULL) {
             $this->notifyAllPlayers( "exploreTake", clienttranslate('${player_name} takes ${card_name}'), [
                 'ally' => $ally,
                 'slot' => $slot,
                 'player_id' => $player_id,
-                'player_name' => $players[$player_id]["player_name"],
+                'player_name' => $this->getPlayerNameById($player_id),
                 'card_name' => array(
                     'log' => '<span style="color:'.$this->factions[$ally["faction"]]["colour"].'">${value} ${faction}</span>',
                     'args' => array(
@@ -350,7 +349,7 @@ trait ActionTrait {
                 'ally' => $ally,
                 'slot' => $slot,
                 'player_id' => $player_id,
-                'player_name' => $players[$player_id]["player_name"],
+                'player_name' => $this->getPlayerNameById($player_id),
                 'allyDiscardSize' => Ally::getDiscardSize(),
             ]);
         }
@@ -655,7 +654,6 @@ trait ActionTrait {
         $this->DbQuery( "UPDATE ally SET place = ".($player_id * -1)." WHERE ally_id = " . $ally["ally_id"] );
 
         // Notify that the card has gone to that player
-        $players = $this->loadPlayersBasicInfos();
         $message = $nebulisCost > 0 ?
             ($pearlCost > 0 ? clienttranslate('${player_name} purchases ${card_name} for ${cost} Pearl(s) and ${nebulisCost} Nebulis') : clienttranslate('${player_name} purchases ${card_name} for ${nebulisCost} Nebulis')) :
             clienttranslate('${player_name} purchases ${card_name} for ${cost} Pearl(s)');
@@ -669,7 +667,7 @@ trait ActionTrait {
                 'firstPlayerPearls' => $this->getPlayerPearls($first_player_id),
                 'firstPlayerNebulis' => $this->getPlayerNebulis($first_player_id),
                 'player_id' => $player_id,
-                'player_name' => $players[$player_id]["player_name"],
+                'player_name' => $this->getPlayerNameById($player_id),
                 'first_player_id' => $first_player_id,
                 'card_name' => array( // for logs
                     'log' => '<span style="color:'.$this->factions[$ally["faction"]]["colour"].'">${value} ${faction}</span>',
@@ -1108,11 +1106,10 @@ trait ActionTrait {
             }
         }
         
-        $players = $this->loadPlayersBasicInfos();
         $this->notifyAllPlayers( "message", clienttranslate('${player_name} steals ${rewards} from ${player_name2}'), array(
-            'player_name2' => $players[$target_player_id]['player_name'],
+            'player_name2' => $this->getPlayerNameById($target_player_id),
             'player_id' => $player_id,
-            'player_name' => $this->getActivePlayerName(),
+            'player_name' =>  $this->getPlayerNameById($player_id),
             'rewards' =>  $type == 1 ? '<i class="icon icon-monster-leviathan"></i>' : '<i class="icon icon-monster"></i>',
         ) );
 
