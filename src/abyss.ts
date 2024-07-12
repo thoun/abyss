@@ -400,6 +400,14 @@ class Abyss implements AbyssGame {
         }
         
         switch( stateName ) {
+            case 'plotAtCourt':
+            case 'action':
+                if ((this as any).isCurrentPlayerActive()) {
+                    if (args.args?.canRevealLeviathanMonsterTokens) {
+                        document.getElementById(`monster-hand_p${this.getPlayerId()}`).classList.add("clickable");
+                    }
+                }
+                break;
             case 'recruitPay':
                 this.onEnteringRecruitPay(args.args);
                 break;
@@ -441,6 +449,11 @@ class Abyss implements AbyssGame {
                 break;
             case 'chooseAllyToFight':
                 this.onEnteringChooseAllyToFight(args.args);
+                break;
+            case 'chooseRevealReward':
+                if ((this as any).isCurrentPlayerActive()) {
+                    document.getElementById(`monster-hand_p${this.getPlayerId()}`).classList.add("clickable");
+                }
                 break;
         }
     }
@@ -624,6 +637,11 @@ class Abyss implements AbyssGame {
                 break;
             case 'chooseAllyToFight':
                 this.onLeavingChooseAllyToFight();
+                break;
+            case 'plotAtCourt':
+            case 'action':
+            case 'chooseRevealReward':
+                document.querySelectorAll(`.monster-hand.clickable`).forEach(elem => elem.classList.remove("clickable"));
                 break;
         }
     }
@@ -905,6 +923,9 @@ class Abyss implements AbyssGame {
                             break;
                     }
                     break;
+                case 'chooseRevealReward':
+                    (this as any).addActionButton(`actEndRevealReward-button`, _('End reveal'), () => (this as any).bgaPerformAction('actEndRevealReward'));
+                    break;
             }
         }
     }
@@ -1073,7 +1094,7 @@ class Abyss implements AbyssGame {
                 center: false,
                 gap: '2px',
             });
-            this.monsterTokens[playerId].onCardClick = card => this.onClickMonsterIcon(playerId, card.type);
+            this.monsterTokens[playerId].onCardClick = card => this.onClickMonsterIcon(playerId, card);
 
             player.monsters?.forEach(monster => 
                 this.monsterTokens[playerId].addCards(player.monsters, undefined, {
@@ -1325,7 +1346,10 @@ class Abyss implements AbyssGame {
 
             var faction = dojo.attr(evt.target, 'data-faction');
 
-            if (this.gamedatas.gamestate.name === 'placeSentinel') {
+            if (this.gamedatas.gamestate.name === 'chooseCouncilStackMonsterToken') {
+                this.takeAction('actChooseCouncilStackMonsterToken', { faction });
+                return;
+            } else if (this.gamedatas.gamestate.name === 'placeSentinel') {
                 this.placeSentinel(2, faction);
                 return;
             } else if (this.gamedatas.gamestate.name === 'placeKraken') {
@@ -1591,13 +1615,17 @@ class Abyss implements AbyssGame {
         }
     }
 
-    onClickMonsterIcon(playerId: number, type: number = 0) {
-            if( (this as any).checkAction( 'chooseMonsterTokens' ) ) {
-                console.log(playerId);
-
+    onClickMonsterIcon(playerId: number, monster?: AbyssMonster) {
+        if (['plotAtCourt', 'action', 'chooseRevealReward'].includes(this.gamedatas.gamestate.name)) {
+            if (monster.type != 1) {
+                (this as any).showMessage(_("You can only reveal Leviathan monster tokens"), 'error');
+            } else {
+                this.takeAction('actRevealReward', { id: monster.monster_id });
+            }
+        } else if( (this as any).checkAction( 'chooseMonsterTokens' ) ) {
             this.takeAction('chooseMonsterTokens', {
                 player_id: playerId,
-                type,
+                type: monster.type,
             });
         }
     }
@@ -1816,6 +1844,7 @@ class Abyss implements AbyssGame {
             ['lootReward', 1],
             ['monsterReward', 1],
             ['monsterTokens', 1],
+            ['removeMonsterToken', 500],
             ['monsterHand', 1],
             ['discardCouncil', 1],
             ['requestSupport', 1],
@@ -2013,6 +2042,11 @@ class Abyss implements AbyssGame {
 
     notif_monsterTokens(notif: Notif<NotifMonsterTokensArgs>) {
         this.monsterTokens[this.getPlayerId()].addCards(notif.args.monsters);
+    }
+
+    notif_removeMonsterToken(notif: Notif<NotifRemoveMonsterTokenArgs>) {
+        this.incMonsterCount(notif.args.playerId, -1);
+        this.monsterTokens[notif.args.playerId].removeCard(notif.args.monster);
     }
     
     notif_monsterHand( notif: Notif<NotifMonsterHandArgs> ) {

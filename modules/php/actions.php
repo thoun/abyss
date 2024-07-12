@@ -1957,7 +1957,10 @@ trait ActionTrait {
                 'rewards' => $rewards
         ) );
 
-        $this->gamestate->nextState('next');
+        $monsters = Monster::getPlayerHand($playerId);
+        $leviathanMonsterCount = count(array_filter($monsters, fn($monster) => $monster['type'] == 1));
+
+        $this->gamestate->nextState($leviathanMonsterCount > 0 ? 'reveal' : 'next');
     }
 
     public function actFightAgain() {
@@ -2096,6 +2099,147 @@ trait ActionTrait {
         if ($redirected) {
             return; // stop here because the player first needs to discard monsters
         }
+
+        $this->gamestate->nextState('next');
+    }
+
+    function actRevealReward(int $id) {
+        $this->checkAction('actRevealReward');
+        $playerId = (int)$this->getActivePlayerId();
+
+        $monster = Monster::get($id);
+        if ($monster['type'] != 1) {
+            throw new BgaUserException("Not a Leviathan monster token");
+        }
+        if ($monster['place'] != -$playerId) {
+            throw new BgaUserException("Not your monster token");
+        }
+
+        $pearls = 0;
+        $keys = 0;
+        $councilStack = false;
+        $message = "";
+
+        switch ($monster['effect']) {
+            case 1: // 2 pearls
+                $pearls += 2;
+                $message .= '<i class="icon icon-pearl"></i><i class="icon icon-pearl"></i>';
+                break;
+            case 2: // 3 pearls
+                $pearls += 3;
+                $message .= '<i class="icon icon-pearl"></i><i class="icon icon-pearl"></i><i class="icon icon-pearl"></i>';
+                break;
+            case 3: // key
+                $keys++;
+                $message .= '<i class="icon icon-key"></i>';
+                break;
+            case 4: // ally
+                $councilStack = true;
+                $message .= '<i class="icon icon-ally"></i>';                
+                break;
+        }
+
+        if (($keys + $pearls) > 0) {
+            self::DbQuery("UPDATE player SET player_pearls = player_pearls + $pearls, player_keys = player_keys + $keys WHERE player_id = $playerId");
+            $this->applyHighwayman($playerId, $pearls);
+        }
+
+        self::notifyAllPlayers("lootReward", clienttranslate('${player_name} earns ${rewards} with the revealed Leviathan monster token'), [
+            'keys' => $keys,
+            'playerPearls' => $this->getPlayerPearls($playerId),
+            'pearls' => $pearls,
+            'monsters' => 0,
+            'player_id' => $playerId,
+            'player_name' => self::getActivePlayerName(),
+            'rewards' => $message,
+        ]);
+
+        // remove the token
+        Monster::giveToPlayer(1, $id);
+        self::notifyAllPlayers("removeMonsterToken", '', [
+            'playerId' => $playerId,
+            'monster' => $monster,
+        ]);
+
+        $stateId = intval($this->gamestate->state_id());
+
+        if ($councilStack) {
+            $council = Ally::getCouncilSlots();
+            $canTake = 0;
+            foreach ($council as $faction => $size) {
+                if ($size > 0) {
+                    if ($this->isKrakenExpansion()) {
+                        $guarded = $this->guardedBySentinel('council', $faction);
+                        if ($guarded === null || $guarded->playerId == $playerId) {
+                            $canTake++;
+                        }
+                    } else {
+                        $canTake++;
+                    }
+                }
+            }
+            
+            if ($canTake == 0) {
+                throw new BgaUserException(_("No available council stack"));
+            }
+            
+            $this->globals->set(STATE_AFTER_CHOOSE_COUNCIL_STACK_MONSTER_TOKEN, $stateId);
+            $this->gamestate->jumpToState(ST_PLAYER_CHOOSE_COUNCIL_STACK_MONSTER_TOKEN);
+            return;
+        }
+
+        $this->gamestate->jumpToState($stateId);
+    }
+
+    function actChooseCouncilStackMonsterToken(int $faction) {
+        $this->checkAction('actChooseCouncilStackMonsterToken');
+
+        $player_id = intval($this->getActivePlayerId());
+
+        if ($this->isKrakenExpansion()) {
+            $guarded = $this->guardedBySentinel('council', $faction);
+            if ($guarded !== null) {
+                if ($guarded->playerId == $player_id) {
+                    $this->discardSentinel($guarded->lordId);
+                } else {
+                    throw new BgaVisibleSystemException( "That stack is not available (reserved by a sentinel)." );
+                } 
+            }
+        }
+
+        $allies = Ally::drawCouncilSlot( $faction, $player_id );
+        if (count($allies) == 0) {
+            throw new BgaVisibleSystemException( "There are no Allies of that faction in the council." );
+        }
+        
+        $this->incStat( 1, "times_council", $player_id );
+
+        // Notification
+        $this->notifyAllPlayers( "requestSupport", clienttranslate('${player_name} takes ${num} card(s) from the ${council_name}'), array(
+                'faction' => $faction,
+                'num' => count($allies),
+                'player_id' => $player_id,
+                'player_name' => $this->getActivePlayerName(),
+                'council_name' => array(
+                    'log' => '<span style="color:'.$this->factions[$faction]["colour"].'">' . clienttranslate('${faction} council') . '</span>',
+                    'args' => array(
+                        'faction' => $this->factions[$faction]["ally_name"],
+                        'i18n' => ['faction']
+                    )
+                )
+        ) );
+
+        $this->notifyPlayer( $player_id, "requestSupportCards", '', array(
+                'faction' => $faction,
+                'allies' => $allies,
+                'player_id' => $player_id
+        ) );
+
+        $this->gamestate->jumpToState($this->globals->get(STATE_AFTER_CHOOSE_COUNCIL_STACK_MONSTER_TOKEN));
+    }
+
+    function actEndRevealReward() {
+        $this->checkAction('actEndRevealReward');
 
         $this->gamestate->nextState('next');
     }

@@ -3072,13 +3072,9 @@ var MonsterManager = /** @class */ (function (_super) {
             },
             setupBackDiv: function (monster, div) {
                 div.id = "".concat(_this.getId(monster), "-back");
-                div.dataset.value = "".concat(monster.value);
-                if (monster.effect) {
-                    div.dataset.effect = "".concat(monster.effect);
-                }
                 _this.game.setTooltip(div.id, monster.type == 1 ? _('Leviathan Monster token') : _('Base game Monster token'));
             },
-            isCardVisible: function (monster) { return Boolean(monster.value); },
+            isCardVisible: function (monster) { return Boolean(monster.value) || Boolean(monster.effect); },
         }) || this;
         _this.game = game;
         return _this;
@@ -3684,7 +3680,7 @@ var Abyss = /** @class */ (function () {
     //
     Abyss.prototype.onEnteringState = function (stateName, args) {
         var _this = this;
-        var _a;
+        var _a, _b;
         log('onEnteringState', stateName, args.args);
         // Remove all current move indicators
         dojo.query('.card-current-move').removeClass('card-current-move');
@@ -3726,6 +3722,14 @@ var Abyss = /** @class */ (function () {
             }
         }
         switch (stateName) {
+            case 'plotAtCourt':
+            case 'action':
+                if (this.isCurrentPlayerActive()) {
+                    if ((_b = args.args) === null || _b === void 0 ? void 0 : _b.canRevealLeviathanMonsterTokens) {
+                        document.getElementById("monster-hand_p".concat(this.getPlayerId())).classList.add("clickable");
+                    }
+                }
+                break;
             case 'recruitPay':
                 this.onEnteringRecruitPay(args.args);
                 break;
@@ -3770,6 +3774,11 @@ var Abyss = /** @class */ (function () {
                 break;
             case 'chooseAllyToFight':
                 this.onEnteringChooseAllyToFight(args.args);
+                break;
+            case 'chooseRevealReward':
+                if (this.isCurrentPlayerActive()) {
+                    document.getElementById("monster-hand_p".concat(this.getPlayerId())).classList.add("clickable");
+                }
                 break;
         }
     };
@@ -3944,6 +3953,11 @@ var Abyss = /** @class */ (function () {
                 break;
             case 'chooseAllyToFight':
                 this.onLeavingChooseAllyToFight();
+                break;
+            case 'plotAtCourt':
+            case 'action':
+            case 'chooseRevealReward':
+                document.querySelectorAll(".monster-hand.clickable").forEach(function (elem) { return elem.classList.remove("clickable"); });
                 break;
         }
     };
@@ -4241,6 +4255,9 @@ var Abyss = /** @class */ (function () {
                             break;
                     }
                     break;
+                case 'chooseRevealReward':
+                    this.addActionButton("actEndRevealReward-button", _('End reveal'), function () { return _this.bgaPerformAction('actEndRevealReward'); });
+                    break;
             }
         }
     };
@@ -4354,7 +4371,7 @@ var Abyss = /** @class */ (function () {
                 center: false,
                 gap: '2px',
             });
-            _this.monsterTokens[playerId].onCardClick = function (card) { return _this.onClickMonsterIcon(playerId, card.type); };
+            _this.monsterTokens[playerId].onCardClick = function (card) { return _this.onClickMonsterIcon(playerId, card); };
             (_a = player.monsters) === null || _a === void 0 ? void 0 : _a.forEach(function (monster) {
                 return _this.monsterTokens[playerId].addCards(player.monsters, undefined, {
                     visible: !!(monster.value || monster.effect)
@@ -4561,7 +4578,11 @@ var Abyss = /** @class */ (function () {
             // Draw this stack??
             dojo.stopEvent(evt);
             var faction = dojo.attr(evt.target, 'data-faction');
-            if (this.gamedatas.gamestate.name === 'placeSentinel') {
+            if (this.gamedatas.gamestate.name === 'chooseCouncilStackMonsterToken') {
+                this.takeAction('actChooseCouncilStackMonsterToken', { faction: faction });
+                return;
+            }
+            else if (this.gamedatas.gamestate.name === 'placeSentinel') {
                 this.placeSentinel(2, faction);
                 return;
             }
@@ -4787,13 +4808,19 @@ var Abyss = /** @class */ (function () {
             });
         }
     };
-    Abyss.prototype.onClickMonsterIcon = function (playerId, type) {
-        if (type === void 0) { type = 0; }
-        if (this.checkAction('chooseMonsterTokens')) {
-            console.log(playerId);
+    Abyss.prototype.onClickMonsterIcon = function (playerId, monster) {
+        if (['plotAtCourt', 'action', 'chooseRevealReward'].includes(this.gamedatas.gamestate.name)) {
+            if (monster.type != 1) {
+                this.showMessage(_("You can only reveal Leviathan monster tokens"), 'error');
+            }
+            else {
+                this.takeAction('actRevealReward', { id: monster.monster_id });
+            }
+        }
+        else if (this.checkAction('chooseMonsterTokens')) {
             this.takeAction('chooseMonsterTokens', {
                 player_id: playerId,
-                type: type,
+                type: monster.type,
             });
         }
     };
@@ -4978,6 +5005,7 @@ var Abyss = /** @class */ (function () {
             ['lootReward', 1],
             ['monsterReward', 1],
             ['monsterTokens', 1],
+            ['removeMonsterToken', 500],
             ['monsterHand', 1],
             ['discardCouncil', 1],
             ['requestSupport', 1],
@@ -5148,6 +5176,10 @@ var Abyss = /** @class */ (function () {
     };
     Abyss.prototype.notif_monsterTokens = function (notif) {
         this.monsterTokens[this.getPlayerId()].addCards(notif.args.monsters);
+    };
+    Abyss.prototype.notif_removeMonsterToken = function (notif) {
+        this.incMonsterCount(notif.args.playerId, -1);
+        this.monsterTokens[notif.args.playerId].removeCard(notif.args.monster);
     };
     Abyss.prototype.notif_monsterHand = function (notif) {
         var monsters = notif.args.monsters;

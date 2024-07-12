@@ -86,4 +86,8 @@ class Monster {
   public static function getPlayerHand(int $player_id) {
     return self::typedMonsters(self::$game->getCollection( "SELECT * FROM monster WHERE place = -" . $player_id));
   }
+
+  public static function get(int $monster_id ) {
+    return self::typedMonster(self::$game->getObject( "SELECT * FROM monster WHERE monster_id = $monster_id" ));
+  }
 }

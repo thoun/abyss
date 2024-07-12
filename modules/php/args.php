@@ -39,6 +39,11 @@ trait ArgsTrait {
 				}
 			}
 		}
+
+		$canRevealLeviathanMonsterTokens = false;
+		$monsters = Monster::getPlayerHand($playerId);
+        $leviathanMonsterCount = count(array_filter($monsters, fn($monster) => $monster['type'] == 1));
+		$canRevealLeviathanMonsterTokens = $leviathanMonsterCount > 0;
 		
 		return [
 			'_private' => [
@@ -47,6 +52,7 @@ trait ArgsTrait {
 				],
 			],
 			'canPlaceSentinel' => $this->mustPlaceSentinel($playerId) != null,
+			'canRevealLeviathanMonsterTokens' => $canRevealLeviathanMonsterTokens,
 		];
 	}
 

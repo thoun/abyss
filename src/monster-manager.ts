@@ -22,15 +22,10 @@ class MonsterManager extends CardManager<AbyssMonster> {
       },
       setupBackDiv: (monster, div) => {
         div.id = `${this.getId(monster)}-back`;
-
-        div.dataset.value = `${monster.value}`;
-        if (monster.effect) {
-          div.dataset.effect = `${monster.effect}`;
-        }
         
         this.game.setTooltip(div.id, monster.type == 1 ? _('Leviathan Monster token') : _('Base game Monster token'));
       },
-      isCardVisible: monster => Boolean(monster.value),
+      isCardVisible: monster => Boolean(monster.value) || Boolean(monster.effect),
     });
   }
 

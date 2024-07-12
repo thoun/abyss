@@ -283,6 +283,11 @@ interface NotifMonsterTokensArgs {
     monsters: AbyssMonster[];
 }
 
+interface NotifRemoveMonsterTokenArgs {
+    playerId: number;
+    monster: AbyssMonster;
+}
+
 interface NotifMonsterHandArgs {
     monsters: AbyssMonster[];
     player_id: number;
