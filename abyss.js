@@ -3453,10 +3453,27 @@ var Abyss = /** @class */ (function () {
         // On resize, fit cards to screen (debounced)
         if (usePlaymat) {
             dojo.addClass($('game-board-holder'), "playmat");
+            var leviathanBoardLeftWrapper = document.getElementById('leviathan-board-left-wrapper');
+            leviathanBoardLeftWrapper.style.position = 'absolute';
+            leviathanBoardLeftWrapper.style.left = '-210px';
         }
         var onResize = function () {
             var _a, _b, _c;
             var w = ((_a = document.getElementById('bga-zoom-wrapper')) === null || _a === void 0 ? void 0 : _a.clientWidth) / ((_c = (_b = _this.zoomManager) === null || _b === void 0 ? void 0 : _b.zoom) !== null && _c !== void 0 ? _c : 1);
+            if (gamedatas.leviathanExpansion) {
+                var leviathanBoard = document.getElementById('leviathan-board');
+                var leviathanBoardLeftWrapper = document.getElementById('leviathan-board-left-wrapper');
+                var leviathanBoardBottomWrapper = document.getElementById('leviathan-board-bottom-wrapper');
+                var minWidth = 1340 + 210;
+                if (w > minWidth && leviathanBoard.parentElement != leviathanBoardLeftWrapper) {
+                    leviathanBoardLeftWrapper.appendChild(leviathanBoard);
+                    document.getElementById('game-board-holder').style.marginLeft = '210px';
+                }
+                else if (w < minWidth && leviathanBoard.parentElement != leviathanBoardBottomWrapper) {
+                    leviathanBoardBottomWrapper.appendChild(leviathanBoard);
+                    document.getElementById('game-board-holder').style.marginLeft = '0px';
+                }
+            }
             if (usePlaymat) {
                 var narrowPlaymat = w < 1340;
                 dojo.toggleClass($('game-board-holder'), "playmat", !narrowPlaymat);

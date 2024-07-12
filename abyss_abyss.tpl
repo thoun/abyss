@@ -67,6 +67,7 @@
           </div>
         </div>
         <hr>
+        <div id="leviathan-board-left-wrapper"></div>
         <div id="threat-track" class="board">
           <div id="threat-token" class="icon threat-token slot-0 transition-position"></div>
         </div>
@@ -82,9 +83,11 @@
       </div>
       <div id="locations-holder-overflow">
       </div>
-      <div id="leviathan-board">
-        <div id="leviathan-track">
-          <div id="leviathan-dice-stock" data-place="0"></div>
+      <div id="leviathan-board-bottom-wrapper">
+        <div id="leviathan-board">
+          <div id="leviathan-track">
+            <div id="leviathan-dice-stock" data-place="0"></div>
+          </div>
         </div>
       </div>
       <div style="display: none"><input id="modified-layout-checkbox" type="checkbox" checked> Modified layout</div>

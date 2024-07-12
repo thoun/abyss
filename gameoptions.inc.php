@@ -56,7 +56,7 @@ $game_options = [
                 'alpha' => true,
             ],
         ],
-        'default' => 2, // TODO default to 1 for release
+        'default' => 1,
         'startcondition' => [
             1 => [
                 [

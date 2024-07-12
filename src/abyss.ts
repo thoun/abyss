@@ -95,10 +95,28 @@ class Abyss implements AbyssGame {
         // On resize, fit cards to screen (debounced)
         if (usePlaymat) {
             dojo.addClass($('game-board-holder'), "playmat");
+            const leviathanBoardLeftWrapper = document.getElementById('leviathan-board-left-wrapper');
+            leviathanBoardLeftWrapper.style.position = 'absolute';
+            leviathanBoardLeftWrapper.style.left = '-210px';
         }
 
         const onResize = () => {
             const w = document.getElementById('bga-zoom-wrapper')?.clientWidth / (this.zoomManager?.zoom ?? 1);
+
+            if (gamedatas.leviathanExpansion) {
+                const leviathanBoard = document.getElementById('leviathan-board');
+                const leviathanBoardLeftWrapper = document.getElementById('leviathan-board-left-wrapper');
+                const leviathanBoardBottomWrapper = document.getElementById('leviathan-board-bottom-wrapper');
+
+                const minWidth = 1340 + 210;
+                if (w > minWidth && leviathanBoard.parentElement != leviathanBoardLeftWrapper) {
+                    leviathanBoardLeftWrapper.appendChild(leviathanBoard);
+                    document.getElementById('game-board-holder').style.marginLeft = '210px';
+                } else if (w < minWidth && leviathanBoard.parentElement != leviathanBoardBottomWrapper) {
+                    leviathanBoardBottomWrapper.appendChild(leviathanBoard);
+                    document.getElementById('game-board-holder').style.marginLeft = '0px';
+                }
+            }
 
             if (usePlaymat) {
                 const narrowPlaymat = w < 1340;

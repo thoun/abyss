@@ -17,7 +17,7 @@ trait DebugUtilTrait {
 		//$this->debugPickMonsters(2343493, 2);
 		$this->debug_pickAllies(2343492);
 		$this->debug_pickAllies(2343493);
-		//$this->debug_fillLeviathans();
+		$this->debug_fillLeviathans();
 		//$this->debug_pickAllies(2343494);
 		
 		//$this->debugPickKrakens(2343492);
@@ -125,6 +125,10 @@ trait DebugUtilTrait {
 	function debug_fight() {
 		$this->setGlobalVariable(SLAYED_LEVIATHANS, 0);
 		$this->gamestate->jumpToState(ST_PLAYER_CHOOSE_LEVIATHAN_TO_FIGHT);
+	}
+
+	function debug_endGame() {
+		$this->gamestate->jumpToState(ST_PRE_SCORING);
 	}
 
     public function debugReplacePlayersIds() {
