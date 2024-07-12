@@ -48,11 +48,19 @@ interface AbyssLoot {
     value: number;
 }
 
+interface LeviathanCombatCondition {
+    resistance: number;
+    reward: number;
+}
+
 interface AbyssLeviathan {
     id: number;
     place: number;
     life: number;
-    combatConditions: any[];
+    combatConditions: LeviathanCombatCondition[];
+    faction: number | null;
+    penalty: number;
+    penaltyCount: number;
 }
 
 interface AbyssPlayer extends Player {

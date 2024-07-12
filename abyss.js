@@ -3135,6 +3135,44 @@ var LeviathanManager = /** @class */ (function (_super) {
         }
         var icon = div.querySelector('.icon-life');
         icon.style.bottom = "".concat(5 + ((leviathan.combatConditions.length - 1) - leviathan.life) * 18, "px");
+        this.game.setTooltip(div.id, this.getTooltip(leviathan));
+    };
+    LeviathanManager.prototype.getTooltip = function (leviathan) {
+        var guilds = [
+            '<span style="color: purple">' + _('Mage') + '</span>',
+            '<span style="color: red">' + _('Soldier') + '</span>',
+            '<span style="color: #999900">' + _('Farmer') + '</span>',
+            '<span style="color: green">' + _('Merchant') + '</span>',
+            '<span style="color: blue">' + _('Politician') + '</span>',
+        ];
+        var factions = [];
+        if (leviathan.faction !== null) {
+            factions.push(guilds[leviathan.faction]);
+        }
+        factions.push(guilds[1]);
+        var combatConditions = "<table>\n    <tr>\n      <th>".concat(_('Resistance'), "</th>\n      <th>").concat(_('Reward if the attack is successful'), "</th>\n    </tr>");
+        leviathan.combatConditions.forEach(function (combatCondition, index) {
+            var current = leviathan.life === index;
+            combatConditions += "<tr".concat(current ? ' class="current"' : '', ">\n        <td>").concat(combatCondition.resistance, "</td>\n        <td>").concat(combatCondition.reward, " <i class=\"icon icon-monster\"></i></td>\n      </tr>");
+        });
+        combatConditions += '</table>';
+        var penalty = '';
+        switch (leviathan.penalty) {
+            case 1:
+                penalty = _('Receive ${number} Wound token(s)');
+                break;
+            case 2:
+                penalty = _('Discard ${number} Pearl(s)');
+                break;
+            case 3:
+                penalty = _('Discard ${number} Allies');
+                break;
+            case 4:
+                penalty = _('Discard ${number} free Lord');
+                break;
+        }
+        penalty = penalty.replace('${number}', "".concat(leviathan.penaltyCount));
+        return "<div class=\"abs-tooltip-leviathan\">\n      <strong>".concat(_('Allied Race(s):'), "</strong> ").concat(factions.join(', '), "<br><br>\n      <strong>").concat(_('Combat conditions:'), "</strong> ").concat(combatConditions, "<br><br>\n      <strong>").concat(_('Penalty if the Leviathan attacks you:'), "</strong> ").concat(penalty, "\n    </div>");
     };
     return LeviathanManager;
 }(CardManager));

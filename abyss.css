@@ -700,6 +700,18 @@ body > .bga-dice_die {
   box-shadow: unset;
 }
 
+.abs-tooltip-leviathan table tr.current {
+  background: rgba(255, 0, 0, 0.4);
+}
+.abs-tooltip-leviathan table th {
+  font-weight: bold;
+}
+.abs-tooltip-leviathan table th, .abs-tooltip-leviathan table td {
+  border: 1px solid black;
+  padding: 3px;
+  text-align: center;
+}
+
 #table {
   display: flex;
   justify-content: center;
