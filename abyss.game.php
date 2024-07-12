@@ -169,9 +169,18 @@ class Abyss extends Table {
 
             $dice = $this->getDoubleDieRoll();
             $sum = $dice[0] + $dice[1];
-            LeviathanManager::draw(LEVIATHAN_SLOTS[$sum]);
-
-            self::notifyAllPlayers("log", clienttranslate('Dice rolled to ${die1} and ${die2}, a new Leviathan takes place on the spot ${spot}'), [
+            $spot = LEVIATHAN_SLOTS[$sum];
+    
+            /*$this->notifyAllPlayers("rollDice", '', [
+                'dice' => $dice,
+                'die1' => $dice[0],
+                'die2' => $dice[1],
+                'spot' => $spot,
+            ]);*/
+            $this->globals->set(LAST_DIE_ROLL, [$spot, $dice]);
+            $newLeviathan = LeviathanManager::draw($spot);
+            $this->notifyAllPlayers("newLeviathan", clienttranslate('Dice rolled to ${die1} and ${die2}, a new Leviathan takes place on the spot ${spot}'), [
+                'leviathan' => $newLeviathan,
                 'die1' => $dice[0],
                 'die2' => $dice[1],
                 'spot' => $sum,
@@ -267,6 +276,7 @@ class Abyss extends Table {
         if ($leviathanExpansion) {
             $result['scourge'] = $this->getGlobalVariable(SCOURGE);
             $result['leviathans'] = LeviathanManager::getVisibleLeviathans();
+            $result['lastDieRoll'] = $this->globals->get(LAST_DIE_ROLL);
         }
 
         return $result;

@@ -17,7 +17,7 @@ trait DebugUtilTrait {
 		//$this->debugPickMonsters(2343493, 2);
 		$this->debug_pickAllies(2343492);
 		$this->debug_pickAllies(2343493);
-		$this->debug_fillLeviathans();
+		//$this->debug_fillLeviathans();
 		//$this->debug_pickAllies(2343494);
 		
 		//$this->debugPickKrakens(2343492);

@@ -392,9 +392,12 @@ trait ArgsTrait {
 		$playerId = $this->getActivePlayerId();
 
 		$leviathan = LeviathanManager::getFightedLeviathan();
+		$combatCondition = $leviathan->combatConditions[$leviathan->life];
+		$resistance = $combatCondition->resistance;
 		$selectableAllies = LeviathanManager::canFightWith($leviathan, Ally::getPlayerHand( $playerId ), $playerId);
 		
 		return [
+			'resistance' => $resistance,
 			'selectableAllies' => $selectableAllies,
 		];
 	}

@@ -505,8 +505,8 @@ $machinestates = array(
 
 	ST_PLAYER_CHOOSE_ALLY_TO_FIGHT => [
 		"name" => "chooseAllyToFight",
-		"description" => clienttranslate('${actplayer} must discard an Ally to fight the Leviathan'),
-		"descriptionmyturn" => clienttranslate('${you} must discard an Ally to fight the Leviathan'),
+		"description" => clienttranslate('${actplayer} must discard an Ally to fight the Leviathan (resistance: ${resistance})'),
+		"descriptionmyturn" => clienttranslate('${you} must discard an Ally to fight the Leviathan (resistance: ${resistance})'),
 		"type" => "activeplayer",
 		"args" => "argChooseAllyToFight",
 		"possibleactions" => [
@@ -519,8 +519,8 @@ $machinestates = array(
 
 	ST_PLAYER_INCREASE_ATTACK_POWER => [
 		"name" => "increaseAttackPower",
-		"description" => clienttranslate('${actplayer} can increase attack power with Pearls (current attack power : ${attackPower})'),
-		"descriptionmyturn" => clienttranslate('${you} can increase attack power with Pearls (current attack power : ${attackPower})'),
+		"description" => clienttranslate('${actplayer} can increase attack power with Pearls (current attack power: ${attackPower})'),
+		"descriptionmyturn" => clienttranslate('${you} can increase attack power with Pearls (current attack power: ${attackPower})'),
 		"type" => "activeplayer",
 		"args" => "argIncreaseAttackPower",
 		"action" => "stIncreaseAttackPower",

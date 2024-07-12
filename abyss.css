@@ -305,6 +305,226 @@ body > .card {
   display: none;
 }
 
+body > .bga-dice_die {
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+}
+
+.bga-dice_die {
+  --roll-duration: 1000ms;
+  flex-shrink: 0;
+  position: relative;
+  width: var(--size);
+  height: var(--size);
+  display: inline-block;
+  transform-style: preserve-3d;
+  transform-origin: center center;
+}
+
+.bga-dice_die .bga-dice_die-faces {
+  transform-origin: center center;
+  transform-style: preserve-3d;
+  position: relative;
+  display: inline-block;
+  transform: rotate3d(1, 1, 1, -720deg);
+  transition: transform var(--roll-duration) ease-out;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  height: 100%;
+  width: 100%;
+}
+
+.bga-dice_die .bga-dice_die-faces .bga-dice_die-face {
+  position: absolute;
+  width: var(--size);
+  height: var(--size);
+  display: inline-block;
+  height: 100%;
+  width: 100%;
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.bga-dice_die4 {
+  --third-size: calc(var(--size) / 3 * 0.6);
+  transform: translateZ(var(--third-size));
+}
+
+.bga-dice_die4 .bga-dice_die-faces[data-visible-face="1"] {
+  transform: rotateZ(0deg) rotateX(0deg);
+}
+
+.bga-dice_die4 .bga-dice_die-faces[data-visible-face="2"] {
+  transform: rotate3d(0, 1, 0, 180deg) rotateZ(0deg) rotateX(70.528779deg);
+}
+
+.bga-dice_die4 .bga-dice_die-faces[data-visible-face="3"] {
+  transform: rotateZ(180deg) rotateX(250deg) rotateZ(-120deg);
+}
+
+.bga-dice_die4 .bga-dice_die-faces[data-visible-face="4"] {
+  transform: rotateX(120deg) rotateZ(-60deg);
+}
+
+.bga-dice_die4 .bga-dice_die-faces .bga-dice_die-face {
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  height: 86.6%;
+  transform-origin: 50% 66.66667%;
+  margin-left: calc(var-(--size) * -0.5);
+  margin-top: calc(var-(--size) * -0.5);
+}
+
+.bga-dice_die4 .bga-dice_die-faces .bga-dice_die-face[data-face="1"] {
+  transform: rotate3d(0, 1, 0, 180deg) translateZ(var(--third-size));
+}
+
+.bga-dice_die4 .bga-dice_die-faces .bga-dice_die-face[data-face="2"] {
+  transform: rotateZ(0deg) rotateX(-70.528779deg) translateZ(var(--third-size));
+}
+
+.bga-dice_die4 .bga-dice_die-faces .bga-dice_die-face[data-face="3"] {
+  transform: rotateZ(120deg) rotateX(-70.528779deg) translateZ(var(--third-size));
+}
+
+.bga-dice_die4 .bga-dice_die-faces .bga-dice_die-face[data-face="4"] {
+  transform: rotateZ(240deg) rotateX(-70.528779deg) translateZ(var(--third-size));
+}
+
+.bga-dice_die4 .bga-dice_die-faces .bga-dice_die-face .bga-dice_die-face-number {
+  transform-origin: center 66.66667%;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  text-align: center;
+  display: block;
+}
+
+.bga-dice_die4 .bga-dice_die-faces .bga-dice_die-face .bga-dice_die-face-number:nth-child(1) {
+  transform: rotateZ(0deg);
+}
+
+.bga-dice_die4 .bga-dice_die-faces .bga-dice_die-face .bga-dice_die-face-number:nth-child(2) {
+  transform: rotateZ(120deg);
+}
+
+.bga-dice_die4 .bga-dice_die-faces .bga-dice_die-face .bga-dice_die-face-number:nth-child(3) {
+  transform: rotateZ(240deg);
+}
+
+.bga-dice_die6 {
+  --half-size: calc(var(--size) / 2);
+  transform: translateZ(var(--half-size));
+}
+
+.bga-dice_die6 .bga-dice_die-faces[data-visible-face="1"] {
+  transform: rotate3d(0, 0, 0, 0deg);
+}
+
+.bga-dice_die6 .bga-dice_die-faces[data-visible-face="2"] {
+  transform: rotate3d(1, 0, 0, 90deg);
+}
+
+.bga-dice_die6 .bga-dice_die-faces[data-visible-face="3"] {
+  transform: rotate3d(0, -1, 0, 90deg);
+}
+
+.bga-dice_die6 .bga-dice_die-faces[data-visible-face="4"] {
+  transform: rotate3d(0, 1, 0, 90deg);
+}
+
+.bga-dice_die6 .bga-dice_die-faces[data-visible-face="5"] {
+  transform: rotate3d(-1, 0, 0, 90deg);
+}
+
+.bga-dice_die6 .bga-dice_die-faces[data-visible-face="6"] {
+  transform: rotate3d(0, 1, 0, 180deg);
+}
+
+.bga-dice_die6 .bga-dice_die-faces .bga-dice_die-face {
+  border-radius: var(--bga-dice_border-radius);
+}
+
+.bga-dice_die6 .bga-dice_die-faces .bga-dice_die-face[data-face="1"] {
+  transform: rotate3d(0, 0, 0, 0deg) translateZ(var(--half-size));
+}
+
+.bga-dice_die6 .bga-dice_die-faces .bga-dice_die-face[data-face="2"] {
+  transform: rotate3d(-1, 0, 0, 90deg) translateZ(var(--half-size));
+}
+
+.bga-dice_die6 .bga-dice_die-faces .bga-dice_die-face[data-face="3"] {
+  transform: rotate3d(0, 1, 0, 90deg) translateZ(var(--half-size));
+}
+
+.bga-dice_die6 .bga-dice_die-faces .bga-dice_die-face[data-face="4"] {
+  transform: rotate3d(0, -1, 0, 90deg) translateZ(var(--half-size));
+}
+
+.bga-dice_die6 .bga-dice_die-faces .bga-dice_die-face[data-face="5"] {
+  transform: rotate3d(1, 0, 0, 90deg) translateZ(var(--half-size));
+}
+
+.bga-dice_die6 .bga-dice_die-faces .bga-dice_die-face[data-face="6"] {
+  transform: rotate3d(0, 1, 0, 180deg) translateZ(var(--half-size));
+}
+
+.bga-dice_die-stock {
+  perspective: var(--perspective);
+  transform-style: preserve-3d;
+  transform-origin: center center;
+}
+
+.bga-dice_die-stock .bga-dice_die.bga-dice_selectable-die:not(.bga-dice_disabled-die) {
+  cursor: pointer;
+}
+
+.bga-dice_die-stock .bga-dice_die.bga-dice_disabled-die {
+  cursor: not-allowed;
+  filter: contrast(0.6);
+}
+
+.bga-dice_die-stock.bga-dice_line-stock {
+  display: flex;
+  gap: var(--gap);
+  flex-wrap: var(--wrap);
+  flex-direction: var(--direction);
+}
+
+.bga-dice_die-stock.bga-dice_line-stock[data-center=true] {
+  justify-content: center;
+}
+
+.bga-dice_die-stock.bga-dice_slot-stock {
+  display: flex;
+  gap: var(--gap);
+  flex-wrap: var(--wrap);
+  flex-direction: var(--direction);
+}
+
+.bga-dice_die-stock.bga-dice_slot-stock[data-center=true] {
+  justify-content: center;
+}
+
+.bga-dice_die-stock.bga-dice_manual-position-stock {
+  position: relative;
+}
+
+.bga-dice_die-stock.bga-dice_manual-position-stock .bga-dice_die {
+  position: absolute;
+}
+
+.bga-dice_die-stock.bga-dice_void-stock {
+  position: relative;
+}
+
+.bga-dice_die-stock.bga-dice_void-stock .bga-dice_die {
+  position: absolute;
+}
+
 #leviathan-board {
   position: relative;
   width: 369px;
@@ -317,6 +537,69 @@ body > .card {
   width: 97px;
   height: 440px;
   background: url("img/leviathan-track.jpg");
+}
+#leviathan-board #leviathan-track #leviathan-dice-stock {
+  opacity: 1;
+  transition: opacity 0.5s;
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+#leviathan-board #leviathan-track #leviathan-dice-stock[data-place="0"] {
+  opacity: 0;
+}
+#leviathan-board #leviathan-track #leviathan-dice-stock[data-place="0"] {
+  top: -4.5px;
+}
+#leviathan-board #leviathan-track #leviathan-dice-stock[data-place="1"] {
+  top: 38px;
+}
+#leviathan-board #leviathan-track #leviathan-dice-stock[data-place="2"] {
+  top: 80.5px;
+}
+#leviathan-board #leviathan-track #leviathan-dice-stock[data-place="3"] {
+  top: 123px;
+}
+#leviathan-board #leviathan-track #leviathan-dice-stock[data-place="4"] {
+  top: 165.5px;
+}
+#leviathan-board #leviathan-track #leviathan-dice-stock[data-place="5"] {
+  top: 208px;
+}
+#leviathan-board #leviathan-track #leviathan-dice-stock[data-place="6"] {
+  top: 250.5px;
+}
+#leviathan-board #leviathan-track #leviathan-dice-stock[data-place="7"] {
+  top: 293px;
+}
+#leviathan-board #leviathan-track #leviathan-dice-stock[data-place="8"] {
+  top: 335.5px;
+}
+#leviathan-board #leviathan-track #leviathan-dice-stock[data-place="9"] {
+  top: 378px;
+}
+#leviathan-board #leviathan-track .bga-dice_die .bga-dice_die-face {
+  background: url("img/leviathan-die.png");
+  background-size: 600% 100%;
+  border-radius: 5px;
+}
+#leviathan-board #leviathan-track .bga-dice_die .bga-dice_die-face[data-face="1"] {
+  background-position-x: 0%;
+}
+#leviathan-board #leviathan-track .bga-dice_die .bga-dice_die-face[data-face="2"] {
+  background-position-x: 20%;
+}
+#leviathan-board #leviathan-track .bga-dice_die .bga-dice_die-face[data-face="3"] {
+  background-position-x: 40%;
+}
+#leviathan-board #leviathan-track .bga-dice_die .bga-dice_die-face[data-face="4"] {
+  background-position-x: 60%;
+}
+#leviathan-board #leviathan-track .bga-dice_die .bga-dice_die-face[data-face="5"] {
+  background-position-x: 80%;
+}
+#leviathan-board #leviathan-track .bga-dice_die .bga-dice_die-face[data-face="6"] {
+  background-position-x: 100%;
 }
 #leviathan-board .slot {
   position: absolute;

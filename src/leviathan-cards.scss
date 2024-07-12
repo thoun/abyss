@@ -10,6 +10,48 @@
     width: 97px;
     height: 440px;
     background: url('img/leviathan-track.jpg');
+
+    #leviathan-dice-stock {
+      opacity: 1;
+      transition: opacity 0.5s;
+      position: absolute;
+      left: 0;
+      right: 0;
+
+      &[data-place="0"] {
+        opacity: 0;
+      }
+      @for $i from 0 through 9 {
+        &[data-place="#{$i}"] {
+          top: #{($i - 1) * 85px / 2 + 38px};
+        }
+      }
+    }
+
+    .bga-dice_die .bga-dice_die-face {
+      background: url('img/leviathan-die.png');
+      background-size: 600% 100%;
+      border-radius: 5px;
+    }
+
+    .bga-dice_die .bga-dice_die-face[data-face="1"] {
+      background-position-x: 0%;
+    }
+    .bga-dice_die .bga-dice_die-face[data-face="2"] {
+      background-position-x: 20%;
+    }
+    .bga-dice_die .bga-dice_die-face[data-face="3"] {
+      background-position-x: 40%;
+    }
+    .bga-dice_die .bga-dice_die-face[data-face="4"] {
+      background-position-x: 60%;
+    }
+    .bga-dice_die .bga-dice_die-face[data-face="5"] {
+      background-position-x: 80%;
+    }
+    .bga-dice_die .bga-dice_die-face[data-face="6"] {
+      background-position-x: 100%;
+    }
   }
 
   .slot {

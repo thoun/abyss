@@ -500,7 +500,7 @@ class Abyss implements AbyssGame {
     }
 
     private onEnteringLord210(args: any) {
-        this.leviathanBoard.newLeviathan(args.leviathan, null);
+        //this.leviathanBoard.newLeviathan(args.leviathan);
 
         args.freeSlots.forEach((slot: number) => 
             document.querySelector(`#leviathan-board [data-slot-id="${slot}"]`).classList.add('selectable')
@@ -1843,8 +1843,9 @@ class Abyss implements AbyssGame {
             ['kraken', 500],
             ['placeSentinel', 500],
             ['placeKraken', 500],
+            ['discardLeviathan', 500],
             ['newLeviathan', 500],
-            ['rollDice', 1000],
+            ['rollDice', 1500],
             ['discardExploreMonster', 500],
             ['discardAllyTofight', 500],
             ['moveLeviathanLife', 500],
@@ -1854,7 +1855,11 @@ class Abyss implements AbyssGame {
         ];
     
         notifs.forEach((notif) => {
-            dojo.subscribe(notif[0], this, `notif_${notif[0]}`);
+            const notifName = notif[0];
+            dojo.subscribe(notifName, this, (notifDetails: Notif<any>) => {
+                log(`notif_${notifName}`, notifDetails.args);
+                this[`notif_${notifName}`](notifDetails/*.args*/);
+            });
             (this as any).notifqueue.setSynchronous(notif[0], notif[1]);
         });
     }
@@ -2406,12 +2411,16 @@ class Abyss implements AbyssGame {
         this.setDeckSize(deck, notif.args.deckSize);
     }
 
-    notif_newLeviathan(notif: Notif<NotifNewLeviathanArgs>) {
-        this.leviathanBoard.newLeviathan(notif.args.leviathan, notif.args.discardedLeviathan);
+    notif_discardLeviathan(notif: Notif<NotifLeviathanArgs>) {
+        this.leviathanBoard.discardLeviathan(notif.args.leviathan);
     }
 
-    notif_rollDice(notif: Notif<NotifNewLeviathanArgs>) {
-        // TODO?
+    notif_newLeviathan(notif: Notif<NotifLeviathanArgs>) {
+        this.leviathanBoard.newLeviathan(notif.args.leviathan);
+    }
+
+    notif_rollDice(notif: Notif<any>) {
+        this.leviathanBoard.showDice(notif.args.spot, notif.args.dice);
     }
 
     notif_discardExploreMonster(notif: Notif<NotifDiscardExploreMonsterArgs>) {
@@ -2427,7 +2436,7 @@ class Abyss implements AbyssGame {
         this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
     }
 
-    notif_moveLeviathanLife(notif: Notif<NotifNewLeviathanArgs>) {
+    notif_moveLeviathanLife(notif: Notif<NotifLeviathanArgs>) {
         this.leviathanBoard.moveLeviathanLife(notif.args.leviathan);
     }
 

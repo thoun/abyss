@@ -520,24 +520,24 @@ var AnimationManager = /** @class */ (function () {
      * @returns the animation promise.
      */
     AnimationManager.prototype.play = function (animation) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
         return __awaiter(this, void 0, void 0, function () {
-            var settings, _m;
+            var settings, _a;
+            var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
             return __generator(this, function (_o) {
                 switch (_o.label) {
                     case 0:
                         animation.played = animation.playWhenNoAnimation || this.animationsActive();
                         if (!animation.played) return [3 /*break*/, 2];
                         settings = animation.settings;
-                        (_a = settings.animationStart) === null || _a === void 0 ? void 0 : _a.call(settings, animation);
-                        (_b = settings.element) === null || _b === void 0 ? void 0 : _b.classList.add((_c = settings.animationClass) !== null && _c !== void 0 ? _c : 'bga-animations_animated');
-                        animation.settings = __assign(__assign({}, animation.settings), { duration: (_e = (_d = this.settings) === null || _d === void 0 ? void 0 : _d.duration) !== null && _e !== void 0 ? _e : 500, scale: (_g = (_f = this.zoomManager) === null || _f === void 0 ? void 0 : _f.zoom) !== null && _g !== void 0 ? _g : undefined });
-                        _m = animation;
+                        (_b = settings.animationStart) === null || _b === void 0 ? void 0 : _b.call(settings, animation);
+                        (_c = settings.element) === null || _c === void 0 ? void 0 : _c.classList.add((_d = settings.animationClass) !== null && _d !== void 0 ? _d : 'bga-animations_animated');
+                        animation.settings = __assign(__assign({}, animation.settings), { duration: (_f = (_e = this.settings) === null || _e === void 0 ? void 0 : _e.duration) !== null && _f !== void 0 ? _f : 500, scale: (_h = (_g = this.zoomManager) === null || _g === void 0 ? void 0 : _g.zoom) !== null && _h !== void 0 ? _h : undefined });
+                        _a = animation;
                         return [4 /*yield*/, animation.animationFunction(this, animation)];
                     case 1:
-                        _m.result = _o.sent();
-                        (_j = (_h = animation.settings).animationEnd) === null || _j === void 0 ? void 0 : _j.call(_h, animation);
-                        (_k = settings.element) === null || _k === void 0 ? void 0 : _k.classList.remove((_l = settings.animationClass) !== null && _l !== void 0 ? _l : 'bga-animations_animated');
+                        _a.result = _o.sent();
+                        (_k = (_j = animation.settings).animationEnd) === null || _k === void 0 ? void 0 : _k.call(_j, animation);
+                        (_l = settings.element) === null || _l === void 0 ? void 0 : _l.classList.remove((_m = settings.animationClass) !== null && _m !== void 0 ? _m : 'bga-animations_animated');
                         return [3 /*break*/, 3];
                     case 2: return [2 /*return*/, Promise.resolve(animation)];
                     case 3: return [2 /*return*/];
@@ -712,7 +712,7 @@ var CardStock = /** @class */ (function () {
      */
     CardStock.prototype.addCard = function (card, animation, settings) {
         var _this = this;
-        var _a, _b, _c, _d;
+        var _a, _b, _c;
         if (!this.canAddCard(card, settings)) {
             return Promise.resolve(false);
         }
@@ -722,26 +722,19 @@ var CardStock = /** @class */ (function () {
         var index = this.getNewCardIndex(card);
         var settingsWithIndex = __assign({ index: index }, (settings !== null && settings !== void 0 ? settings : {}));
         var updateInformations = (_a = settingsWithIndex.updateInformations) !== null && _a !== void 0 ? _a : true;
-        var needsCreation = true;
         if (originStock === null || originStock === void 0 ? void 0 : originStock.contains(card)) {
             var element = this.getCardElement(card);
-            if (element) {
-                promise = this.moveFromOtherStock(card, element, __assign(__assign({}, animation), { fromStock: originStock }), settingsWithIndex);
-                needsCreation = false;
-                if (!updateInformations) {
-                    element.dataset.side = ((_b = settingsWithIndex === null || settingsWithIndex === void 0 ? void 0 : settingsWithIndex.visible) !== null && _b !== void 0 ? _b : this.manager.isCardVisible(card)) ? 'front' : 'back';
-                }
+            promise = this.moveFromOtherStock(card, element, __assign(__assign({}, animation), { fromStock: originStock }), settingsWithIndex);
+            if (!updateInformations) {
+                element.dataset.side = ((_b = settingsWithIndex === null || settingsWithIndex === void 0 ? void 0 : settingsWithIndex.visible) !== null && _b !== void 0 ? _b : this.manager.isCardVisible(card)) ? 'front' : 'back';
             }
         }
-        else if ((_c = animation === null || animation === void 0 ? void 0 : animation.fromStock) === null || _c === void 0 ? void 0 : _c.contains(card)) {
+        else if ((animation === null || animation === void 0 ? void 0 : animation.fromStock) && animation.fromStock.contains(card)) {
             var element = this.getCardElement(card);
-            if (element) {
-                promise = this.moveFromOtherStock(card, element, animation, settingsWithIndex);
-                needsCreation = false;
-            }
+            promise = this.moveFromOtherStock(card, element, animation, settingsWithIndex);
         }
-        if (needsCreation) {
-            var element = this.manager.createCardElement(card, ((_d = settingsWithIndex === null || settingsWithIndex === void 0 ? void 0 : settingsWithIndex.visible) !== null && _d !== void 0 ? _d : this.manager.isCardVisible(card)));
+        else {
+            var element = this.manager.createCardElement(card, ((_c = settingsWithIndex === null || settingsWithIndex === void 0 ? void 0 : settingsWithIndex.visible) !== null && _c !== void 0 ? _c : this.manager.isCardVisible(card)));
             promise = this.moveFromElement(card, element, animation, settingsWithIndex);
         }
         if (settingsWithIndex.index !== null && settingsWithIndex.index !== undefined) {
@@ -790,15 +783,15 @@ var CardStock = /** @class */ (function () {
     };
     CardStock.prototype.moveFromOtherStock = function (card, cardElement, animation, settings) {
         var promise;
-        var fromElement = animation.fromStock.contains(card) ? this.manager.getCardElement(card) : animation.fromStock.element;
-        var fromRect = fromElement === null || fromElement === void 0 ? void 0 : fromElement.getBoundingClientRect();
+        var element = animation.fromStock.contains(card) ? this.manager.getCardElement(card) : animation.fromStock.element;
+        var fromRect = element.getBoundingClientRect();
         this.addCardElementToParent(cardElement, settings);
         this.removeSelectionClassesFromElement(cardElement);
-        promise = fromRect ? this.animationFromElement(cardElement, fromRect, {
+        promise = this.animationFromElement(cardElement, fromRect, {
             originalSide: animation.originalSide,
             rotationDelta: animation.rotationDelta,
             animation: animation.animation,
-        }) : Promise.resolve(false);
+        });
         // in the case the card was move inside the same stock we don't remove it
         if (animation.fromStock && animation.fromStock != this) {
             animation.fromStock.removeCard(card);
@@ -846,11 +839,11 @@ var CardStock = /** @class */ (function () {
      * @param settings a `AddCardSettings` object
      * @param shift if number, the number of milliseconds between each card. if true, chain animations
      */
-    CardStock.prototype.addCards = function (cards, animation, settings, shift) {
-        if (shift === void 0) { shift = false; }
-        return __awaiter(this, void 0, void 0, function () {
+    CardStock.prototype.addCards = function (cards_1, animation_1, settings_1) {
+        return __awaiter(this, arguments, void 0, function (cards, animation, settings, shift) {
             var promises, result, others, _loop_2, i, results;
             var _this = this;
+            if (shift === void 0) { shift = false; }
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1116,9 +1109,9 @@ var CardStock = /** @class */ (function () {
      * @param fromElement The HTMLElement to animate from.
      */
     CardStock.prototype.animationFromElement = function (element, fromRect, settings) {
-        var _a;
         return __awaiter(this, void 0, void 0, function () {
             var side, cardSides_1, animation, result;
+            var _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -1221,9 +1214,8 @@ var SlideAndBackAnimation = /** @class */ (function (_super) {
 var Deck = /** @class */ (function (_super) {
     __extends(Deck, _super);
     function Deck(manager, element, settings) {
-        var _this = this;
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
-        _this = _super.call(this, manager, element) || this;
+        var _this = _super.call(this, manager, element) || this;
         _this.manager = manager;
         _this.element = element;
         element.classList.add('deck');
@@ -1338,11 +1330,11 @@ var Deck = /** @class */ (function (_super) {
      * @param fakeCardSetter a function to generate a fake card for animation. Required if the card id is not based on a numerci `id` field, or if you want to set custom card back
      * @returns promise when animation ends
      */
-    Deck.prototype.shuffle = function (animatedCardsMax, fakeCardSetter) {
-        if (animatedCardsMax === void 0) { animatedCardsMax = 10; }
-        return __awaiter(this, void 0, void 0, function () {
+    Deck.prototype.shuffle = function () {
+        return __awaiter(this, arguments, void 0, function (animatedCardsMax, fakeCardSetter) {
             var animatedCards, elements, i, newCard, newElement;
             var _this = this;
+            if (animatedCardsMax === void 0) { animatedCardsMax = 10; }
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1387,9 +1379,8 @@ var LineStock = /** @class */ (function (_super) {
      * @param settings a `LineStockSettings` object
      */
     function LineStock(manager, element, settings) {
-        var _this = this;
         var _a, _b, _c, _d;
-        _this = _super.call(this, manager, element, settings) || this;
+        var _this = _super.call(this, manager, element, settings) || this;
         _this.manager = manager;
         _this.element = element;
         element.classList.add('line-stock');
@@ -1412,9 +1403,8 @@ var SlotStock = /** @class */ (function (_super) {
      * @param settings a `SlotStockSettings` object
      */
     function SlotStock(manager, element, settings) {
-        var _this = this;
         var _a, _b;
-        _this = _super.call(this, manager, element, settings) || this;
+        var _this = _super.call(this, manager, element, settings) || this;
         _this.manager = manager;
         _this.element = element;
         _this.slotsIds = [];
@@ -1888,6 +1878,831 @@ var CardManager = /** @class */ (function () {
     };
     return CardManager;
 }());
+var DiceManager = /** @class */ (function () {
+    /**
+     * @param game the BGA game class, usually it will be `this`
+     * @param settings: a `DieManagerSettings` object
+     */
+    function DiceManager(game, settings) {
+        var _this = this;
+        var _a;
+        this.game = game;
+        this.settings = settings;
+        this.stocks = [];
+        this.registeredDieTypes = [];
+        this.animationManager = (_a = settings.animationManager) !== null && _a !== void 0 ? _a : new AnimationManager(game);
+        if (settings.dieTypes) {
+            Object.entries(settings.dieTypes).forEach(function (entry) { return _this.setDieType(entry[0], entry[1]); });
+        }
+    }
+    /**
+     * Returns if the animations are active. Animation aren't active when the window is not visible (`document.visibilityState === 'hidden'`), or `game.instantaneousMode` is true.
+     *
+     * @returns if the animations are active.
+     */
+    DiceManager.prototype.animationsActive = function () {
+        return this.animationManager.animationsActive();
+    };
+    DiceManager.prototype.addStock = function (stock) {
+        this.stocks.push(stock);
+    };
+    DiceManager.prototype.setDieType = function (type, dieType) {
+        this.registeredDieTypes[type] = dieType;
+    };
+    DiceManager.prototype.getDieType = function (die) {
+        return this.registeredDieTypes[die.type];
+    };
+    DiceManager.prototype.getId = function (die) {
+        return "bga-die-".concat(die.type, "-").concat(die.id);
+    };
+    DiceManager.prototype.createDieElement = function (die) {
+        var _a, _b, _c;
+        var id = this.getId(die);
+        if (this.getDieElement(die)) {
+            throw new Error("This die already exists ".concat(JSON.stringify(die)));
+        }
+        var dieType = this.registeredDieTypes[die.type];
+        if (!dieType) {
+            throw new Error("This die type doesn't exists ".concat(die.type));
+        }
+        var element = document.createElement("div");
+        element.id = id;
+        element.classList.add('bga-dice_die');
+        element.style.setProperty('--size', "".concat((_a = dieType.size) !== null && _a !== void 0 ? _a : 50, "px"));
+        var dieFaces = document.createElement("div");
+        dieFaces.classList.add('bga-dice_die-faces');
+        dieFaces.dataset.visibleFace = '' + die.face;
+        element.appendChild(dieFaces);
+        var facesElements = [];
+        for (var i = 1; i <= dieType.facesCount; i++) {
+            facesElements[i] = document.createElement("div");
+            facesElements[i].id = "".concat(id, "-face-").concat(i);
+            facesElements[i].classList.add('bga-dice_die-face');
+            facesElements[i].dataset.face = '' + i;
+            dieFaces.appendChild(facesElements[i]);
+            element.dataset.face = '' + i;
+        }
+        document.body.appendChild(element);
+        (_b = dieType.setupDieDiv) === null || _b === void 0 ? void 0 : _b.call(dieType, die, element);
+        if (dieType.setupFaceDiv) {
+            for (var i = 1; i <= dieType.facesCount; i++) {
+                (_c = dieType.setupFaceDiv) === null || _c === void 0 ? void 0 : _c.call(dieType, die, facesElements[i], i);
+            }
+        }
+        document.body.removeChild(element);
+        return element;
+    };
+    /**
+     * @param die the die informations
+     * @return the HTML element of an existing die
+     */
+    DiceManager.prototype.getDieElement = function (die) {
+        return document.getElementById(this.getId(die));
+    };
+    /**
+     * Remove a die.
+     *
+     * @param die the die to remove
+     */
+    DiceManager.prototype.removeDie = function (die) {
+        var _a;
+        var id = this.getId(die);
+        var div = document.getElementById(id);
+        if (!div) {
+            return false;
+        }
+        div.id = "deleted".concat(id);
+        div.remove();
+        // if the die is in a stock, notify the stock about removal
+        (_a = this.getDieStock(die)) === null || _a === void 0 ? void 0 : _a.dieRemoved(die);
+        return true;
+    };
+    /**
+     * Returns the stock containing the die.
+     *
+     * @param die the die informations
+     * @return the stock containing the die
+     */
+    DiceManager.prototype.getDieStock = function (die) {
+        return this.stocks.find(function (stock) { return stock.contains(die); });
+    };
+    /**
+     * Update the die informations. Used when a change visible face.
+     *
+     * @param die the die informations
+     */
+    DiceManager.prototype.updateDieInformations = function (die, updateData) {
+        var _this = this;
+        var div = this.getDieElement(die);
+        div.dataset.visibleFace = '' + die.face;
+        if (updateData !== null && updateData !== void 0 ? updateData : true) {
+            // die data has changed
+            var stock = this.getDieStock(die);
+            var dice = stock.getDice();
+            var dieIndex = dice.findIndex(function (c) { return _this.getId(c) === _this.getId(die); });
+            if (dieIndex !== -1) {
+                stock.dice.splice(dieIndex, 1, die);
+            }
+        }
+    };
+    /**
+     * @returns the default perspective for all stocks.
+     */
+    DiceManager.prototype.getPerspective = function () {
+        var _a, _b;
+        return ((_a = this.settings) === null || _a === void 0 ? void 0 : _a.perspective) === undefined ? 1000 : (_b = this.settings) === null || _b === void 0 ? void 0 : _b.perspective;
+    };
+    /**
+     * @returns the class to apply to selectable dice. Default 'bga-dice_selectable-die'.
+     */
+    DiceManager.prototype.getSelectableDieClass = function () {
+        var _a, _b;
+        return ((_a = this.settings) === null || _a === void 0 ? void 0 : _a.selectableDieClass) === undefined ? 'bga-dice_selectable-die' : (_b = this.settings) === null || _b === void 0 ? void 0 : _b.selectableDieClass;
+    };
+    /**
+     * @returns the class to apply to selectable dice. Default 'bga-dice_disabled-die'.
+     */
+    DiceManager.prototype.getUnselectableDieClass = function () {
+        var _a, _b;
+        return ((_a = this.settings) === null || _a === void 0 ? void 0 : _a.unselectableDieClass) === undefined ? 'bga-dice_disabled-die' : (_b = this.settings) === null || _b === void 0 ? void 0 : _b.unselectableDieClass;
+    };
+    /**
+     * @returns the class to apply to selected dice. Default 'bga-dice_selected-die'.
+     */
+    DiceManager.prototype.getSelectedDieClass = function () {
+        var _a, _b;
+        return ((_a = this.settings) === null || _a === void 0 ? void 0 : _a.selectedDieClass) === undefined ? 'bga-dice_selected-die' : (_b = this.settings) === null || _b === void 0 ? void 0 : _b.selectedDieClass;
+    };
+    return DiceManager;
+}());
+var BgaDie6 = /** @class */ (function () {
+    /**
+     * Create the die type.
+     *
+     * @param settings the die settings
+     */
+    function BgaDie6(settings) {
+        var _a;
+        this.settings = settings;
+        this.facesCount = 6;
+        this.borderRadius = (_a = settings === null || settings === void 0 ? void 0 : settings.borderRadius) !== null && _a !== void 0 ? _a : 0;
+    }
+    /**
+     * Allow to populate the main div of the die. You can set classes or dataset, if it's informations shared by all faces.
+     *
+     * @param die the die informations
+     * @param element the die main Div element
+     */
+    BgaDie6.prototype.setupDieDiv = function (die, element) {
+        element.classList.add('bga-dice_die6');
+        element.style.setProperty('--bga-dice_border-radius', "".concat(this.borderRadius, "%"));
+    };
+    return BgaDie6;
+}());
+/**
+ * The abstract stock. It shouldn't be used directly, use stocks that extends it.
+ */
+var DiceStock = /** @class */ (function () {
+    /**
+     * @param manager the die manager
+     * @param element the stock element (should be an empty HTML Element)
+     */
+    function DiceStock(manager, element, settings) {
+        this.manager = manager;
+        this.element = element;
+        this.settings = settings;
+        this.dice = [];
+        this.selectedDice = [];
+        this.selectionMode = 'none';
+        manager.addStock(this);
+        element === null || element === void 0 ? void 0 : element.classList.add('bga-dice_die-stock' /*, this.constructor.name.split(/(?=[A-Z])/).join('-').toLowerCase()* doesn't work in production because of minification */);
+        var perspective = this.getPerspective();
+        element.style.setProperty('--perspective', perspective ? "".concat(perspective, "px") : 'unset');
+        this.bindClick();
+        this.sort = settings === null || settings === void 0 ? void 0 : settings.sort;
+    }
+    /**
+     * @returns the dice on the stock
+     */
+    DiceStock.prototype.getDice = function () {
+        return this.dice.slice();
+    };
+    /**
+     * @returns if the stock is empty
+     */
+    DiceStock.prototype.isEmpty = function () {
+        return !this.dice.length;
+    };
+    /**
+     * @returns the selected dice
+     */
+    DiceStock.prototype.getSelection = function () {
+        return this.selectedDice.slice();
+    };
+    /**
+     * @returns the selected dice
+     */
+    DiceStock.prototype.isSelected = function (die) {
+        var _this = this;
+        return this.selectedDice.some(function (c) { return _this.manager.getId(c) == _this.manager.getId(die); });
+    };
+    /**
+     * @param die a die
+     * @returns if the die is present in the stock
+     */
+    DiceStock.prototype.contains = function (die) {
+        var _this = this;
+        return this.dice.some(function (c) { return _this.manager.getId(c) == _this.manager.getId(die); });
+    };
+    /**
+     * @param die a die in the stock
+     * @returns the HTML element generated for the die
+     */
+    DiceStock.prototype.getDieElement = function (die) {
+        return this.manager.getDieElement(die);
+    };
+    /**
+     * Checks if the die can be added. By default, only if it isn't already present in the stock.
+     *
+     * @param die the die to add
+     * @param settings the addDie settings
+     * @returns if the die can be added
+     */
+    DiceStock.prototype.canAddDie = function (die, settings) {
+        return !this.contains(die);
+    };
+    /**
+     * Add a die to the stock.
+     *
+     * @param die the die to add
+     * @param animation a `DieAnimation` object
+     * @param settings a `AddDiceettings` object
+     * @returns the promise when the animation is done (true if it was animated, false if it wasn't)
+     */
+    DiceStock.prototype.addDie = function (die, animation, settings) {
+        var _this = this;
+        var _a;
+        if (!this.canAddDie(die, settings)) {
+            return Promise.resolve(false);
+        }
+        var promise;
+        // we check if die is in a stock
+        var originStock = this.manager.getDieStock(die);
+        var index = this.getNewDieIndex(die);
+        var settingsWithIndex = __assign({ index: index }, (settings !== null && settings !== void 0 ? settings : {}));
+        var updateInformations = (_a = settingsWithIndex.updateInformations) !== null && _a !== void 0 ? _a : true;
+        if (originStock === null || originStock === void 0 ? void 0 : originStock.contains(die)) {
+            var element = this.getDieElement(die);
+            promise = this.moveFromOtherStock(die, element, __assign(__assign({}, animation), { fromStock: originStock }), settingsWithIndex);
+        }
+        else if ((animation === null || animation === void 0 ? void 0 : animation.fromStock) && animation.fromStock.contains(die)) {
+            var element = this.getDieElement(die);
+            promise = this.moveFromOtherStock(die, element, animation, settingsWithIndex);
+        }
+        else {
+            var element = this.manager.createDieElement(die);
+            promise = this.moveFromElement(die, element, animation, settingsWithIndex);
+        }
+        if (settingsWithIndex.index !== null && settingsWithIndex.index !== undefined) {
+            this.dice.splice(index, 0, die);
+        }
+        else {
+            this.dice.push(die);
+        }
+        if (updateInformations) { // after splice/push
+            this.manager.updateDieInformations(die);
+        }
+        if (!promise) {
+            console.warn("Dicetock.addDie didn't return a Promise");
+            promise = Promise.resolve(false);
+        }
+        if (this.selectionMode !== 'none') {
+            // make selectable only at the end of the animation
+            promise.then(function () { var _a; return _this.setSelectableDie(die, (_a = settingsWithIndex.selectable) !== null && _a !== void 0 ? _a : true); });
+        }
+        return promise;
+    };
+    DiceStock.prototype.getNewDieIndex = function (die) {
+        if (this.sort) {
+            var otherDice = this.getDice();
+            for (var i = 0; i < otherDice.length; i++) {
+                var otherDie = otherDice[i];
+                if (this.sort(die, otherDie) < 0) {
+                    return i;
+                }
+            }
+            return otherDice.length;
+        }
+        else {
+            return undefined;
+        }
+    };
+    DiceStock.prototype.addDieElementToParent = function (dieElement, settings) {
+        var _a;
+        var parent = (_a = settings === null || settings === void 0 ? void 0 : settings.forceToElement) !== null && _a !== void 0 ? _a : this.element;
+        if ((settings === null || settings === void 0 ? void 0 : settings.index) === null || (settings === null || settings === void 0 ? void 0 : settings.index) === undefined || !parent.children.length || (settings === null || settings === void 0 ? void 0 : settings.index) >= parent.children.length) {
+            parent.appendChild(dieElement);
+        }
+        else {
+            parent.insertBefore(dieElement, parent.children[settings.index]);
+        }
+    };
+    DiceStock.prototype.moveFromOtherStock = function (die, dieElement, animation, settings) {
+        var promise;
+        var element = animation.fromStock.contains(die) ? this.manager.getDieElement(die) : animation.fromStock.element;
+        var fromRect = element.getBoundingClientRect();
+        this.addDieElementToParent(dieElement, settings);
+        this.removeSelectionClassesFromElement(dieElement);
+        promise = this.animationFromElement(dieElement, fromRect, {
+            originalSide: animation.originalSide,
+            rotationDelta: animation.rotationDelta,
+            animation: animation.animation,
+        });
+        // in the case the die was move inside the same stock we don't remove it
+        if (animation.fromStock && animation.fromStock != this) {
+            animation.fromStock.removeDie(die);
+        }
+        if (!promise) {
+            console.warn("Dicetock.moveFromOtherStock didn't return a Promise");
+            promise = Promise.resolve(false);
+        }
+        return promise;
+    };
+    DiceStock.prototype.moveFromElement = function (die, dieElement, animation, settings) {
+        var promise;
+        this.addDieElementToParent(dieElement, settings);
+        if (animation) {
+            if (animation.fromStock) {
+                promise = this.animationFromElement(dieElement, animation.fromStock.element.getBoundingClientRect(), {
+                    originalSide: animation.originalSide,
+                    rotationDelta: animation.rotationDelta,
+                    animation: animation.animation,
+                });
+                animation.fromStock.removeDie(die);
+            }
+            else if (animation.fromElement) {
+                promise = this.animationFromElement(dieElement, animation.fromElement.getBoundingClientRect(), {
+                    originalSide: animation.originalSide,
+                    rotationDelta: animation.rotationDelta,
+                    animation: animation.animation,
+                });
+            }
+        }
+        else {
+            promise = Promise.resolve(false);
+        }
+        if (!promise) {
+            console.warn("Dicetock.moveFromElement didn't return a Promise");
+            promise = Promise.resolve(false);
+        }
+        return promise;
+    };
+    /**
+     * Add an array of dice to the stock.
+     *
+     * @param dice the dice to add
+     * @param animation a `DieAnimation` object
+     * @param settings a `AddDiceettings` object
+     * @param shift if number, the number of milliseconds between each die. if true, chain animations
+     */
+    DiceStock.prototype.addDice = function (dice_1, animation_1, settings_1) {
+        return __awaiter(this, arguments, void 0, function (dice, animation, settings, shift) {
+            var promises, result, others, _loop_3, i, results;
+            var _this = this;
+            if (shift === void 0) { shift = false; }
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!this.manager.animationsActive()) {
+                            shift = false;
+                        }
+                        promises = [];
+                        if (!(shift === true)) return [3 /*break*/, 4];
+                        if (!dice.length) return [3 /*break*/, 3];
+                        return [4 /*yield*/, this.addDie(dice[0], animation, settings)];
+                    case 1:
+                        result = _a.sent();
+                        return [4 /*yield*/, this.addDice(dice.slice(1), animation, settings, shift)];
+                    case 2:
+                        others = _a.sent();
+                        return [2 /*return*/, result || others];
+                    case 3: return [3 /*break*/, 5];
+                    case 4:
+                        if (typeof shift === 'number') {
+                            _loop_3 = function (i) {
+                                setTimeout(function () { return promises.push(_this.addDie(dice[i], animation, settings)); }, i * shift);
+                            };
+                            for (i = 0; i < dice.length; i++) {
+                                _loop_3(i);
+                            }
+                        }
+                        else {
+                            promises = dice.map(function (die) { return _this.addDie(die, animation, settings); });
+                        }
+                        _a.label = 5;
+                    case 5: return [4 /*yield*/, Promise.all(promises)];
+                    case 6:
+                        results = _a.sent();
+                        return [2 /*return*/, results.some(function (result) { return result; })];
+                }
+            });
+        });
+    };
+    /**
+     * Remove a die from the stock.
+     *
+     * @param die die die to remove
+     */
+    DiceStock.prototype.removeDie = function (die) {
+        if (this.contains(die) && this.element.contains(this.getDieElement(die))) {
+            this.manager.removeDie(die);
+        }
+        this.dieRemoved(die);
+    };
+    /**
+     * Notify the stock that a die is removed.
+     *
+     * @param die the die to remove
+     */
+    DiceStock.prototype.dieRemoved = function (die) {
+        var _this = this;
+        var index = this.dice.findIndex(function (c) { return _this.manager.getId(c) == _this.manager.getId(die); });
+        if (index !== -1) {
+            this.dice.splice(index, 1);
+        }
+        if (this.selectedDice.find(function (c) { return _this.manager.getId(c) == _this.manager.getId(die); })) {
+            this.unselectDie(die);
+        }
+    };
+    /**
+     * Remove a set of dice from the stock.
+     *
+     * @param dice the dice to remove
+     */
+    DiceStock.prototype.removeDice = function (dice) {
+        var _this = this;
+        dice.forEach(function (die) { return _this.removeDie(die); });
+    };
+    /**
+     * Remove all dice from the stock.
+     */
+    DiceStock.prototype.removeAll = function () {
+        var _this = this;
+        var dice = this.getDice(); // use a copy of the array as we iterate and modify it at the same time
+        dice.forEach(function (die) { return _this.removeDie(die); });
+    };
+    /**
+     * Set if the stock is selectable, and if yes if it can be multiple.
+     * If set to 'none', it will unselect all selected dice.
+     *
+     * @param selectionMode the selection mode
+     * @param selectableDice the selectable dice (all if unset). Calls `setSelectableDice` method
+     */
+    DiceStock.prototype.setSelectionMode = function (selectionMode, selectableDice) {
+        var _this = this;
+        if (selectionMode !== this.selectionMode) {
+            this.unselectAll(true);
+        }
+        this.dice.forEach(function (die) { return _this.setSelectableDie(die, selectionMode != 'none'); });
+        this.element.classList.toggle('bga-dice_selectable-stock', selectionMode != 'none');
+        this.selectionMode = selectionMode;
+        if (selectionMode === 'none') {
+            this.getDice().forEach(function (die) { return _this.removeSelectionClasses(die); });
+        }
+        else {
+            this.setSelectableDice(selectableDice !== null && selectableDice !== void 0 ? selectableDice : this.getDice());
+        }
+    };
+    DiceStock.prototype.setSelectableDie = function (die, selectable) {
+        if (this.selectionMode === 'none') {
+            return;
+        }
+        var element = this.getDieElement(die);
+        var selectableDiceClass = this.getSelectableDieClass();
+        var unselectableDiceClass = this.getUnselectableDieClass();
+        if (selectableDiceClass) {
+            element.classList.toggle(selectableDiceClass, selectable);
+        }
+        if (unselectableDiceClass) {
+            element.classList.toggle(unselectableDiceClass, !selectable);
+        }
+        if (!selectable && this.isSelected(die)) {
+            this.unselectDie(die, true);
+        }
+    };
+    /**
+     * Set the selectable class for each die.
+     *
+     * @param selectableDice the selectable dice. If unset, all dice are marked selectable. Default unset.
+     */
+    DiceStock.prototype.setSelectableDice = function (selectableDice) {
+        var _this = this;
+        if (this.selectionMode === 'none') {
+            return;
+        }
+        var selectableDiceIds = (selectableDice !== null && selectableDice !== void 0 ? selectableDice : this.getDice()).map(function (die) { return _this.manager.getId(die); });
+        this.dice.forEach(function (die) {
+            return _this.setSelectableDie(die, selectableDiceIds.includes(_this.manager.getId(die)));
+        });
+    };
+    /**
+     * Set selected state to a die.
+     *
+     * @param die the die to select
+     */
+    DiceStock.prototype.selectDie = function (die, silent) {
+        var _this = this;
+        var _a;
+        if (silent === void 0) { silent = false; }
+        if (this.selectionMode == 'none') {
+            return;
+        }
+        var element = this.getDieElement(die);
+        var selectableDiceClass = this.getSelectableDieClass();
+        if (!element.classList.contains(selectableDiceClass)) {
+            return;
+        }
+        if (this.selectionMode === 'single') {
+            this.dice.filter(function (c) { return _this.manager.getId(c) != _this.manager.getId(die); }).forEach(function (c) { return _this.unselectDie(c, true); });
+        }
+        var selectedDiceClass = this.getSelectedDieClass();
+        element.classList.add(selectedDiceClass);
+        this.selectedDice.push(die);
+        if (!silent) {
+            (_a = this.onSelectionChange) === null || _a === void 0 ? void 0 : _a.call(this, this.selectedDice.slice(), die);
+        }
+    };
+    /**
+     * Set unselected state to a die.
+     *
+     * @param die the die to unselect
+     */
+    DiceStock.prototype.unselectDie = function (die, silent) {
+        var _this = this;
+        var _a;
+        if (silent === void 0) { silent = false; }
+        var element = this.getDieElement(die);
+        var selectedDiceClass = this.getSelectedDieClass();
+        element.classList.remove(selectedDiceClass);
+        var index = this.selectedDice.findIndex(function (c) { return _this.manager.getId(c) == _this.manager.getId(die); });
+        if (index !== -1) {
+            this.selectedDice.splice(index, 1);
+        }
+        if (!silent) {
+            (_a = this.onSelectionChange) === null || _a === void 0 ? void 0 : _a.call(this, this.selectedDice.slice(), die);
+        }
+    };
+    /**
+     * Select all dice
+     */
+    DiceStock.prototype.selectAll = function (silent) {
+        var _this = this;
+        var _a;
+        if (silent === void 0) { silent = false; }
+        if (this.selectionMode == 'none') {
+            return;
+        }
+        this.dice.forEach(function (c) { return _this.selectDie(c, true); });
+        if (!silent) {
+            (_a = this.onSelectionChange) === null || _a === void 0 ? void 0 : _a.call(this, this.selectedDice.slice(), null);
+        }
+    };
+    /**
+     * Unelect all dice
+     */
+    DiceStock.prototype.unselectAll = function (silent) {
+        var _this = this;
+        var _a;
+        if (silent === void 0) { silent = false; }
+        var dice = this.getDice(); // use a copy of the array as we iterate and modify it at the same time
+        dice.forEach(function (c) { return _this.unselectDie(c, true); });
+        if (!silent) {
+            (_a = this.onSelectionChange) === null || _a === void 0 ? void 0 : _a.call(this, this.selectedDice.slice(), null);
+        }
+    };
+    DiceStock.prototype.bindClick = function () {
+        var _this = this;
+        var _a;
+        (_a = this.element) === null || _a === void 0 ? void 0 : _a.addEventListener('click', function (event) {
+            var dieDiv = event.target.closest('.bga-dice_die');
+            if (!dieDiv) {
+                return;
+            }
+            var die = _this.dice.find(function (c) { return _this.manager.getId(c) == dieDiv.id; });
+            if (!die) {
+                return;
+            }
+            _this.dieClick(die);
+        });
+    };
+    DiceStock.prototype.dieClick = function (die) {
+        var _this = this;
+        var _a;
+        if (this.selectionMode != 'none') {
+            var alreadySelected = this.selectedDice.some(function (c) { return _this.manager.getId(c) == _this.manager.getId(die); });
+            if (alreadySelected) {
+                this.unselectDie(die);
+            }
+            else {
+                this.selectDie(die);
+            }
+        }
+        (_a = this.onDieClick) === null || _a === void 0 ? void 0 : _a.call(this, die);
+    };
+    /**
+     * @param element The element to animate. The element is added to the destination stock before the animation starts.
+     * @param fromElement The HTMLElement to animate from.
+     */
+    DiceStock.prototype.animationFromElement = function (element, fromRect, settings) {
+        return __awaiter(this, void 0, void 0, function () {
+            var side, diceides_1, animation, result;
+            var _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        side = element.dataset.side;
+                        if (settings.originalSide && settings.originalSide != side) {
+                            diceides_1 = element.getElementsByClassName('die-sides')[0];
+                            diceides_1.style.transition = 'none';
+                            element.dataset.side = settings.originalSide;
+                            setTimeout(function () {
+                                diceides_1.style.transition = null;
+                                element.dataset.side = side;
+                            });
+                        }
+                        animation = settings.animation;
+                        if (animation) {
+                            animation.settings.element = element;
+                            animation.settings.fromRect = fromRect;
+                        }
+                        else {
+                            animation = new BgaSlideAnimation({ element: element, fromRect: fromRect });
+                        }
+                        return [4 /*yield*/, this.manager.animationManager.play(animation)];
+                    case 1:
+                        result = _b.sent();
+                        return [2 /*return*/, (_a = result === null || result === void 0 ? void 0 : result.played) !== null && _a !== void 0 ? _a : false];
+                }
+            });
+        });
+    };
+    /**
+     * @returns the perspective for this stock.
+     */
+    DiceStock.prototype.getPerspective = function () {
+        var _a, _b;
+        return ((_a = this.settings) === null || _a === void 0 ? void 0 : _a.perspective) === undefined ? this.manager.getPerspective() : (_b = this.settings) === null || _b === void 0 ? void 0 : _b.perspective;
+    };
+    /**
+     * @returns the class to apply to selectable dice. Use class from manager is unset.
+     */
+    DiceStock.prototype.getSelectableDieClass = function () {
+        var _a, _b;
+        return ((_a = this.settings) === null || _a === void 0 ? void 0 : _a.selectableDieClass) === undefined ? this.manager.getSelectableDieClass() : (_b = this.settings) === null || _b === void 0 ? void 0 : _b.selectableDieClass;
+    };
+    /**
+     * @returns the class to apply to selectable dice. Use class from manager is unset.
+     */
+    DiceStock.prototype.getUnselectableDieClass = function () {
+        var _a, _b;
+        return ((_a = this.settings) === null || _a === void 0 ? void 0 : _a.unselectableDieClass) === undefined ? this.manager.getUnselectableDieClass() : (_b = this.settings) === null || _b === void 0 ? void 0 : _b.unselectableDieClass;
+    };
+    /**
+     * @returns the class to apply to selected dice. Use class from manager is unset.
+     */
+    DiceStock.prototype.getSelectedDieClass = function () {
+        var _a, _b;
+        return ((_a = this.settings) === null || _a === void 0 ? void 0 : _a.selectedDieClass) === undefined ? this.manager.getSelectedDieClass() : (_b = this.settings) === null || _b === void 0 ? void 0 : _b.selectedDieClass;
+    };
+    DiceStock.prototype.removeSelectionClasses = function (die) {
+        this.removeSelectionClassesFromElement(this.getDieElement(die));
+    };
+    DiceStock.prototype.removeSelectionClassesFromElement = function (dieElement) {
+        var selectableDiceClass = this.getSelectableDieClass();
+        var unselectableDiceClass = this.getUnselectableDieClass();
+        var selectedDiceClass = this.getSelectedDieClass();
+        dieElement.classList.remove(selectableDiceClass, unselectableDiceClass, selectedDiceClass);
+    };
+    DiceStock.prototype.addRollEffectToDieElement = function (die, element, effect, duration) {
+        var _a, _b;
+        switch (effect) {
+            case 'rollIn':
+                this.manager.animationManager.play(new BgaSlideAnimation({
+                    element: element,
+                    duration: duration,
+                    transitionTimingFunction: 'ease-out',
+                    fromDelta: {
+                        x: 0,
+                        y: ((_a = this.manager.getDieType(die).size) !== null && _a !== void 0 ? _a : 50) * 5,
+                    }
+                }));
+                break;
+            case 'rollOutPauseAndBack':
+                this.manager.animationManager.play(new BgaCumulatedAnimation({ animations: [
+                        new BgaSlideToAnimation({
+                            element: element,
+                            duration: duration,
+                            transitionTimingFunction: 'ease-out',
+                            fromDelta: {
+                                x: 0,
+                                y: ((_b = this.manager.getDieType(die).size) !== null && _b !== void 0 ? _b : 50) * -5,
+                            }
+                        }),
+                        new BgaPauseAnimation({}),
+                        new BgaSlideToAnimation({
+                            duration: 250,
+                            transitionTimingFunction: 'ease-out',
+                            element: element,
+                            fromDelta: {
+                                x: 0,
+                                y: 0,
+                            }
+                        }),
+                    ] }));
+                break;
+            case 'turn':
+                this.manager.animationManager.play(new BgaPauseAnimation({ duration: duration }));
+                break;
+        }
+    };
+    DiceStock.prototype.rollDice = function (dice, settings) {
+        var _this = this;
+        dice.forEach(function (die) { return _this.rollDie(die, settings); });
+    };
+    DiceStock.prototype.rollDie = function (die, settings) {
+        var _a, _b;
+        var div = this.getDieElement(die);
+        var faces = div.querySelector('.bga-dice_die-faces');
+        faces.style.setProperty('--roll-duration', "0");
+        faces.clientWidth;
+        faces.dataset.visibleFace = "";
+        faces.clientWidth;
+        var rollEffect = (_a = settings === null || settings === void 0 ? void 0 : settings.effect) !== null && _a !== void 0 ? _a : 'rollIn';
+        var animate = this.manager.animationManager.animationsActive() && rollEffect !== 'none';
+        var duration = (_b = settings === null || settings === void 0 ? void 0 : settings.duration) !== null && _b !== void 0 ? _b : 1000;
+        if (animate) {
+            if (Array.isArray(duration)) {
+                var diff = Math.abs(duration[1] - duration[0]);
+                duration = Math.min.apply(Math, duration) + Math.floor(Math.random() * diff);
+            }
+            if (rollEffect.includes('roll')) {
+                faces.style.transform = "rotate3d(".concat(Math.random() < 0.5 ? -1 : 1, ", ").concat(Math.random() < 0.5 ? -1 : 1, ", ").concat(Math.random() < 0.5 ? -1 : 1, ", ").concat(720 + Math.random() * 360, "deg)");
+                faces.clientWidth;
+            }
+            this.addRollEffectToDieElement(die, div, rollEffect, duration);
+        }
+        faces.style.setProperty('--roll-duration', "".concat(animate ? duration : 0, "ms"));
+        faces.clientWidth;
+        faces.style.removeProperty('transform');
+        faces.dataset.visibleFace = "".concat(die.face);
+    };
+    return DiceStock;
+}());
+/**
+ * A basic stock for a list of dice, based on flex.
+ */
+var LineDiceStock = /** @class */ (function (_super) {
+    __extends(LineDiceStock, _super);
+    /**
+     * @param manager the die manager
+     * @param element the stock element (should be an empty HTML Element)
+     * @param settings a `LineStockSettings` object
+     */
+    function LineDiceStock(manager, element, settings) {
+        var _a, _b, _c, _d;
+        var _this = _super.call(this, manager, element, settings) || this;
+        _this.manager = manager;
+        _this.element = element;
+        element.classList.add('bga-dice_line-stock');
+        element.dataset.center = ((_a = settings === null || settings === void 0 ? void 0 : settings.center) !== null && _a !== void 0 ? _a : true).toString();
+        element.style.setProperty('--wrap', (_b = settings === null || settings === void 0 ? void 0 : settings.wrap) !== null && _b !== void 0 ? _b : 'wrap');
+        element.style.setProperty('--direction', (_c = settings === null || settings === void 0 ? void 0 : settings.direction) !== null && _c !== void 0 ? _c : 'row');
+        element.style.setProperty('--gap', (_d = settings === null || settings === void 0 ? void 0 : settings.gap) !== null && _d !== void 0 ? _d : '8px');
+        return _this;
+    }
+    return LineDiceStock;
+}(DiceStock));
+var LeviathanDie = /** @class */ (function (_super) {
+    __extends(LeviathanDie, _super);
+    function LeviathanDie() {
+        var _this = _super.call(this) || this;
+        _this.size = 24;
+        return _this;
+    }
+    return LeviathanDie;
+}(BgaDie6));
+var AbyssDiceManager = /** @class */ (function (_super) {
+    __extends(AbyssDiceManager, _super);
+    function AbyssDiceManager(game) {
+        return _super.call(this, game, {
+            dieTypes: {
+                '0': new LeviathanDie(),
+            },
+            perspective: 10000,
+        }) || this;
+    }
+    return AbyssDiceManager;
+}(DiceManager));
 var AllyManager = /** @class */ (function (_super) {
     __extends(AllyManager, _super);
     function AllyManager(game) {
@@ -2476,12 +3291,21 @@ var PlayerTable = /** @class */ (function () {
     return PlayerTable;
 }());
 var SLOTS_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 99];
+function sleep(ms) {
+    return new Promise(function (r) { return setTimeout(r, ms); });
+}
 var LeviathanBoard = /** @class */ (function () {
     function LeviathanBoard(game, gamedatas) {
         var _this = this;
         this.game = game;
+        this.diceManager = new AbyssDiceManager(game);
+        this.diceStock = new LineDiceStock(this.diceManager, document.getElementById("leviathan-dice-stock"), { gap: '2px' });
+        document.getElementById("leviathan-dice-stock").dataset.place = "".concat(gamedatas.lastDieRoll[0]);
+        var diceValues = gamedatas.lastDieRoll[1];
+        var dice = diceValues.map(function (face, id) { return ({ id: id, face: face, type: 0 }); });
+        this.diceStock.addDice(dice);
         this.stock = new SlotStock(this.game.leviathanManager, document.getElementById('leviathan-board'), {
-            slotsIds: SLOTS_IDS,
+            slotsIds: SLOTS_IDS, // 99 = temp space
             mapCardToSlot: function (card) { return card.place; },
         });
         this.stock.addCards(gamedatas.leviathans);
@@ -2495,18 +3319,48 @@ var LeviathanBoard = /** @class */ (function () {
             });
         });
     }
-    LeviathanBoard.prototype.newLeviathan = function (leviathan, discardedLeviathan) {
+    LeviathanBoard.prototype.discardLeviathan = function (leviathan) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0:
-                        if (!discardedLeviathan) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this.stock.removeCard(discardedLeviathan)];
+                    case 0: return [4 /*yield*/, this.stock.removeCard(leviathan)];
                     case 1:
                         _a.sent();
-                        _a.label = 2;
-                    case 2: return [4 /*yield*/, this.stock.addCard(leviathan, { fromElement: document.getElementById('leviathan-track') })];
-                    case 3:
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    LeviathanBoard.prototype.newLeviathan = function (leviathan) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.stock.addCard(leviathan, { fromElement: document.getElementById('leviathan-track') })];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    LeviathanBoard.prototype.showDice = function (spot, diceValues) {
+        return __awaiter(this, void 0, void 0, function () {
+            var dice;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        document.getElementById("leviathan-dice-stock").dataset.place = "".concat(spot);
+                        dice = diceValues.map(function (face, id) { return ({ id: id, face: face, type: 0 }); });
+                        return [4 /*yield*/, this.diceStock.addDice(dice)];
+                    case 1:
+                        _a.sent();
+                        //await sleep(500);
+                        this.diceStock.rollDice(dice, {
+                            effect: 'rollIn',
+                            duration: [800, 1200]
+                        });
+                        return [4 /*yield*/, sleep(1200)];
+                    case 2:
                         _a.sent();
                         return [2 /*return*/];
                 }
@@ -2766,8 +3620,8 @@ var Abyss = /** @class */ (function () {
                     }
                 }
             }
-            var _loop_3 = function (faction) {
-                var _loop_5 = function (i_2) {
+            var _loop_4 = function (faction) {
+                var _loop_6 = function (i_2) {
                     dojo.connect($('autopass-' + faction + '-' + i_2), 'onclick', function () {
                         // Check only up to this
                         for (var j = 0; j <= 5; j++) {
@@ -2778,13 +3632,13 @@ var Abyss = /** @class */ (function () {
                     });
                 };
                 for (var i_2 = 0; i_2 <= 5; i_2++) {
-                    _loop_5(i_2);
+                    _loop_6(i_2);
                 }
             };
             for (var faction = 0; faction < 5; faction++) {
-                _loop_3(faction);
+                _loop_4(faction);
             }
-            var _loop_4 = function (i_3) {
+            var _loop_5 = function (i_3) {
                 dojo.connect($('autopass-all-' + i_3), 'onclick', function () {
                     // Check only this one
                     for (var j = 0; j <= 5; j++) {
@@ -2799,7 +3653,7 @@ var Abyss = /** @class */ (function () {
                 });
             };
             for (var i_3 = 0; i_3 <= 5; i_3++) {
-                _loop_4(i_3);
+                _loop_5(i_3);
             }
         }
         this.allyDiscardCounter = new ebg.counter();
@@ -2972,7 +3826,7 @@ var Abyss = /** @class */ (function () {
         }
     };
     Abyss.prototype.onEnteringLord210 = function (args) {
-        this.leviathanBoard.newLeviathan(args.leviathan, null);
+        //this.leviathanBoard.newLeviathan(args.leviathan);
         args.freeSlots.forEach(function (slot) {
             return document.querySelector("#leviathan-board [data-slot-id=\"".concat(slot, "\"]")).classList.add('selectable');
         });
@@ -3234,7 +4088,7 @@ var Abyss = /** @class */ (function () {
                     break;
                 case 'lord7':
                     if (!this.gamedatas.leviathanExpansion) {
-                        var _loop_6 = function () {
+                        var _loop_7 = function () {
                             var playerId = Number(player_id);
                             if (playerId != this_1.getPlayerId()) {
                                 num_tokens = this_1.monsterCounters[playerId].getValue();
@@ -3247,7 +4101,7 @@ var Abyss = /** @class */ (function () {
                         var this_1 = this, num_tokens;
                         // Put a red border around the player monster tokens (who aren't me)
                         for (var player_id in this.gamedatas.players) {
-                            _loop_6();
+                            _loop_7();
                         }
                     }
                     break;
@@ -3304,13 +4158,13 @@ var Abyss = /** @class */ (function () {
                     }
                     break;
                 case 'lord114':
-                    var _loop_7 = function (i_5) {
+                    var _loop_8 = function (i_5) {
                         this_2.addActionButton("selectAllyRace".concat(i_5), this_2.allyManager.allyNameText(i_5), function () { return _this.selectAllyRace(i_5); });
                         document.getElementById("selectAllyRace".concat(i_5)).classList.add('affiliate-button');
                     };
                     var this_2 = this;
                     for (var i_5 = 0; i_5 < 5; i_5++) {
-                        _loop_7(i_5);
+                        _loop_8(i_5);
                     }
                     break;
                 case 'giveKraken':
@@ -3324,19 +4178,19 @@ var Abyss = /** @class */ (function () {
                 case 'increaseAttackPower':
                     var increaseAttackPowerArgs = args;
                     if (increaseAttackPowerArgs.payPearlEffect) {
-                        var _loop_8 = function (i_6) {
+                        var _loop_9 = function (i_6) {
                             this_3.addActionButton("increaseAttackPower".concat(i_6, "-button"), _("Increase to ${newPower}").replace('${newPower}', (increaseAttackPowerArgs.attackPower + i_6) + " (".concat(i_6, " <i class=\"icon icon-pearl\"></i>)")), function () { return _this.bgaPerformAction('actIncreaseAttackPower', { amount: i_6 }); });
                         };
                         var this_3 = this;
                         for (var i_6 = 1; i_6 <= increaseAttackPowerArgs.playerPearls; i_6++) {
-                            _loop_8(i_6);
+                            _loop_9(i_6);
                         }
                         this.addActionButton("increaseAttackPower0-button", _("Don't increase attack power"), function () { return _this.bgaPerformAction('actIncreaseAttackPower', { amount: 0 }); });
                     }
                     break;
                 case 'chooseFightReward':
                     var chooseFightRewardArgs = args;
-                    var _loop_9 = function (i_7) {
+                    var _loop_10 = function (i_7) {
                         var base = chooseFightRewardArgs.rewards - i_7;
                         var expansion = i_7;
                         var html = [];
@@ -3350,7 +4204,7 @@ var Abyss = /** @class */ (function () {
                     };
                     var this_4 = this;
                     for (var i_7 = 0; i_7 <= chooseFightRewardArgs.rewards; i_7++) {
-                        _loop_9(i_7);
+                        _loop_10(i_7);
                     }
                     break;
                 case 'chooseFightAgain':
@@ -4151,8 +5005,9 @@ var Abyss = /** @class */ (function () {
             ['kraken', 500],
             ['placeSentinel', 500],
             ['placeKraken', 500],
+            ['discardLeviathan', 500],
             ['newLeviathan', 500],
-            ['rollDice', 1000],
+            ['rollDice', 1500],
             ['discardExploreMonster', 500],
             ['discardAllyTofight', 500],
             ['moveLeviathanLife', 500],
@@ -4161,7 +5016,11 @@ var Abyss = /** @class */ (function () {
             ['endGame_scoring', (5000 + (this.gamedatas.krakenExpansion ? 2000 : 0) + (this.gamedatas.leviathanExpansion ? 2000 : 0)) * num_players + 3000],
         ];
         notifs.forEach(function (notif) {
-            dojo.subscribe(notif[0], _this, "notif_".concat(notif[0]));
+            var notifName = notif[0];
+            dojo.subscribe(notifName, _this, function (notifDetails) {
+                log("notif_".concat(notifName), notifDetails.args);
+                _this["notif_".concat(notifName)](notifDetails /*.args*/);
+            });
             _this.notifqueue.setSynchronous(notif[0], notif[1]);
         });
     };
@@ -4176,7 +5035,7 @@ var Abyss = /** @class */ (function () {
         }
     };
     Abyss.prototype.setScoringRowWinner = function (winner_ids, lines) {
-        var _loop_10 = function (i) {
+        var _loop_11 = function (i) {
             var player_id = winner_ids[i];
             dojo.addClass($('scoring-row-name-p' + player_id), 'wavetext');
             lines.forEach(function (stage) {
@@ -4184,7 +5043,7 @@ var Abyss = /** @class */ (function () {
             });
         };
         for (var i in winner_ids) {
-            _loop_10(i);
+            _loop_11(i);
         }
     };
     Abyss.prototype.notif_finalRound = function (notif) {
@@ -4356,7 +5215,7 @@ var Abyss = /** @class */ (function () {
         // For each slot, animate to the council pile, fade out and destroy, then increase the council pile by 1
         var delay = 0;
         var cards = this.visibleAllies.getCards();
-        var _loop_11 = function () {
+        var _loop_12 = function () {
             var ally = cards.find(function (ally) { return ally.place == i; });
             if (ally) {
                 var faction = ally.faction;
@@ -4400,7 +5259,7 @@ var Abyss = /** @class */ (function () {
         };
         var this_5 = this, animation;
         for (var i = 1; i <= 5; i++) {
-            _loop_11();
+            _loop_12();
         }
         this.allyDiscardCounter.setValue(notif.args.allyDiscardSize);
         this.organisePanelMessages();
@@ -4634,11 +5493,14 @@ var Abyss = /** @class */ (function () {
         var deck = dojo.query('#council-track .slot-' + notif.args.faction);
         this.setDeckSize(deck, notif.args.deckSize);
     };
+    Abyss.prototype.notif_discardLeviathan = function (notif) {
+        this.leviathanBoard.discardLeviathan(notif.args.leviathan);
+    };
     Abyss.prototype.notif_newLeviathan = function (notif) {
-        this.leviathanBoard.newLeviathan(notif.args.leviathan, notif.args.discardedLeviathan);
+        this.leviathanBoard.newLeviathan(notif.args.leviathan);
     };
     Abyss.prototype.notif_rollDice = function (notif) {
-        // TODO?
+        this.leviathanBoard.showDice(notif.args.spot, notif.args.dice);
     };
     Abyss.prototype.notif_discardExploreMonster = function (notif) {
         this.visibleAllies.removeCard(notif.args.ally);

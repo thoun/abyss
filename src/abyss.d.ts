@@ -110,6 +110,7 @@ interface AbyssGamedatas {
     leviathanExpansion: boolean;
     scourge?: number;
     leviathans?: AbyssLeviathan[];
+    lastDieRoll?: any[];
 }
 
 interface AbyssGame extends Game {
@@ -416,14 +417,12 @@ interface NotifPlaceKrakenArgs {
     deckSize: number;
 }
 
-interface NotifNewLeviathanArgs {
+interface NotifLeviathanArgs {
     leviathan: AbyssLeviathan;
-    discardedLeviathan: AbyssLeviathan | null;
 }
 
-interface NotifLeviathanDefeatedArgs {
+interface NotifLeviathanDefeatedArgs extends NotifLeviathanArgs {
     playerId: number;
-    leviathan: AbyssLeviathan;
     defeatedLeviathans: number;
 }
 

@@ -12,6 +12,7 @@
   "dependencies": {
     "bga-animations": "thoun/bga-animations#1.0.2",
     "bga-cards": "thoun/bga-cards#2.2.2",
+    "bga-dice": "thoun/bga-dice#0.0.1",
     "bga-zoom": "thoun/bga-zoom#0.1.0"
   },
   "devDependencies": {

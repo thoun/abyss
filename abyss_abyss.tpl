@@ -82,7 +82,11 @@
       </div>
       <div id="locations-holder-overflow">
       </div>
-      <div id="leviathan-board"><div id="leviathan-track"></div></div>
+      <div id="leviathan-board">
+        <div id="leviathan-track">
+          <div id="leviathan-dice-stock" data-place="0"></div>
+        </div>
+      </div>
       <div style="display: none"><input id="modified-layout-checkbox" type="checkbox" checked> Modified layout</div>
       <div id="player-panel-holder">
       </div>

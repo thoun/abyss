@@ -142,17 +142,7 @@ class LeviathanManager {
       self::$game->checkNewScourgeOwner($playerId);
 
       if (count(LeviathanManager::getVisibleLeviathans()) === 0) { // put a new one if it was the last one
-        $dice = self::$game->getDoubleDieRoll();
-        $sum = $dice[0] + $dice[1];
-        $newLeviathan = LeviathanManager::draw(LEVIATHAN_SLOTS[$sum]);
-
-        self::$game->notifyAllPlayers("newLeviathan", clienttranslate('Dice rolled to ${die1} and ${die2}, a new Leviathan takes place on the spot ${spot}'), [
-            'die1' => $dice[0],
-            'die2' => $dice[1],
-            'spot' => $sum,
-            'leviathan' => $newLeviathan,
-            'discardedLeviathan' => null,
-        ]);
+        self::$game->drawNewLeviathanAndRollDice($playerId, 0);
       }
     }
   }

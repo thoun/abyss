@@ -103,16 +103,17 @@ trait ActionTrait {
     }
 
     function drawNewLeviathanAndRollDice(int $playerId, int $nextState): bool { // redirected
-        LeviathanManager::draw(99); // temp space
-        $newLeviathan = LeviathanManager::getLeviathanAtSlot(99);
+        $newLeviathan = LeviathanManager::draw(99); // temp space
+        $newLeviathan->place = 99;
         $this->notifyAllPlayers("newLeviathan", clienttranslate('${player_name} draws a new Leviathan'), [
             'playerId' => $playerId,
             'player_name' => $this->getPlayerNameById($playerId),
-            'leviathan' => $newLeviathan,
+            'leviathan' => clone $newLeviathan,
         ]);
 
-        $dice = [2, 1];//$this->getDoubleDieRoll();
+        $dice = $this->getDoubleDieRoll();
         $sum = $dice[0] + $dice[1];
+        $spot = LEVIATHAN_SLOTS[$sum];
 
         $this->notifyAllPlayers("rollDice", clienttranslate('${player_name} rolls the dice and obtains ${die1} and ${die2}, the new Leviathan will be placed on the spot ${spot}'), [
             'playerId' => $playerId,
@@ -120,10 +121,10 @@ trait ActionTrait {
             'dice' => $dice,
             'die1' => $dice[0],
             'die2' => $dice[1],
-            'spot' => $sum,
+            'spot' => $spot,
         ]);
+        $this->globals->set(LAST_DIE_ROLL, [$spot, $dice]);
 
-        $spot = LEVIATHAN_SLOTS[$sum];
         $existingLeviathan = LeviathanManager::getLeviathanAtSlot($spot);
 
         if ($existingLeviathan !== null) {
@@ -147,6 +148,10 @@ trait ActionTrait {
         if ($existingLeviathan !== null) {
             // discard the Leviathan
             LeviathanManager::discard($existingLeviathan->id, 1);
+
+            $this->notifyAllPlayers("discardLeviathan", clienttranslate('The attacking Leviathan is discarded'), [
+                'leviathan' => $existingLeviathan,
+            ]);
         }
 
         $newLeviathan->place = $spot;
@@ -155,7 +160,6 @@ trait ActionTrait {
         $this->notifyAllPlayers("newLeviathan", clienttranslate('The new Leviathan takes place on the spot ${spot}'), [
             'spot' => $spot,
             'leviathan' => $newLeviathan,
-            'discardedLeviathan' => $existingLeviathan,
         ]);
     }
 
@@ -215,9 +219,9 @@ trait ActionTrait {
                     }
 
                     $this->notifyAllPlayers( "diff", '', array(
-                        'player_id' => $player_id,
+                        'player_id' => $playerId,
                         'allies_lost' => $allies,
-                        'source' => "player_$player_id",
+                        'source' => "player_$playerId",
                         'allyDiscardSize' => Ally::getDiscardSize(),
                     ) );
                 } else {

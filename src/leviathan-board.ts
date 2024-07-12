@@ -1,11 +1,24 @@
 const SLOTS_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 99];
 
+function sleep(ms: number) {
+    return new Promise((r) => setTimeout(r, ms));
+}
+
 class LeviathanBoard {
     public playerId: number;
 
     private stock: SlotStock<AbyssLeviathan>;
+    private diceManager: AbyssDiceManager;
+    private diceStock: LineDiceStock;
 
-    constructor(private game: AbyssGame, gamedatas: AbyssGamedatas) {        
+    constructor(private game: AbyssGame, gamedatas: AbyssGamedatas) {    
+        this.diceManager = new AbyssDiceManager(game);
+        this.diceStock = new LineDiceStock(this.diceManager, document.getElementById(`leviathan-dice-stock`), { gap: '2px' });
+        document.getElementById(`leviathan-dice-stock`).dataset.place = `${gamedatas.lastDieRoll[0]}`;
+        const diceValues = gamedatas.lastDieRoll[1];
+        const dice = diceValues.map((face, id) => ({ id, face, type: 0 }));
+        this.diceStock.addDice(dice);
+
         this.stock = new SlotStock<AbyssLeviathan>(this.game.leviathanManager, document.getElementById('leviathan-board'), {
             slotsIds: SLOTS_IDS, // 99 = temp space
             mapCardToSlot: card => card.place,
@@ -23,11 +36,25 @@ class LeviathanBoard {
         });
     }
     
-    public async newLeviathan(leviathan: AbyssLeviathan, discardedLeviathan: AbyssLeviathan | null) {
-        if (discardedLeviathan) {
-            await this.stock.removeCard(discardedLeviathan);
-        }
+    public async discardLeviathan(leviathan: AbyssLeviathan) {
+        await this.stock.removeCard(leviathan);
+    }
+    
+    public async newLeviathan(leviathan: AbyssLeviathan) {
         await this.stock.addCard(leviathan, { fromElement: document.getElementById('leviathan-track') });
+    }
+    
+    public async showDice(spot: number, diceValues: number[]) {
+        document.getElementById(`leviathan-dice-stock`).dataset.place = `${spot}`;
+        const dice = diceValues.map((face, id) => ({ id, face, type: 0 }));
+        await this.diceStock.addDice(dice);
+        //await sleep(500);
+
+        this.diceStock.rollDice(dice, {
+            effect: 'rollIn',
+            duration: [800, 1200]
+        });
+        await sleep(1200);
     }
     
     public async moveLeviathanLife(leviathan: AbyssLeviathan) {
