@@ -17,7 +17,7 @@ trait DebugUtilTrait {
 		//$this->debugPickMonsters(2343493, 2);
 		$this->debug_pickAllies(2343492);
 		$this->debug_pickAllies(2343493);
-		$this->debug_fillLeviathans();
+		//$this->debug_fillLeviathans();
 		//$this->debug_pickAllies(2343494);
 		
 		//$this->debugPickKrakens(2343492);
@@ -103,6 +103,10 @@ trait DebugUtilTrait {
 			$this->DbQuery( "UPDATE location SET place = ".($playerId * -1)." WHERE location_id = " . $location["location_id"] );
 			$this->debug_addRandomLord($playerId, $location["location_id"], min($i, 3));
 		}
+	}
+
+	function debug_SetAllyFaction(int $id, int $faction) {
+		$this->DbQuery("UPDATE ally SET faction = $faction WHERE ally_id = $id");
 	}
 
 	// debugSetPlayerPearls(2343492, 10)

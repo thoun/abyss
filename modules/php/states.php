@@ -819,13 +819,19 @@ trait StateTrait {
             'leviathan' => null,
         ]);
 
+        // Move each ally to the appropriate council stack and discard monster allies
+        $this->DbQuery( "UPDATE ally SET place = 6 WHERE faction IS NOT NULL AND place >= 1 AND place <= 5 AND faction <> 10");
+        $this->DbQuery( "UPDATE ally SET place = 10 WHERE faction IS NULL AND place >= 1");
+        $this->notifyAllPlayers( "exploreTake", '', [
+            'allyDiscardSize' => Ally::getDiscardSize(),
+        ]);
+
         $nextState = "next";
 
         $slots = Ally::getExploreSlots();
         if (array_some($slots, fn($s) => $s["faction"] == 10)) {
             $nextState = "nextRemainingKrakens";
         }
-        // TODO clean all allies in explore track?
         
         $this->gamestate->nextState($nextState);
     }

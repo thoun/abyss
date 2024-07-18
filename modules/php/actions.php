@@ -327,9 +327,12 @@ trait ActionTrait {
             }
         }
 
-        // Move each ally to the appropriate council stack and discard monster allies
-        $this->DbQuery( "UPDATE ally SET place = 6 WHERE faction IS NOT NULL AND place >= 1 AND place <= 5 AND faction <> 10");
-        $this->DbQuery( "UPDATE ally SET place = 10 WHERE faction IS NULL AND place >= 1");
+        $emptyTrack = $ally['faction'] !== NULL || !$this->isLeviathanExpansion();
+        if ($emptyTrack) {
+            // Move each ally to the appropriate council stack and discard monster allies
+            $this->DbQuery( "UPDATE ally SET place = 6 WHERE faction IS NOT NULL AND place >= 1 AND place <= 5 AND faction <> 10");
+            $this->DbQuery( "UPDATE ally SET place = 10 WHERE faction IS NULL AND place >= 1");
+        }
 
         // Notification
         if ($ally['faction'] !== NULL) {
@@ -349,7 +352,8 @@ trait ActionTrait {
                 'allyDiscardSize' => Ally::getDiscardSize(),
             ]);
         } else {
-            $this->notifyAllPlayers( "exploreTake", clienttranslate('${player_name} fights a Monster'), [
+            $leviathanExpansion = $this->isLeviathanExpansion();
+            $this->notifyAllPlayers( $emptyTrack ? "exploreTake" : "log", clienttranslate('${player_name} fights a Monster'), [
                 'ally' => $ally,
                 'slot' => $slot,
                 'player_id' => $player_id,

@@ -70,6 +70,9 @@ class LeviathanManager {
 
   public static function getFightedLeviathan(): ?Leviathan {
     $id = self::$game->globals->get(FIGHTED_LEVIATHAN);
+    if (!$id) {
+      return null;
+    }
     $dbLeviathan = self::$game->getObject("SELECT * FROM leviathan WHERE id = $id");
     return $dbLeviathan !== null ? new Leviathan($dbLeviathan, self::$game->LEVIATHANS) : null;
   }

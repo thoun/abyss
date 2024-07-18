@@ -71,8 +71,8 @@ class Ally {
 
   public static function draw() {
     $nextSlot = count(Ally::getExploreSlots()) + 1;
-    //$ally = self::typedAlly(self::$game->getObject("SELECT * FROM `ally` WHERE `place` = 0 ORDER BY RAND() LIMIT 1" ));
-    $ally = self::typedAlly(self::$game->getObject("SELECT * FROM `ally` WHERE `place` = 0 AND faction IS NULL ORDER BY RAND() LIMIT 1" ));
+    $ally = self::typedAlly(self::$game->getObject("SELECT * FROM `ally` WHERE `place` = 0 ORDER BY RAND() LIMIT 1" ));
+    //$ally = self::typedAlly(self::$game->getObject("SELECT * FROM `ally` WHERE `place` = 0 AND faction IS NULL ORDER BY RAND() LIMIT 1" ));
     Abyss::DbQuery( "UPDATE ally SET place = $nextSlot WHERE ally_id = " . $ally['ally_id'] );
     $ally['place'] = $nextSlot;
     return $ally;
