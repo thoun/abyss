@@ -142,6 +142,17 @@
           box-shadow: unset;
       }
   }
+
+  &.fighted-leviathan {
+    box-shadow: unset;
+    outline: 4px solid darkred !important;
+    z-index: 1;
+
+    .card-side {
+        box-shadow: unset;
+    }
+
+  }
 }
 
 .abs-tooltip-leviathan {

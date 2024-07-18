@@ -1896,6 +1896,7 @@ class Abyss implements AbyssGame {
             ['discardExploreMonster', 500],
             ['discardAllyTofight', 500],
             ['moveLeviathanLife', 500],
+            ['setFightedLeviathan', 1],
             ['leviathanDefeated', 500],
             ['discardLords', 500],
             ['endGame_scoring', (5000 + (this.gamedatas.krakenExpansion ? 2000 : 0) + (this.gamedatas.leviathanExpansion ? 2000 : 0)) * num_players + 3000],
@@ -2490,6 +2491,15 @@ class Abyss implements AbyssGame {
 
     notif_moveLeviathanLife(notif: Notif<NotifLeviathanArgs>) {
         this.leviathanBoard.moveLeviathanLife(notif.args.leviathan);
+    }
+
+    notif_setFightedLeviathan(notif: Notif<NotifLeviathanArgs>) {
+        const leviathan = notif.args.leviathan;
+        if (leviathan) {
+            this.leviathanManager.getCardElement(leviathan).classList.add('fighted-leviathan');
+        } else {
+            document.querySelectorAll('.fighted-leviathan').forEach(elem => elem.classList.remove('fighted-leviathan'));
+        }
     }
 
     notif_leviathanDefeated(notif: Notif<NotifLeviathanDefeatedArgs>) {

@@ -781,12 +781,12 @@ trait StateTrait {
     function resolveLeviathanAttack() {
 		$playerId = (int)$this->getActivePlayerId();
 
-        $attackPower = $this->getGlobalVariable(ATTACK_POWER);
+        $attackPower = $this->globals->get(ATTACK_POWER);
         $leviathan = LeviathanManager::getFightedLeviathan();
         $rewards = LeviathanManager::fightLeviathan($playerId, $leviathan, $attackPower);
 
         if ($rewards > 0) {
-            $this->setGlobalVariable(REMAINING_REWARDS, $rewards);
+            $this->globals->set(REMAINING_REWARDS, $rewards);
             $this->gamestate->nextState('nextSuccess');
         } else {
             $combatCondition = $leviathan->combatConditions[$leviathan->life];
@@ -813,6 +813,12 @@ trait StateTrait {
     }
 
     function applyEndFight() {
+        $this->globals->set(FIGHTED_LEVIATHAN, null);
+
+        $this->notifyAllPlayers('setFightedLeviathan', '', [
+            'leviathan' => null,
+        ]);
+
         $nextState = "next";
 
         $slots = Ally::getExploreSlots();
@@ -833,7 +839,7 @@ trait StateTrait {
     }
 
     function stAfterApplyLeviathanDamage() {
-        $leviathanDamage = $this->getGlobalVariable(PLAYER_LEVIATHAN_DAMAGE, true);
+        $leviathanDamage = $this->globals->get(PLAYER_LEVIATHAN_DAMAGE);
 		$spot = $leviathanDamage[1];
         $nextState = $leviathanDamage[2];
 		$existingLeviathan = LeviathanManager::getLeviathanAtSlot($spot);

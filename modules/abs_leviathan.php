@@ -69,7 +69,7 @@ class LeviathanManager {
   }
 
   public static function getFightedLeviathan(): ?Leviathan {
-    $id = self::$game->getGlobalVariable(FIGHTED_LEVIATHAN);
+    $id = self::$game->globals->get(FIGHTED_LEVIATHAN);
     $dbLeviathan = self::$game->getObject("SELECT * FROM leviathan WHERE id = $id");
     return $dbLeviathan !== null ? new Leviathan($dbLeviathan, self::$game->LEVIATHANS) : null;
   }
@@ -129,8 +129,8 @@ class LeviathanManager {
   public static function checkLeviathanDefeated(int $playerId, Leviathan &$leviathan): void {
     if ($leviathan->life >= count($leviathan->combatConditions)) { // leviathan is beaten
       self::discard($leviathan->id, $playerId);
-      self::$game->setGlobalVariable(SLAYED_LEVIATHANS, self::$game->getGlobalVariable(SLAYED_LEVIATHANS) + 1);
-      self::$game->setGlobalVariable(FIGHTED_LEVIATHAN, null);
+      self::$game->globals->inc(SLAYED_LEVIATHANS, 1);
+      self::$game->globals->set(FIGHTED_LEVIATHAN, null);
 
       self::$game->notifyAllPlayers("leviathanDefeated", clienttranslate('${player_name} has defeated the Leviathan'), [
         'playerId' => $playerId,

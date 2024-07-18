@@ -3352,6 +3352,9 @@ var LeviathanBoard = /** @class */ (function () {
                 }
             });
         });
+        if (gamedatas.fightedLeviathan) {
+            this.game.leviathanManager.getCardElement(gamedatas.fightedLeviathan).classList.add('fighted-leviathan');
+        }
     }
     LeviathanBoard.prototype.discardLeviathan = function (leviathan) {
         return __awaiter(this, void 0, void 0, function () {
@@ -5094,6 +5097,7 @@ var Abyss = /** @class */ (function () {
             ['discardExploreMonster', 500],
             ['discardAllyTofight', 500],
             ['moveLeviathanLife', 500],
+            ['setFightedLeviathan', 1],
             ['leviathanDefeated', 500],
             ['discardLords', 500],
             ['endGame_scoring', (5000 + (this.gamedatas.krakenExpansion ? 2000 : 0) + (this.gamedatas.leviathanExpansion ? 2000 : 0)) * num_players + 3000],
@@ -5602,6 +5606,15 @@ var Abyss = /** @class */ (function () {
     };
     Abyss.prototype.notif_moveLeviathanLife = function (notif) {
         this.leviathanBoard.moveLeviathanLife(notif.args.leviathan);
+    };
+    Abyss.prototype.notif_setFightedLeviathan = function (notif) {
+        var leviathan = notif.args.leviathan;
+        if (leviathan) {
+            this.leviathanManager.getCardElement(leviathan).classList.add('fighted-leviathan');
+        }
+        else {
+            document.querySelectorAll('.fighted-leviathan').forEach(function (elem) { return elem.classList.remove('fighted-leviathan'); });
+        }
     };
     Abyss.prototype.notif_leviathanDefeated = function (notif) {
         this.leviathanBoard.leviathanDefeated(notif.args.leviathan);

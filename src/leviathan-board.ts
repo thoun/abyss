@@ -34,6 +34,10 @@ class LeviathanBoard {
                 }
             });
         });
+
+        if (gamedatas.fightedLeviathan) {
+            this.game.leviathanManager.getCardElement(gamedatas.fightedLeviathan).classList.add('fighted-leviathan');
+        }
     }
     
     public async discardLeviathan(leviathan: AbyssLeviathan) {

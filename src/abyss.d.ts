@@ -119,6 +119,7 @@ interface AbyssGamedatas {
     scourge?: number;
     leviathans?: AbyssLeviathan[];
     lastDieRoll?: any[];
+    fightedLeviathan?: AbyssLeviathan;
 }
 
 interface AbyssGame extends Game {

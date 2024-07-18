@@ -411,10 +411,10 @@ trait ArgsTrait {
 	function argIncreaseAttackPower(): array {
 		$playerId = $this->getActivePlayerId();
 
-        $ally = Ally::get($this->getGlobalVariable(ALLY_FOR_FIGHT));
+        $ally = Ally::get($this->globals->get(ALLY_FOR_FIGHT));
 		$payPearlEffect = $ally['effect'] === 1;
 		$playerPearls = $this->getPlayerPearls($playerId);
-		$attackPower = $this->getGlobalVariable(ATTACK_POWER);
+		$attackPower = $this->globals->get(ATTACK_POWER);
 
 		return [
 			'payPearlEffect' => $payPearlEffect,
@@ -424,7 +424,7 @@ trait ArgsTrait {
 	}
 
 	function argChooseFightReward(): array {
-		$rewards = $this->getGlobalVariable(REMAINING_REWARDS);
+		$rewards = $this->globals->get(REMAINING_REWARDS);
 		return [
 			'rewards' => $rewards,
 		];
@@ -433,7 +433,7 @@ trait ArgsTrait {
 	function argChooseFightAgain(): array {
 		$playerId = $this->getActivePlayerId();
 
-		$slayedLeviathans = $this->getGlobalVariable(SLAYED_LEVIATHANS);
+		$slayedLeviathans = $this->globals->get(SLAYED_LEVIATHANS);
 		$handCount = count(Ally::getPlayerHand($playerId));
 
 		return [
@@ -457,7 +457,7 @@ trait ArgsTrait {
 	}
 
 	function argApplyLeviathanDamage() {
-		$leviathanDamage = $this->getGlobalVariable(PLAYER_LEVIATHAN_DAMAGE, true);
+		$leviathanDamage = $this->globals->get(PLAYER_LEVIATHAN_DAMAGE);
 		$playerId = $leviathanDamage[0];
 		$slot = $leviathanDamage[1];
 		$existingLeviathan = LeviathanManager::getLeviathanAtSlot($slot);

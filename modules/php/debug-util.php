@@ -123,7 +123,7 @@ trait DebugUtilTrait {
 	}
 
 	function debug_fight() {
-		$this->setGlobalVariable(SLAYED_LEVIATHANS, 0);
+		$this->globals->set(SLAYED_LEVIATHANS, 0);
 		$this->gamestate->jumpToState(ST_PLAYER_CHOOSE_LEVIATHAN_TO_FIGHT);
 	}
 

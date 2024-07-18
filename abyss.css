@@ -699,6 +699,14 @@ body > .bga-dice_die {
 .leviathan-card.bga-cards_selected-card:not(.disabled) .card-side {
   box-shadow: unset;
 }
+.leviathan-card.fighted-leviathan {
+  box-shadow: unset;
+  outline: 4px solid darkred !important;
+  z-index: 1;
+}
+.leviathan-card.fighted-leviathan .card-side {
+  box-shadow: unset;
+}
 
 .abs-tooltip-leviathan table tr.current {
   background: rgba(255, 0, 0, 0.4);

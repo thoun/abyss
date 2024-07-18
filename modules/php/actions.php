@@ -131,7 +131,7 @@ trait ActionTrait {
             $needChooseDamage = $this->applyExistingLeviathanDamage($playerId, $existingLeviathan);
 
             if ($needChooseDamage) {
-                $this->setGlobalVariable(PLAYER_LEVIATHAN_DAMAGE, [$playerId, $spot, $nextState]);
+                $this->globals->set(PLAYER_LEVIATHAN_DAMAGE, [$playerId, $spot, $nextState]);
                 $this->gamestate->jumpToState(ST_MULTIPLAYER_APPLY_LEVIATHAN_DAMAGE);
                 return true;
             }
@@ -297,7 +297,7 @@ trait ActionTrait {
             $leviathanExpansion = $this->isLeviathanExpansion();
             if ($leviathanExpansion) {
                 if (count(LeviathanManager::canFightSome(Ally::getPlayerHand( $player_id ), $player_id)) > 0) {
-                    $this->setGlobalVariable(SLAYED_LEVIATHANS, 0);
+                    $this->globals->set(SLAYED_LEVIATHANS, 0);
                     $nextState = "chooseLeviathanToFight";
                 } else {
                     throw new BgaUserException( $this->_("You cannot fight any Leviathan present at the Border, you must continue your Exploration.") );
@@ -1850,7 +1850,11 @@ trait ActionTrait {
 
         $playerId = intval($this->getActivePlayerId());
 
-        $this->setGlobalVariable(FIGHTED_LEVIATHAN, $id);
+        $this->globals->set(FIGHTED_LEVIATHAN, $id);
+
+        $this->notifyAllPlayers('setFightedLeviathan', '', [
+            'leviathan' => LeviathanManager::getFightedLeviathan(),
+        ]);
 
         $this->gamestate->nextState('next');
     }
@@ -1860,7 +1864,7 @@ trait ActionTrait {
 
         $playerId = intval($this->getActivePlayerId());
 
-        $this->setGlobalVariable(ALLY_FOR_FIGHT, $id);
+        $this->globals->set(ALLY_FOR_FIGHT, $id);
         Ally::discard($id);
         $ally = Ally::get($id);
         $this->notifyAllPlayers("discardAllyTofight", clienttranslate('${player_name} discards ${card_name} to fight the Leviathan'), [
@@ -1883,7 +1887,7 @@ trait ActionTrait {
         }
 
         $attackPower = LeviathanManager::initiateLeviathanFight($playerId, $ally);
-        $this->setGlobalVariable(ATTACK_POWER, $attackPower);
+        $this->globals->set(ATTACK_POWER, $attackPower);
         $this->gamestate->nextState('next');
     }
 
@@ -1912,8 +1916,7 @@ trait ActionTrait {
             'player_name' => $this->getActivePlayerName(),
         ]);
 
-        $attackPower = $this->getGlobalVariable(ATTACK_POWER) + $amount;
-        $this->setGlobalVariable(ATTACK_POWER, $attackPower);
+        $attackPower = $this->globals->inc(ATTACK_POWER, $amount);
 
         $this->notifyAllPlayers("log", clienttranslate('${player_name} attack power is now ${attackPower}'), [
             'attackPower' => $attackPower,
@@ -1966,7 +1969,7 @@ trait ActionTrait {
     public function actFightAgain() {
         $this->checkAction('actFightAgain');
 
-        $fightedLeviathan = $this->getGlobalVariable(FIGHTED_LEVIATHAN);
+        $fightedLeviathan = $this->globals->get(FIGHTED_LEVIATHAN);
 
         // if we fight again with The Intrepid, we need to select a new Leviathan to fight
         $this->gamestate->nextState($fightedLeviathan === null ? 'fightNewLeviathan' : 'again');
@@ -1995,13 +1998,13 @@ trait ActionTrait {
 
         $playerId = intval($this->getActivePlayerId());
 
-        $this->setGlobalVariable(FIGHTED_LEVIATHAN, $id);
-        $this->setGlobalVariable(SLAYED_LEVIATHANS, 99); // to make sure the game doesn't ask to fight again
+        $this->globals->set(FIGHTED_LEVIATHAN, $id);
+        $this->globals->set(SLAYED_LEVIATHANS, 99); // to make sure the game doesn't ask to fight again
 
         $leviathan = LeviathanManager::getFightedLeviathan();
         $rewards = LeviathanManager::moveLeviathanLife($playerId, $leviathan);
         LeviathanManager::checkLeviathanDefeated($playerId, $leviathan);  
-        $this->setGlobalVariable(REMAINING_REWARDS, $rewards);
+        $this->globals->set(REMAINING_REWARDS, $rewards);
 
         $this->gamestate->nextState('next');
     }
