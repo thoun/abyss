@@ -1643,7 +1643,7 @@ class Abyss implements AbyssGame {
         } else if( (this as any).checkAction( 'chooseMonsterTokens' ) ) {
             this.takeAction('chooseMonsterTokens', {
                 player_id: playerId,
-                type: monster.type,
+                type: monster?.type ?? 0,
             });
         }
     }

@@ -4867,6 +4867,7 @@ var Abyss = /** @class */ (function () {
         }
     };
     Abyss.prototype.onClickMonsterIcon = function (playerId, monster) {
+        var _a;
         if (['plotAtCourt', 'action', 'chooseRevealReward'].includes(this.gamedatas.gamestate.name)) {
             if (monster.type != 1) {
                 this.showMessage(_("You can only reveal Leviathan monster tokens"), 'error');
@@ -4878,7 +4879,7 @@ var Abyss = /** @class */ (function () {
         else if (this.checkAction('chooseMonsterTokens')) {
             this.takeAction('chooseMonsterTokens', {
                 player_id: playerId,
-                type: monster.type,
+                type: (_a = monster === null || monster === void 0 ? void 0 : monster.type) !== null && _a !== void 0 ? _a : 0,
             });
         }
     };

@@ -135,37 +135,34 @@ trait DebugUtilTrait {
 		$this->gamestate->jumpToState(ST_PRE_SCORING);
 	}
 
-    public function debugReplacePlayersIds() {
-        if ($this->getBgaEnvironment() != 'studio') { 
-            return;
-        } 
+    public function loadBugReportSQL(int $reportId, array $studioPlayers): void
+    {
+        $prodPlayers = $this->getObjectListFromDb("SELECT `player_id` FROM `player`", true);
+        $prodCount = count($prodPlayers);
+        $studioCount = count($studioPlayers);
+        if ($prodCount != $studioCount) {
+            throw new BgaVisibleSystemException("Incorrect player count (bug report has $prodCount players, studio table has $studioCount players)");
+        }
 
-		// These are the id's from the BGAtable I need to debug.
-		/*$ids = [
-			88858339,
-89677693
-		];*/
-		$ids = array_map(fn($dbPlayer) => intval($dbPlayer['player_id']), array_values($this->getCollectionFromDb('select player_id from player order by player_no')));
-
-		// Id of the first player in BGA Studio
-		$sid = 2343492;
+        // SQL specific to your game
+        // For example, reset the current state if it's already game over
+        $this->DbQuery("UPDATE `global` SET `global_value` = 10 WHERE `global_id` = 1 AND `global_value` = 99");
 		
-		foreach ($ids as $id) {
+        foreach ($prodPlayers as $index => $prodId) {
+            $studioId = $studioPlayers[$index];
 			// basic tables
-			$this->DbQuery("UPDATE player SET player_id=$sid WHERE player_id = $id" );
-			$this->DbQuery("UPDATE global SET global_value=$sid WHERE global_value = $id" );
+			$this->DbQuery("UPDATE player SET player_id=$studioId WHERE player_id = $prodId" );
+			$this->DbQuery("UPDATE global SET global_value=$studioId WHERE global_value = $prodId" );
 
 			// 'other' game specific tables. example:
 			// tables specific to your schema that use player_ids
-			$this->DbQuery("UPDATE lord SET place=-$sid WHERE place = -$id" );
-			$this->DbQuery("UPDATE ally SET place=-$sid WHERE place = -$id" );
-			$this->DbQuery("UPDATE location SET place=-$sid WHERE place = -$id" );
-			$this->DbQuery("UPDATE monster SET place=-$sid WHERE place = -$id" );
-
-			++$sid;
+			$this->DbQuery("UPDATE lord SET place=-$studioId WHERE place = -$prodId" );
+			$this->DbQuery("UPDATE ally SET place=-$studioId WHERE place = -$prodId" );
+			$this->DbQuery("UPDATE location SET place=-$studioId WHERE place = -$prodId" );
+			$this->DbQuery("UPDATE monster SET place=-$studioId WHERE place = -$prodId" );
 		}
 
-        $this->reloadPlayersBasicInfos();
+        //$this->reloadPlayersBasicInfos();
 	}
 
     function debug($debugData) {
