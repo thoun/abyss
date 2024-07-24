@@ -65,13 +65,6 @@ $game_options = [
                     'message' => totranslate('You can only play with 5 players if Leviathan expansion is activated'),
                 ]
             ],
-            2 => [
-                [
-                    'type' => 'minplayers',
-                    'value' => 99,
-                    'message' => 'Available soon',
-                ]
-            ],
         ],
     ],
 
