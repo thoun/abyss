@@ -5090,6 +5090,7 @@ var Abyss = /** @class */ (function () {
             ['discardLoots', 1],
             ['searchSanctuaryAlly', 500],
             ['kraken', 500],
+            ['scourge', 500],
             ['placeSentinel', 500],
             ['placeKraken', 500],
             ['discardLeviathan', 500],

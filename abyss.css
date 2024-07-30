@@ -2645,9 +2645,9 @@ html a.bgabutton.affiliate-button:hover {
 
 .card.monster {
   position: relative;
-  width: 32px;
-  height: 32px;
-  line-height: 32px;
+  width: 64px;
+  height: 64px;
+  line-height: 64px;
   /*width: 48px;
   height: 48px;
   line-height: 48px;*/
