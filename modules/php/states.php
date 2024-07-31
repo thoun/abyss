@@ -796,9 +796,23 @@ trait StateTrait {
                 'resistance' => $combatCondition->resistance,
             ]);
 
+            $this->globals->set(CURRENT_ATTACK_POWER_ARGS, null);
+            $this->notifyAllPlayers("removeCurrentAttackPower", '', []);
+
             $this->incPlayerPearls($playerId, 1, "leviathanAttackFailed");
             $this->gamestate->nextState('nextFailed');
         }
+    }
+
+    function stChooseRevealReward() {
+		$playerId = (int)$this->getActivePlayerId();
+
+        $monsters = Monster::getPlayerHand($playerId);
+        $leviathanMonsterCount = count(array_filter($monsters, fn($monster) => $monster['type'] == 1));
+
+        if ($leviathanMonsterCount === 0) {
+            $this->gamestate->nextState('next');            
+        } 
     }
 
     function stChooseFightAgain() {
@@ -806,8 +820,7 @@ trait StateTrait {
 
         $args = $this->argChooseFightAgain();
 
-        $maxSlay = (Lord::playerHas(201, $playerId)) ? 2 : 1;
-        if ($args['slayedLeviathans'] >= $maxSlay || !$args['handCount']) {
+        if ($args['_no_notify']) {
             $this->applyEndFight();
         }
     }

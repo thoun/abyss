@@ -435,11 +435,18 @@ trait ArgsTrait {
 
 		$slayedLeviathans = $this->globals->get(SLAYED_LEVIATHANS);
 		$handCount = count(Ally::getPlayerHand($playerId));
+        $maxSlay = (Lord::playerHas(201, $playerId)) ? 2 : 1;
 
-		return [
+		$args = [
 			'slayedLeviathans' => $slayedLeviathans,
 			'handCount' => $handCount,
+			'maxSlay' => $maxSlay,
 		];
+		if ($args['slayedLeviathans'] >= $args['maxSlay'] || !$args['handCount']) {
+            $args['_no_notify'] = true;
+        }
+
+		return $args;
 	}
 
 	function argLord210() {

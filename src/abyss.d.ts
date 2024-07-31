@@ -120,6 +120,7 @@ interface AbyssGamedatas {
     leviathans?: AbyssLeviathan[];
     lastDieRoll?: any[];
     fightedLeviathan?: AbyssLeviathan;
+    currentAttackPower?: NotifSetCurrentAttackPowerArgs;
 }
 
 interface AbyssGame extends Game {
@@ -449,4 +450,13 @@ interface NotifDiscardAllyTofightArgs {
     playerId: number;
     ally: AbyssAlly;
     allyDiscardSize: number;
+}
+
+interface NotifSetCurrentAttackPowerArgs {
+    ally: AbyssAlly;
+    allyPower: number;
+    dice: number[];
+    dicePower: number;
+    attackPower: number;
+    fightedLeviathan: AbyssLeviathan;
 }

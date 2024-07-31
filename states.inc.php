@@ -555,6 +555,7 @@ $machinestates = array(
 		"description" => clienttranslate('${actplayer} can reveal the Leviathan monster token(s)'),
 		"descriptionmyturn" => clienttranslate('${you} can reveal the Leviathan monster token(s)'),
 		"type" => "activeplayer",
+		"action" => "stChooseRevealReward",
 		"possibleactions" => [
 			"actRevealReward",
 			"actEndRevealReward",

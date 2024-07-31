@@ -274,6 +274,7 @@ class Abyss extends Table {
             $result['leviathans'] = LeviathanManager::getVisibleLeviathans();
             $result['lastDieRoll'] = $this->globals->get(LAST_DIE_ROLL);
             $result['fightedLeviathan'] = LeviathanManager::getFightedLeviathan();
+            $result['currentAttackPower'] = $this->globals->get(CURRENT_ATTACK_POWER_ARGS);
         }
 
         return $result;

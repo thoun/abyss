@@ -3355,6 +3355,9 @@ var LeviathanBoard = /** @class */ (function () {
         if (gamedatas.fightedLeviathan) {
             this.game.leviathanManager.getCardElement(gamedatas.fightedLeviathan).classList.add('fighted-leviathan');
         }
+        if (gamedatas.currentAttackPower) {
+            this.setCurrentAttackPower(gamedatas.currentAttackPower);
+        }
     }
     LeviathanBoard.prototype.discardLeviathan = function (leviathan) {
         return __awaiter(this, void 0, void 0, function () {
@@ -3429,6 +3432,53 @@ var LeviathanBoard = /** @class */ (function () {
     };
     LeviathanBoard.prototype.setAllSelectableLeviathans = function () {
         this.stock.setSelectionMode('single');
+    };
+    LeviathanBoard.prototype.setCurrentAttackPower = function (args) {
+        return __awaiter(this, void 0, void 0, function () {
+            var div, animateDice, dice, grayedDiceIndex;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        div = document.getElementById('current-attack-power');
+                        animateDice = !div;
+                        dice = args.dice.map(function (face, id) { return ({ id: -1000 + id, face: face, type: 0 }); });
+                        if (!div) {
+                            div = document.createElement('div');
+                            div.id = 'current-attack-power';
+                            this.game.leviathanManager.getCardElement(args.fightedLeviathan).querySelector('.front').appendChild(div);
+                            div.innerHTML = "\n            <div>".concat(_('Attack:'), "</div>\n            <div><span style=\"color: transparent;\">+</span> ").concat(args.allyPower, " (<i class=\"icon icon-ally\"></i>)</div>\n            <div>+ <span id=\"current-attack-power-dice-power\">").concat(animateDice ? '?' : args.dicePower, "</span> (<div id=\"current-attack-power-dice\"></div>)</div>\n            <div id=\"current-attack-power-pearls\"></div>\n            <div id=\"current-attack-power-total\">= ").concat(animateDice ? '?' : args.attackPower, "</div>");
+                            this.diceStock = new LineDiceStock(this.diceManager, document.getElementById("current-attack-power-dice"), { gap: '2px' });
+                            this.diceStock.addDice(dice);
+                        }
+                        if (!animateDice) return [3 /*break*/, 2];
+                        this.diceStock.rollDice(dice, {
+                            effect: 'rollIn',
+                            duration: [800, 1200]
+                        });
+                        return [4 /*yield*/, sleep(1200)];
+                    case 1:
+                        _a.sent();
+                        document.getElementById('current-attack-power-dice-power').innerText = "".concat(args.dicePower);
+                        document.getElementById('current-attack-power-total').innerHTML = "= ".concat(args.attackPower);
+                        _a.label = 2;
+                    case 2:
+                        if (dice.length > 1) {
+                            grayedDiceIndex = args.dice[1] > args.dice[0] ? 0 : 1;
+                            Array.from(document.getElementById("current-attack-power-dice").querySelectorAll('.bga-dice_die'))[grayedDiceIndex].classList.add('grayed');
+                        }
+                        if (args.attackPower > (args.allyPower + args.dicePower)) {
+                            document.getElementById('current-attack-power-pearls').innerHTML = "+ ".concat(args.attackPower - (args.allyPower + args.dicePower), " (<i class=\"icon icon-pearl\"></i>)</div>");
+                            document.getElementById('current-attack-power-total').innerHTML = "= ".concat(args.attackPower);
+                        }
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    LeviathanBoard.prototype.removeCurrentAttackPower = function () {
+        var _a;
+        (_a = document.getElementById('current-attack-power')) === null || _a === void 0 ? void 0 : _a.remove();
+        this.currentAttackPowerDiceStock = null;
     };
     return LeviathanBoard;
 }());
@@ -5096,6 +5146,8 @@ var Abyss = /** @class */ (function () {
             ['discardLeviathan', 500],
             ['newLeviathan', 500],
             ['rollDice', 1500],
+            ['setCurrentAttackPower', 1500],
+            ['removeCurrentAttackPower', 1],
             ['discardExploreMonster', 500],
             ['discardAllyTofight', 500],
             ['moveLeviathanLife', 500],
@@ -5594,6 +5646,12 @@ var Abyss = /** @class */ (function () {
     };
     Abyss.prototype.notif_rollDice = function (notif) {
         this.leviathanBoard.showDice(notif.args.spot, notif.args.dice);
+    };
+    Abyss.prototype.notif_setCurrentAttackPower = function (notif) {
+        this.leviathanBoard.setCurrentAttackPower(notif.args);
+    };
+    Abyss.prototype.notif_removeCurrentAttackPower = function (notif) {
+        this.leviathanBoard.removeCurrentAttackPower();
     };
     Abyss.prototype.notif_discardExploreMonster = function (notif) {
         this.visibleAllies.removeCard(notif.args.ally);

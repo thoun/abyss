@@ -89,13 +89,18 @@ class LeviathanManager {
         clienttranslate('Ally power is ${allyPower} and dice rolled to ${die1} and ${die2} (max is kept : ${dicePower}), resulting in an attack power of ${attackPower}') :
         clienttranslate('Ally power is ${allyPower} and dice rolled to ${die1}, resulting in an attack power of ${attackPower}');
 
-    self::$game->notifyAllPlayers("log", $message, [
-        'allyPower' => $allyPower,
-        'die1' => $dice[0],
-        'die2' => $dice[1],
-        'dicePower' => $dicePower,
-        'attackPower' => $attackPower,
-    ]);
+    $args = [
+      'ally' => $ally,
+      'allyPower' => $allyPower,
+      'die1' => $dice[0],
+      'die2' => $dice[1],
+      'dice' => $bothDieEffect ? $dice : [$dice[0]],
+      'dicePower' => $dicePower,
+      'attackPower' => $attackPower,
+      'fightedLeviathan' => self::getFightedLeviathan(),
+    ];
+    self::$game->globals->set(CURRENT_ATTACK_POWER_ARGS, $args);
+    self::$game->notifyAllPlayers("setCurrentAttackPower", $message, $args);
 
     return $attackPower;
   }

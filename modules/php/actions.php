@@ -1922,9 +1922,10 @@ trait ActionTrait {
 
         $attackPower = $this->globals->inc(ATTACK_POWER, $amount);
 
-        $this->notifyAllPlayers("log", clienttranslate('${player_name} attack power is now ${attackPower}'), [
-            'attackPower' => $attackPower,
-            'playerId' => $playerId,
+        $args = $this->globals->get(CURRENT_ATTACK_POWER_ARGS);
+        $args['attackPower'] = $attackPower;
+        $this->globals->set(CURRENT_ATTACK_POWER_ARGS, $args);
+        $this->notifyAllPlayers("setCurrentAttackPower", clienttranslate('${player_name} attack power is now ${attackPower}'), $args + [
             'player_name' => $this->getActivePlayerName(),
         ]);
 
@@ -1966,6 +1967,9 @@ trait ActionTrait {
 
         $monsters = Monster::getPlayerHand($playerId);
         $leviathanMonsterCount = count(array_filter($monsters, fn($monster) => $monster['type'] == 1));
+
+        $this->globals->set(CURRENT_ATTACK_POWER_ARGS, null);
+        $this->notifyAllPlayers("removeCurrentAttackPower", '', []);
 
         $this->gamestate->nextState($leviathanMonsterCount > 0 ? 'reveal' : 'next');
     }

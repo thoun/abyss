@@ -2,6 +2,31 @@
   position: relative;
   width: 369px; // 97 + 2 * 136
   height: 440px;
+
+  .bga-dice_die .bga-dice_die-face {
+    background: url('img/leviathan-die.png');
+    background-size: 600% 100%;
+    border-radius: 5px;
+  }
+
+  .bga-dice_die .bga-dice_die-face[data-face="1"] {
+    background-position-x: 0%;
+  }
+  .bga-dice_die .bga-dice_die-face[data-face="2"] {
+    background-position-x: 20%;
+  }
+  .bga-dice_die .bga-dice_die-face[data-face="3"] {
+    background-position-x: 40%;
+  }
+  .bga-dice_die .bga-dice_die-face[data-face="4"] {
+    background-position-x: 60%;
+  }
+  .bga-dice_die .bga-dice_die-face[data-face="5"] {
+    background-position-x: 80%;
+  }
+  .bga-dice_die .bga-dice_die-face[data-face="6"] {
+    background-position-x: 100%;
+  }
   
   #leviathan-track {
     position: absolute;
@@ -26,31 +51,6 @@
           top: #{($i - 1) * 85px / 2 + 38px};
         }
       }
-    }
-
-    .bga-dice_die .bga-dice_die-face {
-      background: url('img/leviathan-die.png');
-      background-size: 600% 100%;
-      border-radius: 5px;
-    }
-
-    .bga-dice_die .bga-dice_die-face[data-face="1"] {
-      background-position-x: 0%;
-    }
-    .bga-dice_die .bga-dice_die-face[data-face="2"] {
-      background-position-x: 20%;
-    }
-    .bga-dice_die .bga-dice_die-face[data-face="3"] {
-      background-position-x: 40%;
-    }
-    .bga-dice_die .bga-dice_die-face[data-face="4"] {
-      background-position-x: 60%;
-    }
-    .bga-dice_die .bga-dice_die-face[data-face="5"] {
-      background-position-x: 80%;
-    }
-    .bga-dice_die .bga-dice_die-face[data-face="6"] {
-      background-position-x: 100%;
     }
   }
 
@@ -169,6 +169,29 @@
       border: 1px solid black;
       padding: 3px;
       text-align: center;
+    }
+  }
+}
+
+#current-attack-power {
+  background: darkred;
+  position: absolute;
+  top: -3px;
+  right: -2px;
+  font-size: 10px;
+  padding: 3px;
+  text-align: left;
+
+  #current-attack-power-dice {
+    display: inline-block;
+    vertical-align: middle;
+
+    .bga-dice_die {
+      --size: 16px !important;
+
+      &.grayed {
+        opacity: 0.3;
+      }
     }
   }
 }

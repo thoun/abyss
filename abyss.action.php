@@ -329,55 +329,6 @@
         self::ajaxResponse();
     }
 
-    /*public function actChooseLeviathanToFight()
-    {
-        self::setAjaxMode();
-        $id = self::getArg( "id", AT_posint, true );
-        $this->game->actChooseLeviathanToFight( $id );
-        self::ajaxResponse( );
-    }
-
-    public function actChooseAllyToFight()
-    {
-        self::setAjaxMode();
-        $id = self::getArg( "id", AT_posint, true );
-        $this->game->actChooseAllyToFight( $id );
-        self::ajaxResponse( );
-    }
-
-    public function actIncreaseAttackPower()
-    {
-        self::setAjaxMode();
-        $amount = self::getArg( "amount", AT_posint, true );
-        $this->game->actIncreaseAttackPower( $amount );
-        self::ajaxResponse( );
-    }
-
-    public function actChooseFightReward()
-    {
-        self::setAjaxMode();
-        $base = self::getArg( "base", AT_posint, true );
-        $expansion = self::getArg( "expansion", AT_posint, true );
-        $this->game->actChooseFightReward( $base, $expansion );
-        self::ajaxResponse( );
-    }
-
-    public function actFightAgain() {
-        self::setAjaxMode();
-
-        $this->game->actFightAgain();
-
-        self::ajaxResponse();
-    }
-
-    public function actEndFight() {
-        self::setAjaxMode();
-
-        $this->game->actEndFight();
-
-        self::ajaxResponse();
-    }*/
-
     private function bgaGetParameterValue(ReflectionParameter $param, string $method)/*: $mixed*/ {
         if ($param->getType() === null) {
             throw new \feException("$method parameter $param->name type is not defined");

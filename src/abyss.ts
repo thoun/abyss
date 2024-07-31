@@ -1894,6 +1894,8 @@ class Abyss implements AbyssGame {
             ['discardLeviathan', 500],
             ['newLeviathan', 500],
             ['rollDice', 1500],
+            ['setCurrentAttackPower', 1500],
+            ['removeCurrentAttackPower', 1],
             ['discardExploreMonster', 500],
             ['discardAllyTofight', 500],
             ['moveLeviathanLife', 500],
@@ -2475,6 +2477,14 @@ class Abyss implements AbyssGame {
 
     notif_rollDice(notif: Notif<any>) {
         this.leviathanBoard.showDice(notif.args.spot, notif.args.dice);
+    }
+
+    notif_setCurrentAttackPower(notif: Notif<NotifSetCurrentAttackPowerArgs>) {
+        this.leviathanBoard.setCurrentAttackPower(notif.args);
+    }
+
+    notif_removeCurrentAttackPower(notif: Notif<any>) {
+        this.leviathanBoard.removeCurrentAttackPower();
     }
 
     notif_discardExploreMonster(notif: Notif<NotifDiscardExploreMonsterArgs>) {
