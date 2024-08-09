@@ -175,11 +175,11 @@ class Abyss extends Table {
             ]);*/
             $this->globals->set(LAST_DIE_ROLL, [$spot, $dice]);
             $newLeviathan = LeviathanManager::draw($spot);
-            $this->notifyAllPlayers("newLeviathan", clienttranslate('Dice rolled to ${die1} and ${die2}, a new Leviathan takes place on the spot ${spot}'), [
+            $this->notifyAllPlayers("newLeviathan", clienttranslate('Dice rolled to ${die1} and ${die2}, a new Leviathan takes place on the spot ${spot_numbers}'), [
                 'leviathan' => $newLeviathan,
                 'die1' => $dice[0],
                 'die2' => $dice[1],
-                'spot' => $sum,
+                'spot_numbers' => LEVIATHAN_SLOTS_LABELS[$spot],
             ]);
         }
 

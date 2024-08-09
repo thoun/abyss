@@ -14,7 +14,17 @@ define('LEVIATHAN_SLOTS', [
     12 => 9,
 ]);
 
-const LEVIATHAN_SLOTS_LABELS = [null, '2/3', '4', '5', '6', '7', '8', '9', '10', '11/12'];
+const LEVIATHAN_SLOTS_LABELS = [
+    1 => '2/3', 
+    2 => '4', 
+    3 => '5', 
+    4 => '6', 
+    5 => '7', 
+    6 => '8', 
+    7 => '9', 
+    8 => '10', 
+    9 => '11/12'
+];
 
 /*
  * State constants

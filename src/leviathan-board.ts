@@ -45,10 +45,16 @@ class LeviathanBoard {
     }
     
     public async discardLeviathan(leviathan: AbyssLeviathan) {
+        await scrollIntoView(document.getElementById('leviathan-track'));
+
         await this.stock.removeCard(leviathan);
+
+        await sleep(500);
     }
     
     public async newLeviathan(leviathan: AbyssLeviathan) {
+        await scrollIntoView(document.getElementById('leviathan-track'));
+
         await this.stock.addCard(leviathan, { fromElement: document.getElementById('leviathan-track') });
     }
     
@@ -68,10 +74,6 @@ class LeviathanBoard {
     public async moveLeviathanLife(leviathan: AbyssLeviathan) {
         this.game.leviathanManager.setLife(leviathan);
     }
-
-    public async leviathanDefeated(leviathan: AbyssLeviathan) {
-        await this.stock.removeCard(leviathan);
-    }
     
     public setSelectableLeviathans(selectableLeviathans: AbyssLeviathan[] | null) {
         this.stock.setSelectionMode(selectableLeviathans ? 'single' : 'none', selectableLeviathans);
@@ -84,7 +86,7 @@ class LeviathanBoard {
     public async setCurrentAttackPower(args: NotifSetCurrentAttackPowerArgs) {
         let div = document.getElementById('current-attack-power');
         const animateDice = !div;
-        const dice = args.dice.map((face, id) => ({ id: -1000 + id, face, type: 0 }));
+        const dice = args.dice.map((face, id) => ({ id: -Math.floor(Math.random() * 1000000), face, type: 0 }));
 
         if (!div) {
             div = document.createElement('div');
@@ -97,12 +99,12 @@ class LeviathanBoard {
             <div id="current-attack-power-pearls"></div>
             <div id="current-attack-power-total">= ${animateDice ? '?' : args.attackPower}</div>`;
 
-            this.diceStock = new LineDiceStock(this.diceManager, document.getElementById(`current-attack-power-dice`), { gap: '2px' });
-            this.diceStock.addDice(dice);
+            this.currentAttackPowerDiceStock = new LineDiceStock(this.diceManager, document.getElementById(`current-attack-power-dice`), { gap: '2px' });
+            this.currentAttackPowerDiceStock.addDice(dice);
         }
 
         if (animateDice) {
-            this.diceStock.rollDice(dice, {
+            this.currentAttackPowerDiceStock.rollDice(dice, {
                 effect: 'rollIn',
                 duration: [800, 1200]
             });

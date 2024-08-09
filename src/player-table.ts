@@ -1,3 +1,22 @@
+async function scrollIntoView(element: HTMLElement) {
+    const rect = element.getBoundingClientRect();
+    const isVisible = (
+        rect.top >= 0 &&
+        rect.left >= 0 &&
+        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+        rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+    );
+    
+    if (!isVisible) {
+        element.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'center',
+        });
+        await sleep(500);
+    }
+}
+
 class PlayerTable {
     static sortAllies = sortFunction('faction', 'value');
 
@@ -141,21 +160,7 @@ class PlayerTable {
             // if loot location, scroll to it
             if (animated && !init && [103, 104, 105, 106].includes(location.location_id)) {
                 const element = this.game.locationManager.getCardElement(location);
-                const rect = element.getBoundingClientRect();
-                const isVisible = (
-                    rect.top >= 0 &&
-                    rect.left >= 0 &&
-                    rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-                    rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-                );
-                
-                if (!isVisible) {
-                    element.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center',
-                        inline: 'center',
-                    });
-                }
+                scrollIntoView(element);
             }
         });
         this.game.locationManager.addLords(location.location_id, lords);

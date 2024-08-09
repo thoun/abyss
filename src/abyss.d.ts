@@ -203,6 +203,7 @@ interface EnteringIncreaseAttackPowerArgs {
     attackPower: number;
     payPearlEffect: boolean;
     playerPearls: number;
+    interestingChoice: number[];
 }
 
 interface EnteringChooseFightRewardArgs {

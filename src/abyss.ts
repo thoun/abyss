@@ -887,7 +887,7 @@ class Abyss implements AbyssGame {
                     const increaseAttackPowerArgs = args as EnteringIncreaseAttackPowerArgs; 
                     if (increaseAttackPowerArgs.payPearlEffect) {
                         for (let i = 1; i <= increaseAttackPowerArgs.playerPearls; i++) {
-                            (this as any).addActionButton(`increaseAttackPower${i}-button`, _("Increase to ${newPower}").replace('${newPower}', (increaseAttackPowerArgs.attackPower + i) + ` (${i} <i class="icon icon-pearl"></i>)`), () => (this as any).bgaPerformAction('actIncreaseAttackPower', { amount: i }));
+                            (this as any).addActionButton(`increaseAttackPower${i}-button`, _("Increase to ${newPower}").replace('${newPower}', (increaseAttackPowerArgs.attackPower + i) + ` (${i} <i class="icon icon-pearl"></i>)`), () => (this as any).bgaPerformAction('actIncreaseAttackPower', { amount: i }), null, null, i > 0 && !increaseAttackPowerArgs.interestingChoice.includes(i) ? 'gray' : undefined);
                         }
                         (this as any).addActionButton(`increaseAttackPower0-button`, _("Don't increase attack power"), () => (this as any).bgaPerformAction('actIncreaseAttackPower', { amount: 0 }));
                     }
@@ -1891,7 +1891,8 @@ class Abyss implements AbyssGame {
             ['scourge', 500],
             ['placeSentinel', 500],
             ['placeKraken', 500],
-            ['discardLeviathan', 500],
+            ['willDiscardLeviathan', 3000],
+            ['discardLeviathan', 3000],
             ['newLeviathan', 500],
             ['rollDice', 1500],
             ['setCurrentAttackPower', 1500],
@@ -1900,7 +1901,7 @@ class Abyss implements AbyssGame {
             ['discardAllyTofight', 500],
             ['moveLeviathanLife', 500],
             ['setFightedLeviathan', 1],
-            ['leviathanDefeated', 500],
+            ['leviathanDefeated', 1500],
             ['discardLords', 500],
             ['endGame_scoring', (5000 + (this.gamedatas.krakenExpansion ? 2000 : 0) + (this.gamedatas.leviathanExpansion ? 2000 : 0)) * num_players + 3000],
         ];
@@ -2366,7 +2367,7 @@ class Abyss implements AbyssGame {
         var player_id = +notif.args.player_id;
         var source = notif.args.source;
         var source_player_id = null;
-        if (source.startsWith("player_")) {
+        if (source?.startsWith("player_")) {
             source_player_id = +source.slice("player_".length);
         }
         // TODO : Animate based on 'source'
@@ -2467,8 +2468,20 @@ class Abyss implements AbyssGame {
         this.setDeckSize(deck, notif.args.deckSize);
     }
 
-    notif_discardLeviathan(notif: Notif<NotifLeviathanArgs>) {
-        this.leviathanBoard.discardLeviathan(notif.args.leviathan);
+    // when a Leviathan inflicts damage to the player (with action needed)
+    async notif_willDiscardLeviathan(notif: Notif<NotifLeviathanArgs>) {
+        this.leviathanManager.getCardElement(notif.args.leviathan).classList.add('fighted-leviathan');
+        
+        await sleep(1500);
+    }
+
+    // when a Leviathan inflicts damage to the player
+    async notif_discardLeviathan(notif: Notif<NotifLeviathanArgs>) {
+        this.leviathanManager.getCardElement(notif.args.leviathan).classList.add('fighted-leviathan');
+        
+        await sleep(2500);
+
+        await this.leviathanBoard.discardLeviathan(notif.args.leviathan);
     }
 
     notif_newLeviathan(notif: Notif<NotifLeviathanArgs>) {
@@ -2513,8 +2526,8 @@ class Abyss implements AbyssGame {
         }
     }
 
-    notif_leviathanDefeated(notif: Notif<NotifLeviathanDefeatedArgs>) {
-        this.leviathanBoard.leviathanDefeated(notif.args.leviathan);
+    async notif_leviathanDefeated(notif: Notif<NotifLeviathanDefeatedArgs>) {
+        await this.leviathanBoard.discardLeviathan(notif.args.leviathan);
         this.defeatedLeviathanCounters[notif.args.playerId].toValue(notif.args.defeatedLeviathans);
     }
 
@@ -2527,6 +2540,12 @@ class Abyss implements AbyssGame {
                 ['die1', 'die2'].forEach(property => {
                     if (args[property] && typeof args[property] === 'number') {
                         args[property] = `<div class="log-die" data-value="${args[property]}"></div>`;
+                    }
+                });
+                
+                ['spot_numbers'].forEach(property => {
+                    if (args[property] && typeof args[property] === 'string' && args[property][0] !== '<') {
+                        args[property] = `<strong>${_(args[property])}</strong>`;
                     }
                 });
             }

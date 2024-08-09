@@ -416,10 +416,27 @@ trait ArgsTrait {
 		$playerPearls = $this->getPlayerPearls($playerId);
 		$attackPower = $this->globals->get(ATTACK_POWER);
 
+		$interestingChoice = [];
+		$maxPearls = 0;
+		if ($payPearlEffect) {
+			$max = 0;
+			$leviathan = LeviathanManager::getFightedLeviathan();
+			for ($i = $leviathan->life; $i < count($leviathan->combatConditions); $i++) {
+				$max += $leviathan->combatConditions[$i]->resistance;
+				if (($max - $attackPower) > 0) {
+					$interestingChoice[] = $max - $attackPower;
+				}
+			}
+
+			$maxPearls = min($max - $attackPower, $playerPearls);
+		}
+
 		return [
 			'payPearlEffect' => $payPearlEffect,
-			'playerPearls' => $playerPearls,
+			'playerPearls' => $maxPearls,
 			'attackPower' => $attackPower,
+			'interestingChoice' => $interestingChoice,
+			'_no_notify' => $maxPearls === 0,
 		];
 	}
 
@@ -437,14 +454,17 @@ trait ArgsTrait {
 		$handCount = count(Ally::getPlayerHand($playerId));
         $maxSlay = (Lord::playerHas(201, $playerId)) ? 2 : 1;
 
+		$canFightAgain = false;
+		if ($slayedLeviathans < $maxSlay) {
+			$canFightAgain = count($this->argChooseAllyToFight()['selectableAllies']) > 0;
+		}
+
 		$args = [
 			'slayedLeviathans' => $slayedLeviathans,
 			'handCount' => $handCount,
 			'maxSlay' => $maxSlay,
+            '_no_notify' => !$canFightAgain,
 		];
-		if ($args['slayedLeviathans'] >= $args['maxSlay'] || !$args['handCount']) {
-            $args['_no_notify'] = true;
-        }
 
 		return $args;
 	}

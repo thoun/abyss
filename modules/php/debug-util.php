@@ -47,6 +47,10 @@ trait DebugUtilTrait {
 		//$this->gamestate->changeActivePlayer(2343492);
     }
 
+	function debug_restartTurn() {
+		$this->gamestate->jumpToState(ST_PLAYER_ACTION);
+	}
+
 	function debug_pickAllies(int $playerId, int $number = 12) {
 		for ($i=0; $i<$number; $i++) {
 			$ally = Ally::draw();
@@ -122,7 +126,9 @@ trait DebugUtilTrait {
 
 	function debug_fillLeviathans() {
 		foreach (array_unique(LEVIATHAN_SLOTS) as $slot) {
-			LeviathanManager::draw($slot);
+			if (LeviathanManager::getLeviathanAtSlot($slot) === null) {
+				LeviathanManager::draw($slot);
+			}
 		}
 	}
 

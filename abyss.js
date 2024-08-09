@@ -3176,6 +3176,32 @@ var LeviathanManager = /** @class */ (function (_super) {
     };
     return LeviathanManager;
 }(CardManager));
+function scrollIntoView(element) {
+    return __awaiter(this, void 0, void 0, function () {
+        var rect, isVisible;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    rect = element.getBoundingClientRect();
+                    isVisible = (rect.top >= 0 &&
+                        rect.left >= 0 &&
+                        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+                        rect.right <= (window.innerWidth || document.documentElement.clientWidth));
+                    if (!!isVisible) return [3 /*break*/, 2];
+                    element.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center',
+                        inline: 'center',
+                    });
+                    return [4 /*yield*/, sleep(500)];
+                case 1:
+                    _a.sent();
+                    _a.label = 2;
+                case 2: return [2 /*return*/];
+            }
+        });
+    });
+}
 var PlayerTable = /** @class */ (function () {
     function PlayerTable(game, player) {
         var _this = this;
@@ -3280,18 +3306,7 @@ var PlayerTable = /** @class */ (function () {
             // if loot location, scroll to it
             if (animated && !init && [103, 104, 105, 106].includes(location.location_id)) {
                 var element = _this.game.locationManager.getCardElement(location);
-                var rect = element.getBoundingClientRect();
-                var isVisible = (rect.top >= 0 &&
-                    rect.left >= 0 &&
-                    rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-                    rect.right <= (window.innerWidth || document.documentElement.clientWidth));
-                if (!isVisible) {
-                    element.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center',
-                        inline: 'center',
-                    });
-                }
+                scrollIntoView(element);
             }
         });
         this.game.locationManager.addLords(location.location_id, lords);
@@ -3363,8 +3378,14 @@ var LeviathanBoard = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.stock.removeCard(leviathan)];
+                    case 0: return [4 /*yield*/, scrollIntoView(document.getElementById('leviathan-track'))];
                     case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this.stock.removeCard(leviathan)];
+                    case 2:
+                        _a.sent();
+                        return [4 /*yield*/, sleep(500)];
+                    case 3:
                         _a.sent();
                         return [2 /*return*/];
                 }
@@ -3375,8 +3396,11 @@ var LeviathanBoard = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.stock.addCard(leviathan, { fromElement: document.getElementById('leviathan-track') })];
+                    case 0: return [4 /*yield*/, scrollIntoView(document.getElementById('leviathan-track'))];
                     case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this.stock.addCard(leviathan, { fromElement: document.getElementById('leviathan-track') })];
+                    case 2:
                         _a.sent();
                         return [2 /*return*/];
                 }
@@ -3415,18 +3439,6 @@ var LeviathanBoard = /** @class */ (function () {
             });
         });
     };
-    LeviathanBoard.prototype.leviathanDefeated = function (leviathan) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.stock.removeCard(leviathan)];
-                    case 1:
-                        _a.sent();
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
     LeviathanBoard.prototype.setSelectableLeviathans = function (selectableLeviathans) {
         this.stock.setSelectionMode(selectableLeviathans ? 'single' : 'none', selectableLeviathans);
     };
@@ -3441,17 +3453,17 @@ var LeviathanBoard = /** @class */ (function () {
                     case 0:
                         div = document.getElementById('current-attack-power');
                         animateDice = !div;
-                        dice = args.dice.map(function (face, id) { return ({ id: -1000 + id, face: face, type: 0 }); });
+                        dice = args.dice.map(function (face, id) { return ({ id: -Math.floor(Math.random() * 1000000), face: face, type: 0 }); });
                         if (!div) {
                             div = document.createElement('div');
                             div.id = 'current-attack-power';
                             this.game.leviathanManager.getCardElement(args.fightedLeviathan).querySelector('.front').appendChild(div);
                             div.innerHTML = "\n            <div>".concat(_('Attack:'), "</div>\n            <div><span style=\"color: transparent;\">+</span> ").concat(args.allyPower, " (<i class=\"icon icon-ally\"></i>)</div>\n            <div>+ <span id=\"current-attack-power-dice-power\">").concat(animateDice ? '?' : args.dicePower, "</span> (<div id=\"current-attack-power-dice\"></div>)</div>\n            <div id=\"current-attack-power-pearls\"></div>\n            <div id=\"current-attack-power-total\">= ").concat(animateDice ? '?' : args.attackPower, "</div>");
-                            this.diceStock = new LineDiceStock(this.diceManager, document.getElementById("current-attack-power-dice"), { gap: '2px' });
-                            this.diceStock.addDice(dice);
+                            this.currentAttackPowerDiceStock = new LineDiceStock(this.diceManager, document.getElementById("current-attack-power-dice"), { gap: '2px' });
+                            this.currentAttackPowerDiceStock.addDice(dice);
                         }
                         if (!animateDice) return [3 /*break*/, 2];
-                        this.diceStock.rollDice(dice, {
+                        this.currentAttackPowerDiceStock.rollDice(dice, {
                             effect: 'rollIn',
                             duration: [800, 1200]
                         });
@@ -4301,7 +4313,7 @@ var Abyss = /** @class */ (function () {
                     var increaseAttackPowerArgs = args;
                     if (increaseAttackPowerArgs.payPearlEffect) {
                         var _loop_9 = function (i_6) {
-                            this_3.addActionButton("increaseAttackPower".concat(i_6, "-button"), _("Increase to ${newPower}").replace('${newPower}', (increaseAttackPowerArgs.attackPower + i_6) + " (".concat(i_6, " <i class=\"icon icon-pearl\"></i>)")), function () { return _this.bgaPerformAction('actIncreaseAttackPower', { amount: i_6 }); });
+                            this_3.addActionButton("increaseAttackPower".concat(i_6, "-button"), _("Increase to ${newPower}").replace('${newPower}', (increaseAttackPowerArgs.attackPower + i_6) + " (".concat(i_6, " <i class=\"icon icon-pearl\"></i>)")), function () { return _this.bgaPerformAction('actIncreaseAttackPower', { amount: i_6 }); }, null, null, i_6 > 0 && !increaseAttackPowerArgs.interestingChoice.includes(i_6) ? 'gray' : undefined);
                         };
                         var this_3 = this;
                         for (var i_6 = 1; i_6 <= increaseAttackPowerArgs.playerPearls; i_6++) {
@@ -5143,7 +5155,8 @@ var Abyss = /** @class */ (function () {
             ['scourge', 500],
             ['placeSentinel', 500],
             ['placeKraken', 500],
-            ['discardLeviathan', 500],
+            ['willDiscardLeviathan', 3000],
+            ['discardLeviathan', 3000],
             ['newLeviathan', 500],
             ['rollDice', 1500],
             ['setCurrentAttackPower', 1500],
@@ -5152,7 +5165,7 @@ var Abyss = /** @class */ (function () {
             ['discardAllyTofight', 500],
             ['moveLeviathanLife', 500],
             ['setFightedLeviathan', 1],
-            ['leviathanDefeated', 500],
+            ['leviathanDefeated', 1500],
             ['discardLords', 500],
             ['endGame_scoring', (5000 + (this.gamedatas.krakenExpansion ? 2000 : 0) + (this.gamedatas.leviathanExpansion ? 2000 : 0)) * num_players + 3000],
         ];
@@ -5556,7 +5569,7 @@ var Abyss = /** @class */ (function () {
         var player_id = +notif.args.player_id;
         var source = notif.args.source;
         var source_player_id = null;
-        if (source.startsWith("player_")) {
+        if (source === null || source === void 0 ? void 0 : source.startsWith("player_")) {
             source_player_id = +source.slice("player_".length);
         }
         // TODO : Animate based on 'source'
@@ -5638,8 +5651,38 @@ var Abyss = /** @class */ (function () {
         var deck = dojo.query('#council-track .slot-' + notif.args.faction);
         this.setDeckSize(deck, notif.args.deckSize);
     };
+    // when a Leviathan inflicts damage to the player (with action needed)
+    Abyss.prototype.notif_willDiscardLeviathan = function (notif) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.leviathanManager.getCardElement(notif.args.leviathan).classList.add('fighted-leviathan');
+                        return [4 /*yield*/, sleep(1500)];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    // when a Leviathan inflicts damage to the player
     Abyss.prototype.notif_discardLeviathan = function (notif) {
-        this.leviathanBoard.discardLeviathan(notif.args.leviathan);
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.leviathanManager.getCardElement(notif.args.leviathan).classList.add('fighted-leviathan');
+                        return [4 /*yield*/, sleep(2500)];
+                    case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this.leviathanBoard.discardLeviathan(notif.args.leviathan)];
+                    case 2:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
     };
     Abyss.prototype.notif_newLeviathan = function (notif) {
         this.leviathanBoard.newLeviathan(notif.args.leviathan);
@@ -5677,8 +5720,17 @@ var Abyss = /** @class */ (function () {
         }
     };
     Abyss.prototype.notif_leviathanDefeated = function (notif) {
-        this.leviathanBoard.leviathanDefeated(notif.args.leviathan);
-        this.defeatedLeviathanCounters[notif.args.playerId].toValue(notif.args.defeatedLeviathans);
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.leviathanBoard.discardLeviathan(notif.args.leviathan)];
+                    case 1:
+                        _a.sent();
+                        this.defeatedLeviathanCounters[notif.args.playerId].toValue(notif.args.defeatedLeviathans);
+                        return [2 /*return*/];
+                }
+            });
+        });
     };
     /* This enable to inject translatable styled things to logs or action bar */
     /* @Override */
@@ -5689,6 +5741,11 @@ var Abyss = /** @class */ (function () {
                 ['die1', 'die2'].forEach(function (property) {
                     if (args[property] && typeof args[property] === 'number') {
                         args[property] = "<div class=\"log-die\" data-value=\"".concat(args[property], "\"></div>");
+                    }
+                });
+                ['spot_numbers'].forEach(function (property) {
+                    if (args[property] && typeof args[property] === 'string' && args[property][0] !== '<') {
+                        args[property] = "<strong>".concat(_(args[property]), "</strong>");
                     }
                 });
             }

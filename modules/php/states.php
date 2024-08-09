@@ -773,7 +773,7 @@ trait StateTrait {
     function stIncreaseAttackPower() {
         $args = $this->argIncreaseAttackPower();
 
-        if (!$args['payPearlEffect']) {
+        if ($args['_no_notify']) {
             $this->resolveLeviathanAttack();
         }
     }
@@ -795,9 +795,6 @@ trait StateTrait {
                 'player_name' => $this->getActivePlayerName(),
                 'resistance' => $combatCondition->resistance,
             ]);
-
-            $this->globals->set(CURRENT_ATTACK_POWER_ARGS, null);
-            $this->notifyAllPlayers("removeCurrentAttackPower", '', []);
 
             $this->incPlayerPearls($playerId, 1, "leviathanAttackFailed");
             $this->gamestate->nextState('nextFailed');
@@ -827,6 +824,9 @@ trait StateTrait {
 
     function applyEndFight() {
         $this->globals->set(FIGHTED_LEVIATHAN, null);
+
+        $this->globals->set(CURRENT_ATTACK_POWER_ARGS, null);
+        $this->notifyAllPlayers("removeCurrentAttackPower", '', []);
 
         $this->notifyAllPlayers('setFightedLeviathan', '', [
             'leviathan' => null,

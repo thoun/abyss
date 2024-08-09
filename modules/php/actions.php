@@ -115,13 +115,14 @@ trait ActionTrait {
         $sum = $dice[0] + $dice[1];
         $spot = LEVIATHAN_SLOTS[$sum];
 
-        $this->notifyAllPlayers("rollDice", clienttranslate('${player_name} rolls the dice and obtains ${die1} and ${die2}, the new Leviathan will be placed on the spot ${spot}'), [
+        $this->notifyAllPlayers("rollDice", clienttranslate('${player_name} rolls the dice and obtains ${die1} and ${die2}, the new Leviathan will be placed on the spot ${spot_numbers}'), [
             'playerId' => $playerId,
             'player_name' => $this->getPlayerNameById($playerId),
-            'dice' => $dice,
-            'die1' => $dice[0],
-            'die2' => $dice[1],
             'spot' => $spot,
+            'dice' => $dice,
+            'die1' => $dice[0], // for logs
+            'die2' => $dice[1], // for logs
+            'spot_numbers' => LEVIATHAN_SLOTS_LABELS[$spot], // for logs
         ]);
         $this->globals->set(LAST_DIE_ROLL, [$spot, $dice]);
 
@@ -133,6 +134,11 @@ trait ActionTrait {
             if ($needChooseDamage) {
                 $this->globals->set(PLAYER_LEVIATHAN_DAMAGE, [$playerId, $spot, $nextState]);
                 $this->gamestate->jumpToState(ST_MULTIPLAYER_APPLY_LEVIATHAN_DAMAGE);
+
+                $this->notifyAllPlayers("willDiscardLeviathan", '', [
+                    'leviathan' => $existingLeviathan,
+                ]);
+
                 return true;
             }
 
@@ -1866,11 +1872,16 @@ trait ActionTrait {
     function actChooseAllyToFight(int $id) {
         $this->checkAction('actChooseAllyToFight');
 
+        $args = $this->argChooseAllyToFight();
+        $ally = $this->array_find($args['selectableAllies'], fn($a) => $a['ally_id'] === $id);
+        if ($ally === null) {
+            throw new BgaVisibleSystemException("Invalid ally");
+        }
+
         $playerId = intval($this->getActivePlayerId());
 
         $this->globals->set(ALLY_FOR_FIGHT, $id);
         Ally::discard($id);
-        $ally = Ally::get($id);
         $this->notifyAllPlayers("discardAllyTofight", clienttranslate('${player_name} discards ${card_name} to fight the Leviathan'), [
             'playerId' => $playerId,
             'player_name' => $this->getActivePlayerName(),
@@ -1898,36 +1909,39 @@ trait ActionTrait {
     function actIncreaseAttackPower(int $amount) {
         $this->checkAction('actIncreaseAttackPower');
 
-        $args = $this->argIncreaseAttackPower();
+        if ($amount > 0) {
+            $args = $this->argIncreaseAttackPower();
 
-        if (!$args['payPearlEffect']) {
-            throw new BgaVisibleSystemException("Selected ally doesn't allow to pay pearls to increase attack");
+            if (!$args['payPearlEffect']) {
+                throw new BgaVisibleSystemException("Selected ally doesn't allow to pay pearls to increase attack");
+            }
+
+
+            if ($amount > $args['playerPearls']) {
+                throw new BgaVisibleSystemException("Not enough pearls");
+            }
+
+            $playerId = (int)$this->getActivePlayerId();
+
+            $this->DbQuery( "UPDATE player SET player_pearls = player_pearls - $amount WHERE player_id = $playerId");
+
+            $this->notifyAllPlayers("payMartialLaw", clienttranslate('${player_name} pays ${diff} pearl(s) to increase attack power by ${diff}'), [
+                'playerPearls' => $this->getPlayerPearls($playerId),
+                'spentPearls' => $amount,
+                'playerId' => $playerId,
+                'diff' => $amount, // for log
+                'player_name' => $this->getActivePlayerName(),
+            ]);
+
+            $attackPower = $this->globals->inc(ATTACK_POWER, $amount);
+
+            $args = $this->globals->get(CURRENT_ATTACK_POWER_ARGS);
+            $args['attackPower'] = $attackPower;
+            $this->globals->set(CURRENT_ATTACK_POWER_ARGS, $args);
+            $this->notifyAllPlayers("setCurrentAttackPower", clienttranslate('${player_name} attack power is now ${attackPower}'), $args + [
+                'player_name' => $this->getActivePlayerName(),
+            ]);
         }
-
-        if ($amount > $args['playerPearls']) {
-            throw new BgaVisibleSystemException("Not enough pearls");
-        }
-
-		$playerId = (int)$this->getActivePlayerId();
-
-        $this->DbQuery( "UPDATE player SET player_pearls = player_pearls - $amount WHERE player_id = $playerId");
-
-        $this->notifyAllPlayers("payMartialLaw", clienttranslate('${player_name} pays ${diff} pearl(s) to increase attack power by ${diff}'), [
-            'playerPearls' => $this->getPlayerPearls($playerId),
-            'spentPearls' => $amount,
-            'playerId' => $playerId,
-            'diff' => $amount, // for log
-            'player_name' => $this->getActivePlayerName(),
-        ]);
-
-        $attackPower = $this->globals->inc(ATTACK_POWER, $amount);
-
-        $args = $this->globals->get(CURRENT_ATTACK_POWER_ARGS);
-        $args['attackPower'] = $attackPower;
-        $this->globals->set(CURRENT_ATTACK_POWER_ARGS, $args);
-        $this->notifyAllPlayers("setCurrentAttackPower", clienttranslate('${player_name} attack power is now ${attackPower}'), $args + [
-            'player_name' => $this->getActivePlayerName(),
-        ]);
 
         $this->resolveLeviathanAttack();
     }
@@ -1968,14 +1982,14 @@ trait ActionTrait {
         $monsters = Monster::getPlayerHand($playerId);
         $leviathanMonsterCount = count(array_filter($monsters, fn($monster) => $monster['type'] == 1));
 
-        $this->globals->set(CURRENT_ATTACK_POWER_ARGS, null);
-        $this->notifyAllPlayers("removeCurrentAttackPower", '', []);
-
         $this->gamestate->nextState($leviathanMonsterCount > 0 ? 'reveal' : 'next');
     }
 
     public function actFightAgain() {
         $this->checkAction('actFightAgain');
+
+        $this->globals->set(CURRENT_ATTACK_POWER_ARGS, null);
+        $this->notifyAllPlayers("removeCurrentAttackPower", '', []);
 
         $fightedLeviathan = $this->globals->get(FIGHTED_LEVIATHAN);
 
