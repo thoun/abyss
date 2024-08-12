@@ -764,7 +764,7 @@ trait UtilTrait {
     }
 
     function getDoubleDieRoll() {
-        return [2,2];
+        //if (self::$game->getBgaEnvironment() === 'studio') { return [2,2]; }
         return [
             bga_rand(1, 6),
             bga_rand(1, 6),
