@@ -137,7 +137,14 @@ class LeviathanManager {
   public static function checkLeviathanDefeated(int $playerId, Leviathan &$leviathan): void {
     if ($leviathan->life >= count($leviathan->combatConditions)) { // leviathan is beaten
       self::discard($leviathan->id, $playerId);
-      self::$game->globals->inc(SLAYED_LEVIATHANS, 1);
+
+      // it should be always set, except when fighting a Leviathan with The Sorcerer
+      if (self::$game->globals->has(SLAYED_LEVIATHANS)) {
+        self::$game->globals->inc(SLAYED_LEVIATHANS, 1);
+      } else {
+        self::$game->globals->set(SLAYED_LEVIATHANS, 1);
+      }
+
       self::$game->globals->set(FIGHTED_LEVIATHAN, null);
 
       self::$game->notifyAllPlayers("leviathanDefeated", clienttranslate('${player_name} has defeated the Leviathan'), [
