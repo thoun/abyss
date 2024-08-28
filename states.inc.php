@@ -65,8 +65,24 @@ $machinestates = array(
  			"name" => "preTurn",
  			"type" => "game",
   		"action" => "stPreTurn",
- 			"transitions" => array( "" => ST_PLAYER_PLOT_AT_COURT )
+ 			"transitions" => array( "" => ST_PLAYER_REVEAL_MONSTER_TOKEN )
  	),
+
+	ST_PLAYER_REVEAL_MONSTER_TOKEN => [
+		"name" => "revealMonsterToken",
+		"description" => clienttranslate('${actplayer} can reveal the Leviathan monster token(s)'),
+		"descriptionmyturn" => clienttranslate('${you} can reveal the Leviathan monster token(s)'),
+		"type" => "activeplayer",
+		"args" => "argChooseRevealReward",
+		"action" => "stChooseRevealReward",
+		"possibleactions" => [
+			"actRevealReward",
+			"actEndRevealReward",
+		],
+		"transitions" => [
+			"next" => ST_PLAYER_PLOT_AT_COURT,  
+		],
+	],
 
  	ST_PLAYER_PLOT_AT_COURT => array(
  			"name" => "plotAtCourt",
@@ -75,8 +91,7 @@ $machinestates = array(
  			"type" => "activeplayer",
 			"args" => "argAffordableLords",
 			"action" => "stPlotAtCourt",
- 			"possibleactions" => array( "plot", "pass", "explore", "requestSupport", "recruit", "lordEffect", "goToPlaceSentinel",
-			"actRevealReward", ),
+ 			"possibleactions" => array( "plot", "pass", "explore", "requestSupport", "recruit", "lordEffect", "goToPlaceSentinel",),
  			"transitions" => array( "plot" => ST_PLAYER_PLOT_AT_COURT, "pass" => ST_PLAYER_ACTION, "explore" => ST_PRE_PURCHASE, "requestSupport" => ST_PRE_CONTROL, "requestSupport2" => ST_PLAYER_SECOND_STACK, "recruit" => ST_PLAYER_RECRUIT_PAY, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PLAYER_ACTION, "loopback" => ST_PLAYER_PLOT_AT_COURT
 			, "placeSentinel" => ST_PLAYER_PLACE_SENTINEL, )
  	),
@@ -88,8 +103,7 @@ $machinestates = array(
  			"type" => "activeplayer",
 			"args" => "argAffordableLords",
 			"action" => "stAction",
- 			"possibleactions" => array( "explore", "requestSupport", "recruit", "lordEffect", "goToPlaceSentinel",
-			 "actRevealReward", ),
+ 			"possibleactions" => array( "explore", "requestSupport", "recruit", "lordEffect", "goToPlaceSentinel",),
  			"transitions" => array( "explore" => ST_PRE_PURCHASE, "requestSupport" => ST_PRE_CONTROL, "requestSupport2" => ST_PLAYER_SECOND_STACK, "recruit" => ST_PLAYER_RECRUIT_PAY, "lord_17" => ST_PLAYER_LORD17, "lord_21" => ST_PLAYER_LORD21, "lord_12" => ST_PLAYER_LORD12, "zombiePass" => ST_PRE_CONTROL, "loopback" => ST_PLAYER_ACTION 
 			 , "placeSentinel" => ST_PLAYER_PLACE_SENTINEL, )
  	),
@@ -578,8 +592,8 @@ $machinestates = array(
 
 	ST_PLAYER_CHOOSE_FIGHT_AGAIN => [
 		"name" => "chooseFightAgain",
-		"description" => clienttranslate('${actplayer} must choose to fight again of end turn'),
-		"descriptionmyturn" => clienttranslate('${you} must choose to fight again of end turn'),
+		"description" => clienttranslate('${actplayer} must choose to fight again or end turn'),
+		"descriptionmyturn" => clienttranslate('${you} must choose to fight again or end turn'),
 		"type" => "activeplayer",
 		"args" => "argChooseFightAgain",
 		"action" => "stChooseFightAgain",

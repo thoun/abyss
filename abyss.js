@@ -3800,7 +3800,7 @@ var Abyss = /** @class */ (function () {
     //
     Abyss.prototype.onEnteringState = function (stateName, args) {
         var _this = this;
-        var _a, _b;
+        var _a;
         log('onEnteringState', stateName, args.args);
         // Remove all current move indicators
         dojo.query('.card-current-move').removeClass('card-current-move');
@@ -3842,12 +3842,10 @@ var Abyss = /** @class */ (function () {
             }
         }
         switch (stateName) {
-            case 'plotAtCourt':
-            case 'action':
+            case 'revealMonsterToken':
+            case 'chooseRevealReward':
                 if (this.isCurrentPlayerActive()) {
-                    if ((_b = args.args) === null || _b === void 0 ? void 0 : _b.canRevealLeviathanMonsterTokens) {
-                        document.getElementById("monster-hand_p".concat(this.getPlayerId())).classList.add("clickable");
-                    }
+                    document.getElementById("monster-hand_p".concat(this.getPlayerId())).classList.add("clickable");
                 }
                 break;
             case 'recruitPay':
@@ -3894,11 +3892,6 @@ var Abyss = /** @class */ (function () {
                 break;
             case 'chooseAllyToFight':
                 this.onEnteringChooseAllyToFight(args.args);
-                break;
-            case 'chooseRevealReward':
-                if (this.isCurrentPlayerActive()) {
-                    document.getElementById("monster-hand_p".concat(this.getPlayerId())).classList.add("clickable");
-                }
                 break;
         }
     };
@@ -4033,6 +4026,10 @@ var Abyss = /** @class */ (function () {
         $('game-extra').innerHTML = '';
         dojo.style($('game-extra'), "display", "none");
         switch (stateName) {
+            case 'revealMonsterToken':
+            case 'chooseRevealReward':
+                document.querySelectorAll(".monster-hand.clickable").forEach(function (elem) { return elem.classList.remove("clickable"); });
+                break;
             case 'recruitPay':
                 dojo.query("#lords-track .lord").removeClass("selected");
                 dojo.query("#player-hand .ally").removeClass("selected");
@@ -4073,11 +4070,6 @@ var Abyss = /** @class */ (function () {
                 break;
             case 'chooseAllyToFight':
                 this.onLeavingChooseAllyToFight();
-                break;
-            case 'plotAtCourt':
-            case 'action':
-            case 'chooseRevealReward':
-                document.querySelectorAll(".monster-hand.clickable").forEach(function (elem) { return elem.classList.remove("clickable"); });
                 break;
         }
     };
@@ -4124,6 +4116,10 @@ var Abyss = /** @class */ (function () {
         }
         if (this.isCurrentPlayerActive()) {
             switch (stateName) {
+                case 'revealMonsterToken':
+                case 'chooseRevealReward':
+                    this.addActionButton("actEndRevealReward-button", _('End reveal'), function () { return _this.bgaPerformAction('actEndRevealReward'); });
+                    break;
                 case 'purchase':
                     var purchageArgs_1 = args;
                     var cost_1 = purchageArgs_1.cost;
@@ -4377,9 +4373,6 @@ var Abyss = /** @class */ (function () {
                             this.setGamestateDescription('Lord');
                             break;
                     }
-                    break;
-                case 'chooseRevealReward':
-                    this.addActionButton("actEndRevealReward-button", _('End reveal'), function () { return _this.bgaPerformAction('actEndRevealReward'); });
                     break;
             }
         }
@@ -4933,7 +4926,7 @@ var Abyss = /** @class */ (function () {
     };
     Abyss.prototype.onClickMonsterIcon = function (playerId, monster) {
         var _a;
-        if (['plotAtCourt', 'action', 'chooseRevealReward'].includes(this.gamedatas.gamestate.name)) {
+        if (['revealMonsterToken', 'chooseRevealReward'].includes(this.gamedatas.gamestate.name)) {
             if (monster.type != 1) {
                 this.showMessage(_("You can only reveal Leviathan monster tokens"), 'error');
             }

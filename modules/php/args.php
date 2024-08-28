@@ -12,6 +12,17 @@ trait ArgsTrait {
         game state.
     */
    
+	function argChooseRevealReward() {
+		$playerId = (int)$this->getActivePlayerId();
+
+        $monsters = Monster::getPlayerHand($playerId);
+        $leviathanMonsterCount = count(array_filter($monsters, fn($monster) => $monster['type'] == 1));
+
+		return [
+			'no_notify' => $leviathanMonsterCount === 0,
+		];
+	}
+
     function argAffordableLords() {
 		$playerId = self::getActivePlayerId();
 		$hand = Ally::getPlayerHand($playerId);

@@ -1825,12 +1825,12 @@ i.icon-laurel {
 }
 
 .cp_board i.icon.clickable {
-  border: 1px solid red;
+  outline: 1px solid red;
   cursor: pointer;
 }
 
 .monster-hand.clickable {
-  border: 1px solid red;
+  outline: 1px solid red;
   cursor: pointer;
 }
 .monster-hand.clickable .card, .monster-hand.clickable .card-side {

@@ -418,12 +418,10 @@ class Abyss implements AbyssGame {
         }
         
         switch( stateName ) {
-            case 'plotAtCourt':
-            case 'action':
+            case 'revealMonsterToken':
+            case 'chooseRevealReward':
                 if ((this as any).isCurrentPlayerActive()) {
-                    if (args.args?.canRevealLeviathanMonsterTokens) {
-                        document.getElementById(`monster-hand_p${this.getPlayerId()}`).classList.add("clickable");
-                    }
+                    document.getElementById(`monster-hand_p${this.getPlayerId()}`).classList.add("clickable");
                 }
                 break;
             case 'recruitPay':
@@ -467,11 +465,6 @@ class Abyss implements AbyssGame {
                 break;
             case 'chooseAllyToFight':
                 this.onEnteringChooseAllyToFight(args.args);
-                break;
-            case 'chooseRevealReward':
-                if ((this as any).isCurrentPlayerActive()) {
-                    document.getElementById(`monster-hand_p${this.getPlayerId()}`).classList.add("clickable");
-                }
                 break;
         }
     }
@@ -621,6 +614,10 @@ class Abyss implements AbyssGame {
         dojo.style($('game-extra'), "display", "none");
 
         switch( stateName ) {
+            case 'revealMonsterToken':
+            case 'chooseRevealReward':
+                document.querySelectorAll(`.monster-hand.clickable`).forEach(elem => elem.classList.remove("clickable"));
+                break;
             case 'recruitPay':
                 dojo.query("#lords-track .lord").removeClass("selected");
                 dojo.query("#player-hand .ally").removeClass("selected");
@@ -655,11 +652,6 @@ class Abyss implements AbyssGame {
                 break;
             case 'chooseAllyToFight':
                 this.onLeavingChooseAllyToFight();
-                break;
-            case 'plotAtCourt':
-            case 'action':
-            case 'chooseRevealReward':
-                document.querySelectorAll(`.monster-hand.clickable`).forEach(elem => elem.classList.remove("clickable"));
                 break;
         }
     }
@@ -715,6 +707,10 @@ class Abyss implements AbyssGame {
 
         if( (this as any).isCurrentPlayerActive() ) {
             switch( stateName ) {
+                case 'revealMonsterToken':
+                case 'chooseRevealReward':
+                    (this as any).addActionButton(`actEndRevealReward-button`, _('End reveal'), () => (this as any).bgaPerformAction('actEndRevealReward'));
+                    break;
                 case 'purchase':
                     const purchageArgs = args as EnteringPurchaseArgs;
                     const cost = purchageArgs.cost;
@@ -943,9 +939,6 @@ class Abyss implements AbyssGame {
                             this.setGamestateDescription('Lord');
                             break;
                     }
-                    break;
-                case 'chooseRevealReward':
-                    (this as any).addActionButton(`actEndRevealReward-button`, _('End reveal'), () => (this as any).bgaPerformAction('actEndRevealReward'));
                     break;
             }
         }
@@ -1637,7 +1630,7 @@ class Abyss implements AbyssGame {
     }
 
     onClickMonsterIcon(playerId: number, monster?: AbyssMonster) {
-        if (['plotAtCourt', 'action', 'chooseRevealReward'].includes(this.gamedatas.gamestate.name)) {
+        if (['revealMonsterToken', 'chooseRevealReward'].includes(this.gamedatas.gamestate.name)) {
             if (monster.type != 1) {
                 (this as any).showMessage(_("You can only reveal Leviathan monster tokens"), 'error');
             } else {
