@@ -331,6 +331,14 @@ trait ArgsTrait {
 		];
 	}
 
+	function argLord206() {
+		$canUse = count($this->argChooseLeviathanToFight()['selectableLeviathans']) > 0;
+
+		return [
+			'canUse' => $canUse,
+		];
+	}
+
 	function argLord112() {
 		return [
 			'allies' => Ally::getDiscard(),

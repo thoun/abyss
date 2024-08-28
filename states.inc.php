@@ -844,7 +844,7 @@ $machinestates = array(
 		"transitions" => [
 		    "next" => ST_PRE_CONTROL,
 		    "zombiePass" => ST_PRE_CONTROL, 
-		    "loopback" => ST_PLAYER_LORD206,
+		    "loopback" => ST_PLAYER_LORD202,
 	    ],
     ],
 
@@ -853,6 +853,7 @@ $machinestates = array(
 		"description" => clienttranslate('${actplayer} can fight a Leviathan'),
 	    "descriptionmyturn" => clienttranslate('${you} can fight a Leviathan'),
 	    "type" => "activeplayer",
+		"args" => "argLord206",
 	    "possibleactions" => [
 		    "actFightImmediately",
 		    "actIgnoreImmediatelyFightLeviathan",

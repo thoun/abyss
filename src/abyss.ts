@@ -922,6 +922,9 @@ class Abyss implements AbyssGame {
                 case 'lord206':
                     (this as any).addActionButton(`actFightImmediately-button`, _('Fight immediatly'), () => (this as any).bgaPerformAction('actFightImmediately'));
                     (this as any).addActionButton(`actIgnoreImmediatelyFightLeviathan-button`, _("Don't fight"), () => (this as any).bgaPerformAction('actIgnoreImmediatelyFightLeviathan'));
+                    if (!args.canUse) {
+                        document.getElementById(`actFightImmediately-button`).classList.add('disabled');
+                    }
                     break;
                 case 'applyLeviathanDamage':
                     switch (args.penalty) {

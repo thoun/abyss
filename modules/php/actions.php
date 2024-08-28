@@ -1858,6 +1858,11 @@ trait ActionTrait {
     function actChooseLeviathanToFight(int $id) {
         $this->checkAction('actChooseLeviathanToFight');
 
+        $args = $this->argChooseLeviathanToFight();
+        if (!array_some($args['selectableLeviathans'], fn($leviathan) => $leviathan->id === $id)) {
+            throw new BgaVisibleSystemException("You can't fight this leviathan");
+        }
+
         $playerId = intval($this->getActivePlayerId());
 
         $this->globals->set(FIGHTED_LEVIATHAN, $id);

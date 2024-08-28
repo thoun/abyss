@@ -4356,6 +4356,9 @@ var Abyss = /** @class */ (function () {
                 case 'lord206':
                     this.addActionButton("actFightImmediately-button", _('Fight immediatly'), function () { return _this.bgaPerformAction('actFightImmediately'); });
                     this.addActionButton("actIgnoreImmediatelyFightLeviathan-button", _("Don't fight"), function () { return _this.bgaPerformAction('actIgnoreImmediatelyFightLeviathan'); });
+                    if (!args.canUse) {
+                        document.getElementById("actFightImmediately-button").classList.add('disabled');
+                    }
                     break;
                 case 'applyLeviathanDamage':
                     switch (args.penalty) {
