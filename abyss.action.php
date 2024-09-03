@@ -328,47 +328,4 @@
 
         self::ajaxResponse();
     }
-
-    private function bgaGetParameterValue(ReflectionParameter $param, string $method)/*: $mixed*/ {
-        if ($param->getType() === null) {
-            throw new \feException("$method parameter $param->name type is not defined");
-        }
-        switch ($param->getType()->__toString()) {
-            case 'int':
-                return (int)$this->getArg($param->name, AT_int, !$param->isOptional(), $param->isOptional() ? $param->getDefaultValue() : null);
-            case 'bool':
-                return (bool)$this->getArg($param->name, AT_bool, !$param->isOptional(), $param->isOptional() ? $param->getDefaultValue() : null);
-            case 'array':
-                $arrayAsString = $this->getArg($param->name, AT_numberlist, !$param->isOptional(), $param->isOptional() ? $param->getDefaultValue() : null);
-                if ($arrayAsString === null) {
-                    return null;
-                } else if ($arrayAsString === '') {
-                    return [];
-                } else {
-                    return array_map(fn($valueAsString) => intval($valueAsString), explode(',', $arrayAsString));
-                }
-            default:
-                throw new \feException("$method parameter type ".$param->getType()->__toString()." is not supported by magic action function, you need to declare the $method method in .action.php");
-        }
-    }
-
-    public function __call($method, $args) {  
-        // only methods starting with `act` can be automatically binded to .game.php
-        if (strpos($method, 'act') !== 0) {
-            throw new \feException("$method method is not defined in .action.php (use prefix 'act' to define only in .game.php)");
-        }
-        if (method_exists($this->game, $method)) {
-            $this->setAjaxMode();
-
-            $params = (new ReflectionMethod($this->game, $method))->getParameters();
-            $args = array_map(fn($param) => $this->bgaGetParameterValue($param, $method), $params);
-
-            $this->game->$method(...$args);
-
-            $this->ajaxResponse();
-        } else {
-            throw new \feException("$method method is not defined in .game.php");
-        }
-    }
-
 }

@@ -1856,8 +1856,6 @@ trait ActionTrait {
     }
 
     function actChooseLeviathanToFight(int $id) {
-        $this->checkAction('actChooseLeviathanToFight');
-
         $args = $this->argChooseLeviathanToFight();
         if (!array_some($args['selectableLeviathans'], fn($leviathan) => $leviathan->id === $id)) {
             throw new BgaVisibleSystemException("You can't fight this leviathan");
@@ -1875,8 +1873,6 @@ trait ActionTrait {
     }
 
     function actChooseAllyToFight(int $id) {
-        $this->checkAction('actChooseAllyToFight');
-
         $args = $this->argChooseAllyToFight();
         $ally = $this->array_find($args['selectableAllies'], fn($a) => $a['ally_id'] === $id);
         if ($ally === null) {
@@ -1912,8 +1908,6 @@ trait ActionTrait {
     }
 
     function actIncreaseAttackPower(int $amount) {
-        $this->checkAction('actIncreaseAttackPower');
-
         if ($amount > 0) {
             $args = $this->argIncreaseAttackPower();
 
@@ -1952,8 +1946,6 @@ trait ActionTrait {
     }
 
     public function actChooseFightReward(int $base, int $expansion) {
-        $this->checkAction('actChooseFightReward');
-
         $rewards = $this->argChooseFightReward()['rewards'];
         if ($rewards != ($base + $expansion)) {
             throw new BgaVisibleSystemException("Invalid selection");
@@ -1991,8 +1983,6 @@ trait ActionTrait {
     }
 
     public function actFightAgain() {
-        $this->checkAction('actFightAgain');
-
         $this->globals->set(CURRENT_ATTACK_POWER_ARGS, null);
         $this->notifyAllPlayers("removeCurrentAttackPower", '', []);
 
@@ -2003,26 +1993,18 @@ trait ActionTrait {
     }
 
     public function actEndFight() {
-        $this->checkAction('actEndFight');
-
         $this->applyEndFight();
     }
 
     public function actFightImmediately() {
-        $this->checkAction('actFightImmediately');
-
         $this->gamestate->nextState('fight');
     }
 
     public function actIgnoreImmediatelyFightLeviathan() {
-        $this->checkAction('actIgnoreImmediatelyFightLeviathan');
-
         $this->gamestate->nextState('ignore');
     }
 
     public function actRemoveHealthPointToLeviathan(int $id) {
-        $this->checkAction('actRemoveHealthPointToLeviathan');
-
         $playerId = intval($this->getActivePlayerId());
 
         $this->globals->set(FIGHTED_LEVIATHAN, $id);
@@ -2037,8 +2019,6 @@ trait ActionTrait {
     }
 
     public function actChooseFreeSpaceForLeviathan(int $slot) {
-        $this->checkAction('actChooseFreeSpaceForLeviathan');
-
         $playerId = intval($this->getActivePlayerId());
         Abyss::DbQuery("UPDATE leviathan SET place = $slot WHERE place = 99");
 
@@ -2055,8 +2035,6 @@ trait ActionTrait {
     }
 
     public function actIgnoreMonster() {
-        $this->checkAction('actIgnoreMonster');
-
         $slots = Ally::getExploreSlots();
         if (count($slots) === 0) {
             throw new BgaUserException( $this->_("No monster to ignore") );
@@ -2083,7 +2061,6 @@ trait ActionTrait {
     }
 
     function actDiscardLordLeviathanDamage(int $id) {
-        $this->checkAction('actDiscardLordLeviathanDamage');
         $playerId = (int)$this->getCurrentPlayerId();
 
         $lord = Lord::get($id);
@@ -2098,7 +2075,6 @@ trait ActionTrait {
     }
 
     function actDiscardAlliesLeviathanDamage(array $ids) {
-        $this->checkAction('actDiscardAlliesLeviathanDamage');
         $playerId = (int)$this->getCurrentPlayerId();
 
         $allies = array_map(fn($id) => Ally::get($id), $ids);
@@ -2122,8 +2098,6 @@ trait ActionTrait {
     }
 
     function actChooseOpponentToRevealLeviathan(int $opponentId) {
-        $this->checkAction('actChooseOpponentToRevealLeviathan');
-
         $redirected = $this->drawNewLeviathanAndRollDice($opponentId, ST_PRE_CONTROL);
 
         if ($redirected) {
@@ -2134,7 +2108,6 @@ trait ActionTrait {
     }
 
     function actRevealReward(int $id) {
-        $this->checkAction('actRevealReward');
         $playerId = (int)$this->getActivePlayerId();
 
         $monster = Monster::get($id);
@@ -2222,8 +2195,6 @@ trait ActionTrait {
     }
 
     function actChooseCouncilStackMonsterToken(int $faction) {
-        $this->checkAction('actChooseCouncilStackMonsterToken');
-
         $player_id = intval($this->getActivePlayerId());
 
         if ($this->isKrakenExpansion()) {
@@ -2269,8 +2240,6 @@ trait ActionTrait {
     }
 
     function actEndRevealReward() {
-        $this->checkAction('actEndRevealReward');
-
         $this->gamestate->nextState('next');
     }
 
