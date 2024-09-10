@@ -475,7 +475,7 @@ trait ArgsTrait {
 
 		$canFightAgain = false;
 		if ($slayedLeviathans < $maxSlay) {
-			$canFightAgain = count($this->argChooseAllyToFight()['selectableAllies']) > 0;
+			$canFightAgain = count($this->argChooseLeviathanToFight()['selectableLeviathans']) > 0;
 		}
 
 		$args = [
