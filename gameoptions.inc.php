@@ -53,7 +53,6 @@ $game_options = [
                 'name' => totranslate('Enabled'),
                 'tmdisplay' => totranslate('Leviathan expansion'),
                 'nobeginner' => true,
-                'alpha' => true,
             ],
         ],
         'default' => 1,
