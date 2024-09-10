@@ -1,5 +1,7 @@
 <?php
 
+use \Bga\GameFramework\Actions\Types\IntArrayParam;
+
 trait ActionTrait {
 
     //////////////////////////////////////////////////////////////////////////////
@@ -2074,7 +2076,7 @@ trait ActionTrait {
         $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
     }
 
-    function actDiscardAlliesLeviathanDamage(array $ids) {
+    function actDiscardAlliesLeviathanDamage(#[IntArrayParam] array $ids) {
         $playerId = (int)$this->getCurrentPlayerId();
 
         $allies = array_map(fn($id) => Ally::get($id), $ids);
