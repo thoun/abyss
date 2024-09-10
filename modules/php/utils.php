@@ -349,7 +349,7 @@ trait UtilTrait {
                     }
                     if (isset($imitate_location) && $log) {
                         // This is the location we copy (log it!)
-                        self::notifyAllPlayers( "message", '${player_name} scores ${num} points from ${location_name} (copying ${copied_location_name})', array(
+                        self::notifyAllPlayers( "message", clienttranslate('${player_name} scores ${num} points from ${location_name} (copying ${copied_location_name})'), array(
                                 'num' => $max,
                                 'player_id' => $player_id,
                                 'player_name' => $this->getPlayerNameById($player_id),
@@ -364,7 +364,7 @@ trait UtilTrait {
                 $lscore = Location::score($l, $lords, $affiliated, $playerNebulis);
                 $location_points += $lscore;
                 if ($final_scoring && $log) {
-                    self::notifyAllPlayers( "message", '${player_name} scores ${num} points from ${location_name}', array(
+                    self::notifyAllPlayers( "message", clienttranslate('${player_name} scores ${num} points from ${location_name}'), array(
                             'num' => $lscore,
                             'player_id' => $player_id,
                             'player_name' => $this->getPlayerNameById($player_id),

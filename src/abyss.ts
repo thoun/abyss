@@ -2544,6 +2544,10 @@ class Abyss implements AbyssGame {
                         args[property] = `<strong>${_(args[property])}</strong>`;
                     }
                 });
+
+                if (args.council_name && typeof args.council_name !== 'string' && args.faction !== undefined) {
+                    args.council_name = colorFaction(this.format_string_recursive(args.council_name.log, args.council_name.args), args.faction);
+                }
             }
         } catch (e) {
             console.error(log,args,"Exception thrown", e.stack);

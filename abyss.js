@@ -3280,6 +3280,30 @@ var LeviathanManager = /** @class */ (function (_super) {
     };
     return LeviathanManager;
 }(CardManager));
+function colorFaction(text, faction) {
+    var color = 'black';
+    switch (faction) {
+        case 0:
+            color = 'purple';
+            break;
+        case 1:
+            color = 'red';
+            break;
+        case 2:
+            color = '#999900';
+            break;
+        case 3:
+            color = 'green';
+            break;
+        case 4:
+            color = 'blue';
+            break;
+        case 10:
+            color = 'gray';
+            break;
+    }
+    return "<span style=\"color: ".concat(color, "\">").concat(_(text), "</span>");
+}
 function scrollIntoView(element) {
     return __awaiter(this, void 0, void 0, function () {
         var rect, isVisible;
@@ -5848,6 +5872,9 @@ var Abyss = /** @class */ (function () {
                         args[property] = "<strong>".concat(_(args[property]), "</strong>");
                     }
                 });
+                if (args.council_name && typeof args.council_name !== 'string' && args.faction !== undefined) {
+                    args.council_name = colorFaction(this.format_string_recursive(args.council_name.log, args.council_name.args), args.faction);
+                }
             }
         }
         catch (e) {

@@ -81,6 +81,7 @@ $machinestates = array(
 		],
 		"transitions" => [
 			"next" => ST_PLAYER_PLOT_AT_COURT,  
+			"zombiePass" => ST_PLAYER_PLOT_AT_COURT,
 		],
 	],
 

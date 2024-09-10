@@ -904,10 +904,11 @@ trait ActionTrait {
                 'player_id' => $player_id,
                 'faction' => $faction,
                 'player_name' => $this->getActivePlayerName(),
-                "i18n" => array('lord_name'),
+                "i18n" => array('lord_name', 'council_name'),
+                "preserve" => ['faction'],
                 "lord_name" => $this->lords[17]["name"],
                 'council_name' => array(
-                    'log' => '<span style="color:'.$this->factions[$faction]["colour"].'">' . clienttranslate('${faction} council') . '</span>',
+                    'log' => clienttranslate('${faction} council'),
                     'args' => array(
                         'faction' => $this->factions[$faction]["ally_name"],
                         'i18n' => ['faction']
@@ -933,8 +934,10 @@ trait ActionTrait {
                 'num' => count($allies),
                 'player_id' => $player_id,
                 'player_name' => $this->getActivePlayerName(),
+                "i18n" => array('council_name'),
+                "preserve" => ['faction'],
                 'council_name' => array(
-                    'log' => '<span style="color:'.$this->factions[$faction]["colour"].'">' . clienttranslate('${faction} council') . '</span>',
+                    'log' => clienttranslate('${faction} council'),
                     'args' => array(
                         'faction' => $this->factions[$faction]["ally_name"],
                         'i18n' => ['faction']
@@ -2223,8 +2226,10 @@ trait ActionTrait {
                 'num' => count($allies),
                 'player_id' => $player_id,
                 'player_name' => $this->getActivePlayerName(),
+                "i18n" => array('council_name'),
+                "preserve" => ['faction'],
                 'council_name' => array(
-                    'log' => '<span style="color:'.$this->factions[$faction]["colour"].'">' . clienttranslate('${faction} council') . '</span>',
+                    'log' => clienttranslate('${faction} council'),
                     'args' => array(
                         'faction' => $this->factions[$faction]["ally_name"],
                         'i18n' => ['faction']
