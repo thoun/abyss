@@ -2001,6 +2001,10 @@ trait ActionTrait {
         $this->applyEndFight();
     }
 
+    public function actEndFightDebug() {
+        $this->gamestate->jumpToState(ST_PLAYER_CHOOSE_FIGHT_AGAIN);
+    }
+
     public function actFightImmediately() {
         $this->gamestate->nextState('fight');
     }

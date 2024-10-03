@@ -475,13 +475,20 @@ trait ArgsTrait {
 
 		$canFightAgain = false;
 		if ($slayedLeviathans < $maxSlay) {
-			$canFightAgain = count($this->argChooseLeviathanToFight()['selectableLeviathans']) > 0;
+			$selectableLeviathans = $this->argChooseLeviathanToFight()['selectableLeviathans'];
+			$fightedLeviathan = $this->globals->get(FIGHTED_LEVIATHAN);
+			if ($fightedLeviathan) {
+				$canFightAgain = array_some($selectableLeviathans, fn($selectableLeviathan) => $selectableLeviathan->id === $fightedLeviathan);
+			} else {
+				$canFightAgain = count($selectableLeviathans) > 0;
+			}
 		}
 
 		$args = [
 			'slayedLeviathans' => $slayedLeviathans,
 			'handCount' => $handCount,
 			'maxSlay' => $maxSlay,
+			'canFightAgain' => $canFightAgain,
             '_no_notify' => !$canFightAgain,
 		];
 

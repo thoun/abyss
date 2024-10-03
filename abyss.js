@@ -4467,7 +4467,15 @@ var Abyss = /** @class */ (function () {
                     break;
                 case 'chooseFightAgain':
                     this.addActionButton("actFightAgain-button", _('Fight again'), function () { return _this.bgaPerformAction('actFightAgain'); });
+                    if (!args.canFightAgain) {
+                        document.getElementById("actFightAgain-button").classList.add('disabled');
+                    }
                     this.addActionButton("actEndFight-button", _('End turn'), function () { return _this.bgaPerformAction('actEndFight'); });
+                    break;
+                case 'chooseAllyToFight':
+                    if (!args.selectableAllies.length) {
+                        this.addActionButton("actEndFightDebug-button", _('End turn'), function () { return _this.bgaPerformAction('actEndFightDebug'); });
+                    }
                     break;
                 case 'lord202':
                     var lord202Args = args;

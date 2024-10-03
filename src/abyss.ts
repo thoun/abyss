@@ -905,7 +905,16 @@ class Abyss implements AbyssGame {
                     break;
                 case 'chooseFightAgain':
                     (this as any).addActionButton(`actFightAgain-button`, _('Fight again'), () => (this as any).bgaPerformAction('actFightAgain'));
+                    if (!args.canFightAgain) {
+                        document.getElementById(`actFightAgain-button`).classList.add('disabled');
+                    }
                     (this as any).addActionButton(`actEndFight-button`, _('End turn'), () => (this as any).bgaPerformAction('actEndFight'));
+                    break;
+
+                case 'chooseAllyToFight':
+                    if (!args.selectableAllies.length) {
+                        (this as any).addActionButton(`actEndFightDebug-button`, _('End turn'), () => (this as any).bgaPerformAction('actEndFightDebug'));
+                    }
                     break;
                 case 'lord202':
                     const lord202Args = args as EnteringLord104Args;   

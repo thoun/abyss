@@ -141,36 +141,6 @@ trait DebugUtilTrait {
 		$this->gamestate->jumpToState(ST_PRE_SCORING);
 	}
 
-    public function loadBugReportSQL(int $reportId, array $studioPlayers): void
-    {
-        $prodPlayers = $this->getObjectListFromDb("SELECT `player_id` FROM `player`", true);
-        $prodCount = count($prodPlayers);
-        $studioCount = count($studioPlayers);
-        if ($prodCount != $studioCount) {
-            throw new BgaVisibleSystemException("Incorrect player count (bug report has $prodCount players, studio table has $studioCount players)");
-        }
-
-        // SQL specific to your game
-        // For example, reset the current state if it's already game over
-        $this->DbQuery("UPDATE `global` SET `global_value` = 10 WHERE `global_id` = 1 AND `global_value` = 99");
-		
-        foreach ($prodPlayers as $index => $prodId) {
-            $studioId = $studioPlayers[$index];
-			// basic tables
-			$this->DbQuery("UPDATE player SET player_id=$studioId WHERE player_id = $prodId" );
-			$this->DbQuery("UPDATE global SET global_value=$studioId WHERE global_value = $prodId" );
-
-			// 'other' game specific tables. example:
-			// tables specific to your schema that use player_ids
-			$this->DbQuery("UPDATE lord SET place=-$studioId WHERE place = -$prodId" );
-			$this->DbQuery("UPDATE ally SET place=-$studioId WHERE place = -$prodId" );
-			$this->DbQuery("UPDATE location SET place=-$studioId WHERE place = -$prodId" );
-			$this->DbQuery("UPDATE monster SET place=-$studioId WHERE place = -$prodId" );
-		}
-
-        //$this->reloadPlayersBasicInfos();
-	}
-
     function debug($debugData) {
         if ($this->getBgaEnvironment() != 'studio') { 
             return;

@@ -528,6 +528,7 @@ $machinestates = array(
 		"args" => "argChooseAllyToFight",
 		"possibleactions" => [
 			"actChooseAllyToFight",
+			"actEndFightDebug",
 		],
 		"transitions" => [
 			"next" => ST_PLAYER_INCREASE_ATTACK_POWER,
