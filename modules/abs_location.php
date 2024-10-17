@@ -50,14 +50,18 @@ class Location
     self::draw();
   }
 
-  public static function typedLocation(array $dbResult) {
+  public static function typedLocation(?array $dbResult): ?array {
+    if ($dbResult === null) {
+      return null;
+    }
+
     $dbResult['location_id'] = intval($dbResult['location_id']);
     $dbResult['place'] = intval($dbResult['place']);
 
     return $dbResult;
   }
 
-  public static function typedLocations(array $dbResults) {
+  public static function typedLocations(array $dbResults): array {
     return array_values(array_map(fn($dbResult) => self::typedLocation($dbResult), $dbResults));
   }
 
