@@ -42,11 +42,22 @@ class AllyManager extends CardManager<AbyssAlly> {
 
   renderTooltip(ally: AbyssAlly) {
     if (ally.faction !== null && ally.faction != 100) {
-      return `<div class="abs-tooltip-ally">
-        ${this.allyNameText(ally.faction)}
-        <br>
-        <span style="font-size: smaller"><b>${_("Value")}: </b> ${_(ally.value)}</span>
-      </div>`;
+      let html = `<div class="abs-tooltip-ally">
+      ${this.allyNameText(ally.faction)}
+      <br>
+      <span style="font-size: smaller"><b>${_("Value")}: </b> ${_(ally.value)}</span>`;
+      if (ally.effect) {
+        let effect = '';
+        switch (ally.effect) {
+          case 1: effect = _('After rolling the die, you can spend as many Pearls as you want to add to your Attack power: + 1 per Pearl.'); break;
+          case 2: effect = _('To calculate your Attack power, roll BOTH dice and take into account only the higher of the two values.'); break;
+        }
+        html += `<br>
+      <span style="font-size: smaller"><b>${_("Effect")}: </b> ${_(effect)}</span>`;
+      }
+        console.warn(ally);
+      html += `</div>`;
+      return html;
     } else {
       return `<div class="abs-tooltip-ally">
         ${_("Monster")}

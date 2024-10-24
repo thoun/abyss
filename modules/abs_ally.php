@@ -38,7 +38,7 @@ class Ally {
       $sql = "INSERT INTO ally (`faction`, `value`, `effect`) VALUES (1, 1, NULL)";
 
       for ($i=0; $i<=4; $i++) {
-        $sql .= ", ($i, 1, 1), ($i, 2, 1), ($i, 3, 2), ($i, 4, 2)"; // 1 is peal => die, 2 is double die
+        $sql .= ", ($i, 1, 1), ($i, 2, 1), ($i, 3, 2), ($i, 4, 2)"; // 1 is pearl => die, 2 is double die
       }
 
       Abyss::DbQuery($sql);

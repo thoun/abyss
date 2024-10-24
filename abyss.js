@@ -2850,7 +2850,22 @@ var AllyManager = /** @class */ (function (_super) {
     };
     AllyManager.prototype.renderTooltip = function (ally) {
         if (ally.faction !== null && ally.faction != 100) {
-            return "<div class=\"abs-tooltip-ally\">\n        ".concat(this.allyNameText(ally.faction), "\n        <br>\n        <span style=\"font-size: smaller\"><b>").concat(_("Value"), ": </b> ").concat(_(ally.value), "</span>\n      </div>");
+            var html = "<div class=\"abs-tooltip-ally\">\n      ".concat(this.allyNameText(ally.faction), "\n      <br>\n      <span style=\"font-size: smaller\"><b>").concat(_("Value"), ": </b> ").concat(_(ally.value), "</span>");
+            if (ally.effect) {
+                var effect = '';
+                switch (ally.effect) {
+                    case 1:
+                        effect = _('After rolling the die, you can spend as many Pearls as you want to add to your Attack power: + 1 per Pearl.');
+                        break;
+                    case 2:
+                        effect = _('To calculate your Attack power, roll BOTH dice and take into account only the higher of the two values.');
+                        break;
+                }
+                html += "<br>\n      <span style=\"font-size: smaller\"><b>".concat(_("Effect"), ": </b> ").concat(_(effect), "</span>");
+            }
+            console.warn(ally);
+            html += "</div>";
+            return html;
         }
         else {
             return "<div class=\"abs-tooltip-ally\">\n        ".concat(_("Monster"), "\n      </div>");
