@@ -40,3 +40,4 @@ The Healer cannot take a Monster with its effect
 The Assassin have no effect on Sentinel lords
 You cannot look at ally discard
 Leviathan monster tokens can only be drawn when fighting Leviathans
+The Liberator cannot trigger the power of Ambassadors

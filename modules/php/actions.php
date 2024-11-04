@@ -1693,12 +1693,13 @@ trait ActionTrait {
             'freeLord' => true,
         ]);
 
+        /* Note: The Liberator cannot trigger the power of Ambassadors
         if (in_array($id, [33, 34, 35])) {
             $this->setGameStateValue('selected_lord', $id);
             $this->gamestate->nextState('selectNewLocation');
-        } else {
+        } else {*/
             $this->gamestate->nextState('freeLord');
-        }
+        /*}*/
     }
 
     function selectAllyRace(int $faction) {
