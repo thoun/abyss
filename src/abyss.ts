@@ -864,6 +864,11 @@ class Abyss implements AbyssGame {
                             });
                         });
                     }
+                    break;                
+                case 'lord112':
+                    if (args.canPass) {
+                        (this as any).statusBar.addActionButton(_('Pass') + ` (${_('No ally in the discard')})`, () => (this as any).bgaPerformAction('actPassTakeAllyFromDiscard'));
+                    }
                     break;
                 case 'lord114':
                     for (let i = 0; i < 5; i++) {

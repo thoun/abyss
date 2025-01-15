@@ -4430,6 +4430,11 @@ var Abyss = /** @class */ (function () {
                         });
                     }
                     break;
+                case 'lord112':
+                    if (args.canPass) {
+                        this.statusBar.addActionButton(_('Pass') + " (".concat(_('No ally in the discard'), ")"), function () { return _this.bgaPerformAction('actPassTakeAllyFromDiscard'); });
+                    }
+                    break;
                 case 'lord114':
                     var _loop_8 = function (i_5) {
                         this_2.addActionButton("selectAllyRace".concat(i_5), this_2.allyManager.allyNameText(i_5), function () { return _this.selectAllyRace(i_5); });

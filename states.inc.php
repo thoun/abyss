@@ -793,6 +793,7 @@ $machinestates = array(
 		"args" => "argLord112",
   		"possibleactions" => [
 			"takeAllyFromDiscard",
+			"actPassTakeAllyFromDiscard"
 		],
  		"transitions" => [
 			"next" => ST_PRE_CONTROL, 

@@ -351,8 +351,12 @@ trait ArgsTrait {
 	}
 
 	function argLord112() {
+		$discard = Ally::getDiscard();
+		$pickableAllies = array_values(array_filter($discard, fn($ally) => $ally['faction'] !== null));
+		$canPass = count($pickableAllies) === 0;
 		return [
-			'allies' => Ally::getDiscard(),
+			'allies' => $discard,
+			'canPass' => $canPass,
 		];
 	}
 

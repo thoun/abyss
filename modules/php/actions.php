@@ -1757,6 +1757,10 @@ trait ActionTrait {
 
     }
 
+    function actPassTakeAllyFromDiscard() {
+        $this->gamestate->nextState('next');
+    }
+
     function giveKraken(int $toPlayerId) {
         $this->checkAction('giveKraken');
 
