@@ -1,0 +1,17 @@
+{
+    "100": {
+        "name": "Use playmat",
+        "needReload": true,
+        "values": {
+            "1": {
+                "name": "Yes",
+                "cssPref": "playmat_on"
+            },
+            "2": {
+                "name": "No",
+                "cssPref": "playmat_off"
+            }
+        },
+        "default": 1
+    }
+}

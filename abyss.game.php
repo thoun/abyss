@@ -201,7 +201,7 @@ class Abyss extends Table {
         _ when the game starts
         _ when a player refreshes the game page (F5)
     */
-    protected function getAllDatas() {
+    protected function getAllDatas(): array {
         $result = [];
 
         $current_player_id = self::getCurrentPlayerId();    // !! We must only return informations visible by this player !!
@@ -319,7 +319,7 @@ class Abyss extends Table {
         you must _never_ use getCurrentPlayerId() or getCurrentPlayerName(), otherwise it will fail with a "Not logged" error message.
     */
 
-    function zombieTurn($state, $active_player) {
+    function zombieTurn($state, $active_player): void {
     	$statename = $state['name'];
 
         if ($state['type'] === "activeplayer") {

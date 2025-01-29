@@ -1,0 +1,39 @@
+{
+    "110": {
+        "name": "Kraken expansion",
+        "values": {
+            "1": {
+                "name": "Disabled"
+            },
+            "2": {
+                "name": "Enabled",
+                "tmdisplay": "Kraken expansion",
+                "nobeginner": true
+            }
+        },
+        "default": 1
+    },
+    "120": {
+        "name": "Leviathan expansion",
+        "values": {
+            "1": {
+                "name": "Disabled"
+            },
+            "2": {
+                "name": "Enabled",
+                "tmdisplay": "Leviathan expansion",
+                "nobeginner": true
+            }
+        },
+        "default": 1,
+        "startcondition": {
+            "1": [
+                {
+                    "type": "maxplayers",
+                    "value": 4,
+                    "message": "You can only play with 5 players if Leviathan expansion is activated"
+                }
+            ]
+        }
+    }
+}

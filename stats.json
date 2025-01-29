@@ -1,0 +1,57 @@
+
+{
+    "table": {
+        "turns_number": {
+            "id": 10,
+            "name": "Number of turns",
+            "type": "int"
+        }
+    },
+    "player": {
+        "turns_number": {
+            "id": 10,
+            "name": "Number of turns",
+            "type": "int"
+        },
+        "points_from_lords": {
+            "id": 11,
+            "name": "Points from Lords",
+            "type": "int"
+        },
+        "points_from_monsters": {
+            "id": 12,
+            "name": "Points from Monster tokens",
+            "type": "int"
+        },
+        "points_from_allies": {
+            "id": 13,
+            "name": "Points from affiliated Allies",
+            "type": "int"
+        },
+        "points_from_locations": {
+            "id": 14,
+            "name": "Points from Locations",
+            "type": "int"
+        },
+        "times_plotted": {
+            "id": 15,
+            "name": "Pearls spent plotting",
+            "type": "int"
+        },
+        "times_council": {
+            "id": 16,
+            "name": "Number of stacks taken from Council",
+            "type": "int"
+        },
+        "pearls_spent_purchasing_allies": {
+            "id": 17,
+            "name": "Pearls spent purchasing Allies",
+            "type": "int"
+        },
+        "nebulis_spent_purchasing_allies": {
+            "id": 18,
+            "name": "Nebulis spent purchasing Allies",
+            "type": "int"
+        }
+    }
+}
